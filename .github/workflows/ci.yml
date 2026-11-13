@@ -140,13 +140,13 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: donlafranchi/socialus-plan
-          ref: 66342f9ff542177e874aa3511f4aa4115f1aba01
+          ref: b348a928a5cebffe49de277722c41e537ab5c6e4
           path: .knowledge/socialus-plan
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
           repository: donlafranchi/socialus-ops
-          ref: 909fcad293ee01f62284158991d12e80358be216
+          ref: 53585b73fb01d0c596f27b26141215508e7a6752
           path: .knowledge/socialus-ops
           persist-credentials: false
 
@@ -328,8 +328,10 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .next/cache
-          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
-          restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+          # v2 (2026-11-12, PR #1268): the cache main saved at d85e906 failed every build that restored it
+          # ("next/font/google queries have exactly one entry"); a cold build of the same code passes. Bump to start clean.
+          key: next-v2-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: next-v2-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
 
       - name: Build against the local stack
         run: npm run build

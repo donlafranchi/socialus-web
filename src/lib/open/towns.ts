@@ -29,7 +29,8 @@ export interface TownRow {
 }
 
 export interface Contributor {
-  first_name: string
+  /** Null to an anonymous caller (F134.7). */
+  first_name: string | null
   brought: number
   added: number
 }

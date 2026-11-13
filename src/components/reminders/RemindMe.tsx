@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { Bell, BellRing } from 'lucide-react'
 import { Sheet } from '@/components/ui/Sheet'
+import { useSignInFirst } from '@/hooks/useSignInFirst'
 import { NOTIFY_COPY as C } from '@/lib/notify/push/copy'
 
 type SetResult = { ok: true; reminderId: string } | { ok: false }
@@ -36,16 +37,29 @@ export function RemindMeButton({
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
 
+  // F134.4 — signed out, the tap asks for sign-in first and saves nothing; back signed in, it carries on.
+  const gate = useSignInFirst({
+    action: 'remind',
+    target: postId,
+    signedIn: loggedIn,
+    returnTo,
+    onReturn: () => {
+      if (!reminderId) void (repeats ? setChoosing(true) : set(false))
+    },
+  })
   if (!loggedIn) {
     return (
-      <a href={`/auth/login?next=${encodeURIComponent(returnTo)}`} className={CONTROL} data-testid="remind-me-signin">
-        <Bell size={14} aria-hidden="true" />
-        {C.remindMe}
-      </a>
+      <>
+        <button type="button" onClick={() => gate.ask(() => {})} className={CONTROL} data-testid="remind-me-signin">
+          <Bell size={14} aria-hidden="true" />
+          {C.remindMe}
+        </button>
+        {gate.sheet}
+      </>
     )
   }
 
-  const set = async (every: boolean) => {
+  async function set(every: boolean) {
     setChoosing(false)
     setBusy(true)
     const r = await actions.set({ postId, every }).catch(() => ({ ok: false }) as const)

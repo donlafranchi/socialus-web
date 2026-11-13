@@ -33,9 +33,12 @@ describe('RemindMeButton', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Remind me' })).toBeTruthy())
     expect(remove).toHaveBeenCalledWith('r9')
   })
-  it('signed out: asks to sign in and comes back here', () => {
-    render(<RemindMeButton postId="p1" repeats={false} reminderId={null} loggedIn={false} returnTo="/g/x" actions={{ set: ok(), remove: removed() }} />)
-    expect(screen.getByRole('link', { name: 'Remind me' }).getAttribute('href')).toBe('/auth/login?next=%2Fg%2Fx')
+  it('signed out: asks to sign in first and comes back here to finish (F134.4)', () => {
+    const set = ok()
+    render(<RemindMeButton postId="p1" repeats={false} reminderId={null} loggedIn={false} returnTo="/g/x" actions={{ set, remove: removed() }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Remind me' }))
+    expect(screen.getByTestId('sign-in-prompt-continue').getAttribute('href')).toBe(`/auth/login?next=${encodeURIComponent('/g/x?intent=remind%3Ap1')}`)
+    expect(set).not.toHaveBeenCalled()
   })
   it('a refusal says so and stays off', async () => {
     const set = vi.fn(async () => ({ ok: false as const }))

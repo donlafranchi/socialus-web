@@ -12,7 +12,7 @@ import type { QueuedReport, PastDecision } from '@/lib/admin/reports-queue'
 const { query, getUser, create } = vi.hoisted(() => ({ query: vi.fn(), getUser: vi.fn(), create: vi.fn() }))
 vi.mock('../_lib/db', () => ({ withTransaction: vi.fn(async (fn: (c: { query: typeof query }) => unknown) => fn({ query })) }))
 vi.mock('../_lib/event-log', () => ({ appendEvent: vi.fn(async () => undefined) }))
-vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser } })) }))
+vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser, getClaims: async () => { const r = await getUser(); return { data: r?.data?.user ? { claims: { sub: r.data.user.id } } : null, error: r?.error ?? null } } } })) }))
 vi.mock('@/actions', async (importActual) => ({ ...(await importActual<typeof import('@/actions')>()), reportCreate: create }))
 
 import { sendReportAction } from '@/app/_actions/report-actions'

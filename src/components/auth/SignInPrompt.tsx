@@ -15,10 +15,13 @@ import { Sheet } from '@/components/ui/Sheet'
 export function SignInPrompt({
   action,
   currentPath,
+  target = null,
   onClose,
 }: {
   action: GatedAction
   currentPath: string
+  /** F134.4 — what was tapped, so only that control finishes the tap after sign-in. */
+  target?: string | null
   onClose: () => void
 }) {
   const { title, why, signUp } = promptFor(action)
@@ -28,7 +31,7 @@ export function SignInPrompt({
     <Sheet open title={title} onClose={onClose} testId="sign-in-prompt" description={why}>
       <div data-action={action}>
         <Link
-          href={(signUp ? signUpHref : signInHref)(action, currentPath)}
+          href={(signUp ? signUpHref : signInHref)(action, currentPath, target)}
           data-testid="sign-in-prompt-continue"
           className="btn-primary w-full"
           data-autofocus

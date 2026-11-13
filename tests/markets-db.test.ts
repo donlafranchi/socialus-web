@@ -125,7 +125,14 @@ describe.skipIf(!RUNNABLE)('#693 — F103.1 the market is a row', () => {
     try {
       await client.query(`set local role anon`)
       expect((await client.query(`select slug from public.markets`)).rows.length).toBeGreaterThanOrEqual(2)
-      expect((await client.query(`update public.markets set is_open = true`)).rowCount).toBe(0)
+      // F134.5 — signed out holds no write privilege at all, so the update is refused, not merely matched to nothing.
+      await expect(client.query(`update public.markets set is_open = true`)).rejects.toThrow(/permission/i)
+    } finally {
+      await client.query('rollback')
+    }
+    await client.query('begin')
+    try {
+      await client.query(`set local role anon`)
       await expect(client.query(`insert into public.markets (slug, name) values ('x', 'X')`)).rejects.toThrow(/row-level|permission/i)
     } finally {
       await client.query('rollback')

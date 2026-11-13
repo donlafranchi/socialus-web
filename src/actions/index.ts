@@ -37,6 +37,7 @@ import {
 import { searchDemandLog } from './search'
 import { shelfLog } from './shelf'
 import { mapLog } from './map'
+import { usageLog } from './usage'
 import { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide } from './wonder'
 import {
   groupCreate,
@@ -134,6 +135,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'shelf.log': shelfLog as unknown as NamedActionHandler<unknown, unknown>,
   // plan #258 — Show on map and Directions taps per day, with no member id.
   'map.log': mapLog as unknown as NamedActionHandler<unknown, unknown>,
+  // F133 — usage counts: a part of the app used, or a step reached, with no member id.
+  'usage.log': usageLog as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_leave': groupMemberLeave as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_join': groupMemberJoin as unknown as NamedActionHandler<unknown, unknown>,
   // F067 — following a Page. Privacy decides follow vs join.
@@ -233,6 +236,7 @@ export type { MemberHeartSetInput, MemberPostCreateInput } from './member'
 export { searchDemandLog } from './search'
 export { shelfLog, SHELF_EVENTS } from './shelf'
 export { mapLog, MAP_TAP_KINDS } from './map'
+export { usageLog, USAGE_PARTS, FUNNEL_STEPS, type UsagePart, type FunnelStep } from './usage'
 export { townMakerAdd, townCreditSet, DAILY_ADDS, type TownMakerAddResult } from './town'
 export { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide, PICK_A_SIZE } from './wonder'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'

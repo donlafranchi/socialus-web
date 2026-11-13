@@ -156,11 +156,15 @@ describe.skipIf(!RUNNABLE)('#1183 — posting without a Page', () => {
     await expect(post(POSTER, { kind: 'ask', body: 'A good tailor?' })).rejects.toThrow('You have 3 posts up. Take one down to post another.')
   })
 
-  it('signed with display name and neighborhood, never a member id, to signed-in readers only', async () => {
+  // F134 — signed out reads the post too, with no name or avatar (names stay between members, F134.7).
+  it('signed with display name and neighborhood to members; signed out, the same post without a name; never a member id', async () => {
     const seen = (await read(READER)).find((p) => p.id === lost)!
     expect(seen).toMatchObject({ kind: 'lost_found', displayName: 'Rosa P', placeName: 'Curtis Park', mine: false, answers: null })
     expect(JSON.stringify(seen)).not.toContain(POSTER)
-    expect(await read(null)).toEqual([])
+    const out = (await read(null)).find((p) => p.id === lost)!
+    expect(out).toMatchObject({ kind: 'lost_found', body: seen.body, placeName: 'Curtis Park', displayName: null, avatarUrl: null })
+    expect(JSON.stringify(out)).not.toContain(POSTER)
+    expect(JSON.stringify(out)).not.toContain('Rosa P')
   })
 
   it('search finds it by its words', async () => {

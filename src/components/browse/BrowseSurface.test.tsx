@@ -25,13 +25,15 @@ vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false
 vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
-const browseMapAction = vi.fn()
+const browseMapAction = vi.fn(async (..._args: unknown[]): Promise<unknown[]> => [])
 vi.mock('@/app/explore/actions', () => ({
   browseMapAction: (...args: unknown[]) => browseMapAction(...args),
   browseFeedAction: (...args: unknown[]) => browseFeedAction(...args),
   searchAreasAction: async () => [{ id: 'p-1', name: 'Midtown' }],
 }))
 
+// F134 — Explore's neighbour search and pins run signed out too; neither is what these tests are about.
+vi.mock('@/app/_actions/member-post-actions', () => ({ searchMemberPostsAction: async () => [] }))
 vi.mock('@/hooks/useScrollRestoration', () => ({ useScrollRestoration: () => {} }))
 
 const SAC = { id: 'm1', slug: 'sacramento-roseville-ca', name: 'Sacramento-Roseville, CA', isOpen: true }
@@ -59,9 +61,6 @@ function result(over: Partial<BrowseResult> = {}): BrowseResult {
     updatedAt: '2026-09-02T00:00:00Z',
     postedAt: null,
     sortAt: '2026-09-02T00:00:00Z',
-    withheld: false,
-    announcementCount: null,
-    announcementIds: null,
     ...over,
   }
 }
@@ -353,10 +352,10 @@ describe('#549 — the pins come after the list', () => {
     await waitFor(() => expect(browseMapAction).toHaveBeenCalledWith(SAC.id, null))
   })
 
-  it('a signed-out visitor never asks: there are no pins there', async () => {
+  // F134 — signed out, the pins come too.
+  it('a signed-out visitor asks too, for the metro on screen', async () => {
     renderExplore(<BrowseSurface initial={snapshot({ signedIn: false, metro: SAC })} />)
-    await new Promise((r) => setTimeout(r, 20))
-    expect(browseMapAction).not.toHaveBeenCalled()
+    await waitFor(() => expect(browseMapAction).toHaveBeenCalledWith(SAC.id, null))
   })
 })
 

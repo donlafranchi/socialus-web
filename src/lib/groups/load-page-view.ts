@@ -25,24 +25,12 @@ import {
 } from './resolve-shop'
 import { resolvePagePosts, type PagePost } from './page-posts'
 import { countPageFollowers } from '@/lib/follows/follower-count'
-import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
-import { metroWeekBounds } from '@/lib/metro/metro-week'
-import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 export interface PageView {
   /** #625 — the owner's own name and description while a report hides them from others; null otherwise. */
   ownWords: { name: string; description: string } | null
   items: ShopItem[]
   posts: PagePost[]
-  /**
-   * F093 — the same announcements, in the form a stranger may see: which ones
-   * exist and how many this week, never what they say.
-   *
-   * Always `[]` for a signed-in member, who has `posts` instead. The two are
-   * never both populated, and that is the shape of criterion 6: the signed-in
-   * surface is not a withheld surface with extra fields, it is untouched.
-   */
-  withheldPosts: BrowseResult[]
   badge: LocalOwnerBadge | null
   ownerClaim: OwnerClaim | null
   viewerOwnsPage: boolean
@@ -63,11 +51,11 @@ export interface PageView {
   contactOn: boolean
   /** #363 — Products & services: on for a business, added by any other Page. */
   productsOn: boolean
-  /** #316 — the Page's tags; empty signed out (F093). */
+  /** #316 — the Page's tags. */
   tags: string[]
-  /** #293 — phone and hours, for signed-in visitors only; null signed out. */
+  /** #293 — phone and hours; the phone is null signed out (F134). */
   contact: PageContact | null
-  /** #348 — where it is: signed-in visitors only; null signed out. */
+  /** #348 — where it is. */
   where: PageWhere | null
 }
 
@@ -82,7 +70,7 @@ export async function loadPageView(
   const viewerMemberId = await viewerId(supabase)
   const signedIn = viewerMemberId !== null
 
-  const [items, posts, badge, ownerClaim, owns, relationship, tags, contact, where, withheldPosts, metadata] = await Promise.all([
+  const [items, posts, badge, ownerClaim, owns, relationship, tags, contact, where, metadata] = await Promise.all([
     resolveShopItems(supabase, shop.groupId),
     // RLS is the visibility gate here too: the owner's own posts come back for
     // the owner and for nobody else.
@@ -105,29 +93,11 @@ export async function loadPageView(
       kind: shop.kind,
     }),
     viewerRelationship(supabase, { groupId: shop.groupId, viewerMemberId }),
-    signedIn ? resolvePageTags(supabase, shop.groupId) : Promise.resolve([] as string[]),
-    signedIn ? resolvePageContact(supabase, shop.groupId) : Promise.resolve(null),
-    signedIn ? resolvePageWhere(supabase, shop.groupId) : Promise.resolve(null),
-    // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
-    // this the Announcements section would not render at all and an
-    // `#announcement-<id>` link from Explore would scroll to nothing. That is
-    // the dead end #211 fixed, reintroduced at a different door.
-    //
-    // A failure costs the announcements and never the Page, the rule
-    // `resolvePagePosts` already follows.
-    signedIn
-      ? Promise.resolve([] as BrowseResult[])
-      : getWithheldAnnouncements(supabase, {
-          scope: { groupId: shop.groupId },
-          period: metroWeekBounds(),
-        }).catch((error) => {
-          console.error('[loadPageView] withheld announcements failed:', (error as Error).message)
-          return [] as BrowseResult[]
-        }),
-    // One read of metadata: the owner's components, and whether a signed-in
-    // visitor sees Products & services (#363: a component any Page can add).
-    // An owner is always signed in, so signed in is the whole condition.
-    signedIn ? resolvePageMetadata(supabase, shop.groupId) : Promise.resolve(null),
+    // F134 — tags, hours and where read signed out as a signed-in stranger reads them; the phone stays for members.
+    resolvePageTags(supabase, shop.groupId),
+    resolvePageContact(supabase, shop.groupId, signedIn),
+    resolvePageWhere(supabase, shop.groupId),
+    resolvePageMetadata(supabase, shop.groupId),
   ])
 
   // Asked for only when there is somewhere to show it. RLS would return zero
@@ -165,7 +135,6 @@ export async function loadPageView(
     ownWords,
     items,
     posts,
-    withheldPosts,
     badge,
     ownerClaim,
     viewerOwnsPage: owns,

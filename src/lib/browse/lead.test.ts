@@ -12,8 +12,7 @@ function r(over: Partial<BrowseResult> = {}): BrowseResult {
   return {
     resultKind: 'page', resultId: `id${n}`, groupId: `g${n}`, groupKind: 'business', slug: `s${n}`, name: `Name ${n}`, href: `/g/${n}`,
     photoUrl: null, description: null, body: null, tags: [], startsAt: null, locationId: null, locationLabel: null, longitude: null, latitude: null,
-    pageCreatedAt: '2026-09-01T00:00:00Z', updatedAt: '2026-09-02T00:00:00Z', postedAt: null, sortAt: '2026-09-02T00:00:00Z',
-    withheld: false, announcementCount: null, announcementIds: null, ...over,
+    pageCreatedAt: '2026-09-01T00:00:00Z', updatedAt: '2026-09-02T00:00:00Z', postedAt: null, sortAt: '2026-09-02T00:00:00Z', ...over,
   }
 }
 const post = (over: Partial<BrowseResult> = {}) => r({ resultKind: 'post', postedAt: '2026-10-01T00:00:00Z', ...over })
@@ -71,12 +70,6 @@ describe('#796 — the first look is what is new or happening soon', () => {
     expect(pickLead(many, opts({ seed: 'aaaaaaaaaaaaaaaa' })).lead.map(leadKey)).toEqual(a)
   })
 
-  it('signed out, a Page that posted since the last visit leads as its "sign in to see" card, so the front door stays alive (F093.7)', () => {
-    const card = post({ withheld: true, announcementCount: 2, sortAt: '2026-10-14T18:00:00Z', postedAt: null })
-    const stale = post({ withheld: true, announcementCount: 1, sortAt: '2026-10-01T18:00:00Z', postedAt: null })
-    const { lead } = pickLead([...oldPages(5), card, stale], opts())
-    expect(lead.map(leadKey)).toEqual([leadKey(card)])
-  })
 
   it('a first visit counts the last week as new', () => {
     const lastWeek = r({ pageCreatedAt: '2026-10-10T00:00:00Z' })

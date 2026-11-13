@@ -20,7 +20,14 @@ export function splitSuite(sql: string): { preamble: string; tests: { name: stri
   return { preamble, tests }
 }
 
-export function runSqlSuite(opts: { file: string; title: string; claim: string; atLeast: number }): void {
+export function runSqlSuite(opts: {
+  file: string
+  title: string
+  claim: string
+  atLeast: number
+  /** Per test, in ms. A suite whose preamble can wait on another suite's open transaction (the role grant) sets it. */
+  timeout?: number
+}): void {
   const DATABASE_URL =
     process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL
   const safety = databaseWriteSafety(DATABASE_URL, process.env)
@@ -63,7 +70,7 @@ export function runSqlSuite(opts: { file: string; title: string; claim: string; 
         } finally {
           await client.query('rollback')
         }
-      })
+      }, opts.timeout)
     }
   })
 }

@@ -43,7 +43,7 @@ export function useRequiresAccount() {
    * The intent carried back from sign-in, so the surface can finish what the
    * person started instead of making them find the control again.
    */
-  const returningIntent = signedIn ? parseIntent(params.get('intent')) : null
+  const returningIntent = signedIn ? parseIntent(params.get('intent'))?.action ?? null : null
 
   return {
     signedIn,

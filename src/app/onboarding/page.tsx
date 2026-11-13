@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow'
+import { countUse } from '@/lib/usage/count-use'
 
 export default async function OnboardingPage() {
   const supabase = await createClient()
@@ -37,6 +38,8 @@ export default async function OnboardingPage() {
   // F077.1 — a member who never gave a legal name stays here until they do.
   const named = Boolean(m?.legal_name?.trim()) || user.app_metadata?.builder === true
   if ((home || user.user_metadata?.onboarded === true) && phoneVerified && named) redirect('/')
+  // F133 — the first sign-up step a member can be counted at: signed in, with onboarding still to do.
+  await countUse({ step: 'signed_in' }, user.id)
 
   return (
     <OnboardingFlow

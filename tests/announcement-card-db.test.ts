@@ -120,7 +120,10 @@ describe.skipIf(!RUNNABLE)("an announcement's place and posted date, on its card
     expect(rows.map((r) => r.posted_at?.toISOString())).toEqual([POSTED, POSTED])
   })
 
-  it('reaches no signed-out caller', async () => {
-    expect(await posts(null)).toEqual([])
+  // F134 — a signed-out caller gets the same card a signed-in stranger gets: place, pin and posted date.
+  it('reaches a signed-out caller exactly as a signed-in stranger', async () => {
+    const out = await posts(null)
+    expect(out.length).toBeGreaterThan(0)
+    expect(out).toEqual(await posts(VISITOR))
   })
 })

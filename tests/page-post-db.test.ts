@@ -188,20 +188,11 @@ describe.skipIf(!RUNNABLE)('F072 — posting, for real', () => {
   // The original intent survives inverted rather than deleted: a post nobody
   // can find is not a post, so the assertion moved from the table to the
   // withheld path rather than being dropped.
-  it('is findable by a stranger, and not readable — F093', async () => {
+  // F134 — a listed post on a listed Page is read signed out as signed in, body and all.
+  it('is readable by a stranger signed out, as signed in (F134)', async () => {
     const created = await groupPostCreate(ctx(OWNER), { groupId: SHOP, body: 'Market stall Saturday.' })
-
-    const readable = await asAnon<{ id: string }>(
-      `select id from public.page_posts where id = $1`,
-      [created.postId],
-    )
-    expect(readable).toHaveLength(0)
-
-    const findable = await asAnon<{ result_id: string }>(
-      `select result_id from public.announcements_withheld(p_group_id => $1)`,
-      [SHOP],
-    )
-    expect(findable.map((r) => r.result_id)).toContain(created.postId)
+    const readable = await asAnon<{ id: string; body: string }>(`select id, body from public.page_posts where id = $1`, [created.postId])
+    expect(readable).toEqual([{ id: created.postId, body: 'Market stall Saturday.' }])
   })
 
   it('is withheld from a stranger once its Page stops being listed', async () => {
@@ -232,7 +223,8 @@ describe.skipIf(!RUNNABLE)('F072 — posting, for real', () => {
     // on a table that had just been emptied. So this asserts the row is still
     // there afterwards.
     const created = await groupPostCreate(ctx(OWNER), { groupId: SHOP, body: 'Stays put.' })
-    await asAnon(`delete from public.page_posts where id = $1`, [created.postId])
+    // F134.5 — refused outright now (no delete privilege), where before it quietly deleted nothing.
+    await expect(asAnon(`delete from public.page_posts where id = $1`, [created.postId])).rejects.toThrow(/permission denied/)
     const still = await client.query(`select id from public.page_posts where id = $1`, [created.postId])
     expect(still.rowCount).toBe(1)
   })

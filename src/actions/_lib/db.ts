@@ -11,6 +11,7 @@
 // wrapper enforces this.
 
 import { Pool, type PoolClient } from 'pg'
+import { attachDatabasePool } from '@vercel/functions'
 import { resolveConnectionString, toTransactionPooler } from './db-config'
 
 // One pool per instance, kept on globalThis so a dev reload never opens a second.
@@ -41,10 +42,18 @@ export function getPool(): Pool {
   // query here is unnamed, which node-postgres runs without caching a
   // statement), no session state outlives a transaction, and no connection is
   // opened per request. An idle function exits instead of holding a client.
+  //
+  // #1269 — 10, node-postgres's own default, not 3. One instance serves many
+  // requests at once (Vercel's Fluid compute), and the load simulation's 1,000
+  // signed-in viewers queued behind 3 until requests timed out. Through the
+  // transaction pooler a client holds a server connection only for the length
+  // of a query, so the pooler's client limit (200 on the smallest plan), not its
+  // server pool, is what this spends. attachDatabasePool is Vercel's own hook
+  // for this: idle clients are closed before an instance is suspended.
   const max = Number.parseInt(process.env.DB_POOL_MAX ?? '', 10)
   pool = new Pool({
     connectionString: toTransactionPooler(resolved.connectionString, process.env),
-    max: Number.isFinite(max) && max > 0 ? max : 3,
+    max: Number.isFinite(max) && max > 0 ? max : 10,
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 5_000,
     allowExitOnIdle: true,
@@ -52,6 +61,7 @@ export function getPool(): Pool {
   pool.on('error', () => {
     // An idle client the pooler dropped: the next query opens a fresh one.
   })
+  attachDatabasePool(pool)
   g.__socialusPool = pool
   return pool
 }

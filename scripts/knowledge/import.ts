@@ -17,7 +17,8 @@
 // "their words are not edited"); so a ruling that moves files, gains a tag or
 // a why is revised in place with a new version, and one that is unchanged is
 // left alone. A ruling gone from socialus-plan is retired against the newer
-// ruling whose `[replaces …]` names it; one with no replacement is left live
+// ruling whose `[replaces …]` names it, by its date or its scenario
+// (replacesTagNames); one with no replacement is left live
 // and listed in the run's summary, because the store refuses to retire a
 // decision without one (F125.2). Ontology entries are matched by name.
 //
@@ -37,6 +38,11 @@ import {
 } from './plan-source'
 import { placeOf, ABSOLUTE_CONCERN, CONCERN_DEPARTMENT } from './concerns'
 import { inferApplies } from './infer'
+import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
+import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
+import { loadPractices, readPracticeSeed, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
+import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
+import { loadRuns, runsReport, type RunsSummary } from './runs'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -47,6 +53,14 @@ export interface Sources {
   registryPath: string
   /** The commits read, for each change's evidence. */
   commits?: { plan?: string; ops?: string; web?: string }
+  /** F130: the traced concept timelines; scripts/knowledge/concepts-seed.json unless given. */
+  seed?: Seed
+  /** F128: how we work; scripts/knowledge/practices-seed.json unless given (null: skip). */
+  practices?: PracticeSeed | null
+  /** F132: the story maps. Left out, no map is loaded (the fixtures' imports). */
+  maps?: MapSources
+  /** F135: routines.json and runs-seed.json; false skips them. */
+  runs?: false
 }
 
 export interface Summary {
@@ -59,12 +73,39 @@ export interface Summary {
   goneWithoutReplacement: string[]
   /** Changes the store's functions do not offer (an ontology entry's status moving to live). */
   blocked: string[]
+  /** F130: concepts, ideas and the scenarios that name them. */
+  concepts?: ConceptSummary
+  /** F127: each scenario as a feature with one slice, its horizon and rank. */
+  plans?: PlanSummary
+  /** F128: practices and experiments. */
+  practices?: PracticeSummary
+  /** F132: journeys, slices across them, and where features and ideas sit. */
+  maps?: MapSummary
+  /** F135: routines, and the runs from before runs recorded themselves. */
+  runs?: RunsSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
 export const PERSON = 'the PM'
 
 const PLAN_SOURCE = /^([^:#]+\.md):(\d+)$/
+
+/**
+ * Whether a `[replaces …]` tag names a ruling gone from socialus-plan. The
+ * method (socialus-ops process/ABSOLUTES.md § newer-decision-wins) allows two
+ * forms that name a ruling: `[replaces 2026-09-22: old text]`, by the old
+ * ruling's date, and `[replaces F059: old text]`, by the scenario it sat in.
+ * Either way the old text is the ruling's words, or a clause of them.
+ */
+export function replacesTagNames(tag: string, gone: { decided_on: string | null; source: string | null; answer: string }): boolean {
+  const m = /^\[replaces (\d{4}-\d{2}-\d{2}|F\d{3,}): (.+)\]$/.exec(tag)
+  if (!m) return false
+  const where = m[1].startsWith('F')
+    ? !!gone.source && gone.source.startsWith(`planning/scenario-${m[1]}.md:`)
+    : m[1] === gone.decided_on
+  const words = m[2].trim()
+  return where && (gone.answer.includes(words) || words.includes(gone.answer))
+}
 
 // ---------------------------------------------------------------------------
 // Entering and leaving the store's login.
@@ -348,12 +389,7 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     if (!fromRulings && !fromRegistry) continue
     let replacedBy: string | null = null
     if (fromRulings) {
-      const newer = rulings.find((r) =>
-        r.replaces.some((t) => {
-          const m = /^\[replaces (\d{4}-\d{2}-\d{2}): (.+)\]$/.exec(t)
-          return !!m && m[1] === gone.decided_on && (gone.answer.includes(m[2].trim()) || m[2].includes(gone.answer))
-        }),
-      )
+      const newer = rulings.find((r) => r.replaces.some((t) => replacesTagNames(t, gone)))
       replacedBy = newer ? idOfKey.get(rulingKey(newer.date, newer.words)) ?? null : null
       if (!replacedBy) {
         summary.goneWithoutReplacement.push(`${gone.id} (${gone.decided_on}): ${gone.answer}`)
@@ -397,6 +433,35 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     )
     if (rows[0].r.id) summary.links++
   }
+
+  // F130: concepts. The traced timelines, IMAGINE.md's ideas, and each
+  // scenario's `concept:` frontmatter.
+  summary.concepts = await loadConcepts(db, {
+    seed: src.seed ?? readSeed(),
+    ideas: readImagine(resolve(src.planDir, 'IMAGINE.md')),
+    scenarios: readScenarios(src.planDir),
+    commits: { plan: src.commits?.plan, web: src.commits?.web },
+    today,
+  })
+  // F127: today's plan, after concepts so a scenario they made is not made twice.
+  summary.plans = await loadPlans(db, readPlannedScenarios(src.planDir), src.commits?.plan)
+
+  // F128: how we work. The practices and experiments seed, and the
+  // review-a-method steps from socialus-ops.
+  const practices = src.practices === undefined ? readPracticeSeed() : src.practices
+  if (practices) {
+    summary.practices = await loadPractices(db, {
+      seed: practices,
+      steps: readReviewSteps(src.opsDir),
+      commits: { ops: src.commits?.ops, web: src.commits?.web },
+      today,
+    })
+  }
+  // F132: story maps, after plans and concepts, whose features and ideas they place.
+  if (src.maps) summary.maps = await loadMaps(db, src.maps)
+  // F135: which practices are routines, and run one (runs-seed.json), after
+  // the practices they belong to. Later runs record themselves.
+  if (src.runs !== false) summary.runs = await loadRuns(db)
   return summary
 }
 
@@ -420,6 +485,7 @@ async function main(): Promise<void> {
     opsDir,
     registryPath: resolve(__dirname, '..', '..', 'src', 'ontology', 'registry.json'),
     commits: { plan: process.env.PLAN_COMMIT, ops: process.env.OPS_COMMIT, web: process.env.GITHUB_SHA },
+    maps: { seed: readMapSeed(), walkthroughs: readWalkthroughs(planDir), rollup: readRollup() },
   }
   const { exportConstraints } = await import('./export')
   const { readFileSync } = await import('node:fs')
@@ -445,6 +511,11 @@ async function main(): Promise<void> {
       `- Retired: ${summary.retired}`,
       `- New links: ${summary.links}`,
       `- The store's constraints/code.md matches socialus-plan's: ${matches ? 'yes' : 'NO'}`,
+      ...(summary.concepts ? conceptReport(summary.concepts) : []),
+      ...(summary.plans ? planReport(summary.plans) : []),
+      ...(summary.practices ? practiceReport(summary.practices) : []),
+      ...(summary.maps ? mapReport(summary.maps) : []),
+      ...(summary.runs ? runsReport(summary.runs) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),

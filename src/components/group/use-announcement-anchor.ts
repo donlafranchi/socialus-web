@@ -1,12 +1,6 @@
 'use client'
 
-// bug #211, generalised by F093 — arrive on the announcement you tapped.
-//
-// Lifted out of `PagePosts` when the signed-out Page gained its own list
-// (F093 criterion 9). Two surfaces now render announcements a fragment can
-// name — one with bodies for a member, one withheld for a stranger — and an
-// `#announcement-<id>` link has to land the same way on both. Two copies of
-// this effect is how they stop landing the same way.
+// bug #211 — arrive on the announcement you tapped, signed in or out (F134.8).
 
 import { useEffect, useRef, useState } from 'react'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'

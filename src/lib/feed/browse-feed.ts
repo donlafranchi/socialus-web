@@ -203,25 +203,6 @@ export interface BrowseResult {
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
   sortAt: string
   /**
-   * F093 — this row is the signed-out form: which Page posted, and how many
-   * it has this period. No body, no time, no place.
-   *
-   * A flag rather than a separate type, so signed-out Explore keeps its
-   * post-kind rows (criterion 7) through the same grid, the same search and
-   * the same map without any of them learning about two shapes. It is always
-   * a boolean and never undefined: a surface asking `withheld` must not have
-   * a third state to get wrong.
-   */
-  withheld: boolean
-  /**
-   * F093 criterion 5 — announcements this Page has in the current period.
-   * Null on anything a reader can actually read, because a member reads the
-   * announcement itself rather than a count of them.
-   */
-  announcementCount: number | null
-  /** F093 — every announcement id a withheld Page card answers to. */
-  announcementIds: string[] | null
-  /**
    * #922 — a Page card's quick links (signed in only, with the location): its website, Instagram and TikTok
    * when it has them, and whether it sits at a fixed point Directions can go to.
    */
@@ -323,10 +304,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?:
     postKind: isPostKind(r.post_kind) ? r.post_kind : null,
     headline: maskEmailsOrNull(r.headline ?? null),
     sortAt: r.sort_at,
-    withheld: false,
-    announcementCount: null,
-    announcementIds: null,
-    // Quick links ride with the point: browse_feed withholds it from a signed-out reader (F093 criterion 8).
+    // Quick links ride with the point.
     quickLinks: r.result_kind === 'page' && extras?.linksRead && point.latitude !== null ? quickLinksOf(extras) : null,
     pageAvatarUrl: extras?.avatarUrl ?? null,
   }
@@ -502,9 +480,8 @@ async function fetchPageExtras(
   const ids = Array.from(new Set(rows.map((r) => r.group_id).filter(Boolean)))
   const out = new Map<string, PageExtras>()
   if (ids.length === 0) return out
-  // #922 — the quick links come in the same read, and only for a reader browse_feed gave a point to: a
-  // signed-out reader has neither the point (F093.8) nor the grant on where_mode or the anchor, and asking
-  // for them would fail the whole lookup and with it every card's link.
+  // #922 — the quick links come in the same read, and only when browse_feed gave a Page a point (F134: signed out
+  // too): a row with no point has nothing for Directions to go to.
   const withLinks = rows.some((r) => r.result_kind === 'page' && r.location_geography)
   const base = 'id, public_id, place_url_slug, page_url_slug, picture_url, picture_hidden_at, picture_removed_at'
   const read = (cols: string) => supabase.from('groups').select(cols).in('id', ids)

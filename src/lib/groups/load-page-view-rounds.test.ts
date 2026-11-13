@@ -31,7 +31,6 @@ vi.mock('./resolve-shop', () => ({
 }))
 vi.mock('./page-posts', () => ({ resolvePagePosts: slow('posts', []) }))
 vi.mock('@/lib/follows/follower-count', () => ({ countPageFollowers: slow('followers', 0) }))
-vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements: slow('withheld', []) }))
 
 import { loadPageView } from './load-page-view'
 const SHOP = { groupId: 'g-1', anchorLocationId: null, kind: 'business', lifecycleState: 'active' }
@@ -67,7 +66,7 @@ describe('loadPageView starts independent reads together (#529)', () => {
     // claim, owns, relationship, tags, contact, where, metadata
     expect(state.max).toBeGreaterThanOrEqual(7)
   })
-  it('a signed-out visitor: claim, owns, relationship and the withheld list together', async () => {
+  it('a signed-out visitor: every read in flight at once, as signed in (F134)', async () => {
     await loadPageView(asUser(null), SHOP as never)
     expect(state.max).toBeGreaterThanOrEqual(4)
   })

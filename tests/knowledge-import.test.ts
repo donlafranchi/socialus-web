@@ -129,20 +129,34 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
       `select count(*) as n, count(*) filter (where person = 'the PM' and agent = $1) as named from knowledge.history`,
       [agent],
     )
-    expect(Number(rows[0].n)).toBe(first.recorded)
-    expect(Number(rows[0].named)).toBe(first.recorded)
+    // F130: the concepts the import loads (the traced timelines, IMAGINE.md's
+    // ideas, and the scenarios that name them) are recorded by the same run.
+    const c = first.concepts!
+    // F127: and every scenario as a feature with its first slice.
+    const p = first.plans!
+    // F128: so are the practices and experiments, and each verdict.
+    const pr = first.practices
+    const all = first.recorded + c.conceptsRecorded + c.conceptsRevised + c.ideasRecorded + c.features +
+      p.features + p.slices + p.moved + p.statusChanged +
+      (pr ? pr.recorded + pr.revised + pr.experiments + pr.verdicts : 0) +
+      (first.runs?.versions ?? 0) // F135: run one and the ideas it left
+    expect(Number(rows[0].n)).toBe(all)
+    expect(Number(rows[0].named)).toBe(all)
   })
 
   it('changes nothing when run again on the same files', () => {
     expect(first.recorded).toBeGreaterThan(0)
     expect(second).toMatchObject({ recorded: 0, revised: 0, retired: 0, links: 0, unchanged: first.recorded })
     expect(second.goneWithoutReplacement).toEqual([])
+    // F127: the second run makes and moves no slice.
+    expect(second.plans).toMatchObject({ features: 0, slices: 0, moved: 0, statusChanged: 0, depends: 0 })
   })
 
   // [guards F125.10 partial: departs_from, since the rulings state no departures for the import to bring in]
   it('marks every applies link it guessed as inferred, and one call lists them per principle', async () => {
     const { rows } = await db.query<{ basis: string; reason: string }>(
-      `select basis, reason from knowledge.links where type = 'applies'`,
+      // F128: a practice's applies links are stated in its seed, not guessed from a ruling.
+      `select basis, reason from knowledge.links where type = 'applies' and from_id not like 'practice.%'`,
     )
     expect(rows.length).toBeGreaterThan(0)
     for (const r of rows) {

@@ -14,6 +14,12 @@
 import { z, type ZodRawShape } from 'zod'
 import type { ClientBase } from 'pg'
 import * as k from './lookups'
+import { PLAN_TOOLS } from './plans' // F127
+import { renderPack, REVIEW_METHOD_ID } from './pack'
+import { CAPABILITY_TOOLS } from './capabilities' // F129
+import { ANSWER_TOOLS } from './answers' // F131
+import { MAP_TOOLS } from './maps' // F132
+import { RUN_TOOLS } from './runs' // F135
 
 export interface ToolResult {
   text: string
@@ -41,6 +47,16 @@ const notFound = (id: string): ToolResult => ({
 
 const json = (v: unknown): ToolResult => ({ text: JSON.stringify(v) })
 
+/**
+ * A date as a line shows it: without the year when it is this year, as a
+ * calendar does (#1284: the moderation answer's 25 dates were over 5% of its
+ * 2,000-token budget).
+ */
+export function shortDate(d: string | null, thisYear = new Date().getUTCFullYear()): string | null {
+  if (!d) return d
+  return d.startsWith(`${thisYear}-`) ? d.slice(5) : d
+}
+
 /** One line per record: id, how strict, how long it holds, when, the words, what it applies. */
 function line(r: k.RecordRow & { applies?: { id: string; basis: string }[] }): string {
   const meta = [
@@ -50,7 +66,7 @@ function line(r: k.RecordRow & { applies?: { id: string; basis: string }[] }): s
     r.holds === 'for now' ? `for now${r.until ? ` (until ${r.until})` : ''}` : r.holds,
     r.settled ? 'settled' : null,
     r.status === 'live' ? null : r.status,
-    r.decided_on,
+    shortDate(r.decided_on),
   ].filter(Boolean)
   const applies = r.applies?.length
     ? ` [applies ${r.applies.map((a) => (a.basis === 'inferred' ? `${a.id}~` : a.id)).join(', ')}]`
@@ -70,7 +86,7 @@ export const TOOLS: KnowledgeTool[] = [
     name: 'live',
     description:
       'Every live decision and principle for one concern, strictest first, one line each: id, strength (absolute or rule; unmarked is a guideline), ' +
-      'whether it holds always or for now, its date, its words, and the principles it applies (~ marks a link inferred at import). ' +
+      'whether it holds always or for now, its date (MM-DD this year), its words, and the principles it applies (~ marks a link inferred at import). ' +
       'Start here before building in a concern; ask why(id) for the reason behind one.',
     input: { concern: z.string().describe('A concern slug, such as moderation-and-reports or explore-and-map.') },
     run: async (db, { concern }) => {
@@ -263,6 +279,140 @@ export const TOOLS: KnowledgeTool[] = [
         )
       }
       return { text: parts.join('\n') }
+    },
+  }),
+
+  define({
+    name: 'concept',
+    description:
+      'How a concept changed and why, in one call. Give a concept id (CO-0001) or any name it ever had, refused names included. ' +
+      'Returns its current name and status, every name with its date and whether it was used or refused, every change by date ' +
+      '(idea, scoped, ruling, renamed, split, merged, cut, deferred, built, reversed) with its evidence and the PM\'s own words, ' +
+      'and its lineage: what it split from, merged into or became, and the scenarios that scope it.',
+    input: { concept: z.string().min(1).describe('A concept id, such as CO-0001, or a name it has had, such as Bulletins.') },
+    run: async (db, { concept }) => {
+      const found = await k.findConcept(db, concept)
+      const ids = [...new Set(found.map((f) => f.id))]
+      if (ids.length === 0) {
+        await db.query('select knowledge.log_unanswered($1, null, $2)', [concept, 'concept'])
+        return { text: `No concept called or numbered "${concept}" that this key can read. The question is kept as unanswered.`, isError: true }
+      }
+      if (ids.length > 1) {
+        return { text: `"${concept}" names more than one concept: ${found.map((f) => `${f.id} (${f.state} "${f.matched}")`).join(', ')}. Ask by id.` }
+      }
+      const t = await k.conceptTimeline(db, ids[0])
+      if (!t) return notFound(ids[0])
+      const ev = (e: { kind: string; ref: string }[]) => e.map((x) => `${x.kind.replace('_', ' ')} ${x.ref}`).join(', ')
+      const lines = [
+        `${t.concept.id} · ${t.concept.status}: ${t.concept.name}${t.concept.concern ? ` (${t.concept.concern})` : ''}`,
+        t.concept.why ? `Why: ${t.concept.why}` : null,
+        'Names:',
+        ...t.names.map((n) => `- ${n.on} ${n.state === 'refused' ? 'REFUSED ' : ''}"${n.name}"${n.ruling ? ` [ruling ${n.ruling}]` : ''} (${ev(n.evidence)})${n.note ? ` ${n.note}` : ''}`),
+        'Changes:',
+        ...(t.events.length
+          ? t.events.map((e) => `- ${e.on} ${e.type}: ${e.what} (${ev(e.evidence)})${e.pm_words ? ` The PM: "${e.pm_words}"` : ''}${e.ruling ? ` [ruling ${e.ruling}]` : ''}`)
+          : ['- none recorded']),
+        'Lineage:',
+        ...(t.lineage.length
+          ? t.lineage.map((l) => `- ${l.from} ${l.type} ${l.to}: ${l.other} (${l.other_kind}, ${l.other_status})`)
+          : ['- none']),
+      ].filter((x): x is string => x !== null)
+      return { text: lines.join('\n') }
+    },
+  }),
+
+  ...PLAN_TOOLS, // F127: plan, plan_changes, roadmap
+  ...CAPABILITY_TOOLS, // F129: can_do
+  ...ANSWER_TOOLS, // F131: built, where, next
+  ...MAP_TOOLS, // F132: story_map, fits, place_on_map, propose_map_change, decide_map_change
+  ...RUN_TOOLS, // F135: runs, drop_idea
+
+  define({
+    name: 'how',
+    description:
+      'How something in our way of working runs, from the live practices: give a question ("how does our DevOps work") or an area ' +
+      '(deciding, planning, building, reviewing, shipping, words, agents, docs). DevOps reads building, reviewing and shipping. ' +
+      'One line per practice, strictest first: its id, strength, ring (adopt, trial, assess, hold), its words, the check that enforces it ' +
+      'and the philosophies it applies. Ask why(id) for the reason behind one.',
+    input: { question: z.string().min(1).describe('A question or an area, such as "how does our DevOps work" or "review".') },
+    run: async (db, { question }) => {
+      const out = await k.how(db, question)
+      if (out.areas.length === 0) {
+        await db.query('select knowledge.log_unanswered($1, null, $2)', [question, 'practice'])
+        const areas = await k.howAreas(db)
+        return {
+          text:
+            `"${question}" names no area of how we work. The areas, and words that reach them:\n` +
+            areas.map((a) => `- ${a.slug.replace(/^how-/, '')} (${a.name}): ${a.words.join(', ')}`).join('\n'),
+          isError: true,
+        }
+      }
+      const parts: string[] = []
+      if (out.lines.length === 0) {
+        parts.push(`No live practice for ${out.areas.map((a) => a.name.toLowerCase()).join(', ')} that this key can read.`)
+      }
+      if (out.absolutes.length && out.lines.length) {
+        parts.push(`Absolutes, which bind every area:\n${out.absolutes.map((x) => `- ${x.id}: ${x.answer}`).join('\n')}`)
+      }
+      for (const a of out.areas) {
+        const lines = out.lines.filter((l) => l.concern === a.slug)
+        if (!lines.length) continue
+        parts.push(
+          `${a.name}:\n` +
+            lines
+              .map((l) => {
+                const meta = [l.strength, l.ring, l.holds === 'for now' ? 'for now' : null].filter(Boolean).join(', ')
+                const applies = l.applies.length ? ` [applies ${l.applies.join(', ')}]` : ''
+                return `- ${l.id} · ${meta}: ${l.answer} Enforced by: ${l.enforced_by ?? 'nothing yet'}.${applies}`
+              })
+              .join('\n'),
+        )
+      }
+      // The review-a-method steps are a procedure, not a line: point at the verb that returns them.
+      if (out.areas.some((a) => a.slug === 'how-agents')) {
+        parts.push(`To review a new method against all of this: call review_method (${REVIEW_METHOD_ID}).`)
+      }
+      return { text: parts.join('\n\n') }
+    },
+  }),
+
+  define({
+    name: 'review_method',
+    description:
+      'Review a new tool, process or method against how we work, in one call and with no research: returns the review-a-method steps ' +
+      'and the pack of every live practice by area (its why, strictness and ring). Read only the material you were given and this; ' +
+      'list at most 15 claims, place each as we do this, we do the opposite on purpose, a gap, or a clash with a philosophy, citing ' +
+      'the record id, and end with one experiment at most and how it would be measured.',
+    input: {
+      material: z
+        .string()
+        .optional()
+        .describe('The link or a short label for the material under review; it is not fetched, only kept if the steps are missing.'),
+    },
+    run: async (db, { material }) => {
+      const rows = await k.packRows(db)
+      if (!rows.steps) {
+        if (material) await db.query('select knowledge.log_unanswered($1, null, $2)', [`review a method: ${material}`, 'practice'])
+        return { text: `The review-a-method steps (${REVIEW_METHOD_ID}) are not in the store yet, or this key cannot read them.`, isError: true }
+      }
+      const pack = renderPack(rows.practices, rows.philosophies, new Date().toISOString().slice(0, 10))
+      return { text: `${rows.steps.trim()}\n\n---\n\n${pack.text}` }
+    },
+  }),
+
+  define({
+    name: 'upkeep',
+    description:
+      'For the monthly upkeep: live practices not confirmed in 90 days, running experiments past their verdict date, ' +
+      'routines with no run in their expected interval, and try-next-time ideas open more than 90 days, one line each.',
+    input: { today: date.optional() },
+    run: async (db, { today }) => {
+      const rows = await k.upkeep(db, today)
+      if (rows.length === 0)
+        return {
+          text: 'Nothing due: every practice confirmed in the last 90 days, no experiment past its verdict date, every routine run in its interval, no idea open over 90 days.',
+        }
+      return { text: rows.map((r) => `- ${r.id} (${r.kind}): ${r.problem}. ${r.answer}`).join('\n') }
     },
   }),
 

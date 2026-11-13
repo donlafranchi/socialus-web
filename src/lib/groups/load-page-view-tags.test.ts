@@ -12,7 +12,6 @@ vi.mock('./resolve-shop', () => ({
 }))
 vi.mock('./page-posts', () => ({ resolvePagePosts: vi.fn(async () => []) }))
 vi.mock('@/lib/follows/follower-count', () => ({ countPageFollowers: vi.fn(async () => 0) }))
-vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements: vi.fn(async () => []) }))
 vi.mock('./page-tags', () => ({ resolvePageTags }))
 
 import { loadPageView } from './load-page-view'
@@ -29,9 +28,8 @@ describe('#316 — page tags', () => {
     getUser.mockResolvedValue({ data: { user: { id: 'm-1' } } })
     expect((await loadPageView(supabase, SHOP as never)).tags).toEqual(['Sourdough'])
   })
-  it('signed out, carries none and never asks', async () => {
+  it('signed out, carries them too (F134)', async () => {
     getUser.mockResolvedValue({ data: { user: null } })
-    expect((await loadPageView(supabase, SHOP as never)).tags).toEqual([])
-    expect(resolvePageTags).not.toHaveBeenCalled()
+    expect((await loadPageView(supabase, SHOP as never)).tags).toEqual(['Sourdough'])
   })
 })

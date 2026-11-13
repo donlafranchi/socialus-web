@@ -124,8 +124,10 @@ describe.skipIf(!RUNNABLE)('#916 — Explore search, in the database', () => {
     expect(await search('vervain')).toContain(POST)
   })
 
-  it('a stranger never finds a post by its words, and so learns nothing a post says', async () => {
-    expect(await search('vervain', 'anon')).toEqual([])
+  // F134 — a visitor searches what a signed-in stranger searches: a post's words find it signed out too.
+  it('signed out finds a post by its words, as a signed-in stranger does', async () => {
+    expect(await search('vervain', 'anon')).toEqual(await search('vervain'))
+    expect(await search('vervain', 'anon')).toContain(POST)
     expect(await search('flowers', 'anon')).toContain(PAGES.flowers)
   })
 

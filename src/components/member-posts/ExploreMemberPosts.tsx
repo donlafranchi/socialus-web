@@ -1,4 +1,4 @@
-// #1183 — Explore's rows of posts from members, for the signed-in reader, streamed like the shelves (F121).
+// #1183 — Explore's rows of posts from members, for any reader (F134: names only signed in), streamed like the shelves (F121).
 
 import { createClient } from '@/lib/supabase-server'
 import { readMemberPosts } from '@/lib/member-posts/read'

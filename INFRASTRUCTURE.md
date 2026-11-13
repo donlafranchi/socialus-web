@@ -76,7 +76,7 @@ changes with no code. Item 9 is blocked on a scenario.
 |---|---|---|---|
 | 1 | 6 Transactional email | chore | Domain DNS access |
 | 2 | 11 Error tracking | chore | Nothing |
-| 3 | 13 Product analytics | change | Event names agreed |
+| 3 | 13 Product analytics | scenario (F133) | Built in our own database |
 | 4 | 8 Turnstile | change | Nothing |
 | 5 | 10 Backups | chore | Nothing |
 | 6 | 7 Scheduled jobs | chore | Item 10 defines the first job |
@@ -319,8 +319,9 @@ sends, cleanup.
 on frequency. Vercel Cron is the alternative but Hobby caps at two jobs at daily
 frequency, and Pro lifts that to unlimited.
 
-**Current state.** `CRON_SECRET` is declared in `.env.local.example`, there is
-no `vercel.json`, and nothing is scheduled.
+**Current state.** Many GitHub Actions schedules exist (`.github/workflows/`),
+including the nightly backup (#1259). `CRON_SECRET` is declared in
+`.env.local.example`; there is no `vercel.json`, so no Vercel Cron.
 
 **Wire-up.** Choose by what the job touches.
 
@@ -450,10 +451,23 @@ times the price of the plan it sits on, and not worth it at this stage. Your own
 dump additionally survives losing the Supabase account, which their backup
 cannot, and outlives the 7-day window.
 
-**Open question, resolve before relying on either.** Confirm against current
-Supabase docs whether the daily backup covers Storage objects or only Postgres.
-If Storage is excluded, add the `media` bucket to the same nightly job. The
-difference is whether a restore gives you working photos or broken images.
+**Storage: resolved 2026-11-11.** Supabase's daily backup does **not** include
+Storage objects ([Database Backups](https://supabase.com/docs/guides/platform/backups):
+"Database backups do not include objects you store via the Storage API"). So
+the nightly job below also copies the `media` bucket.
+
+**Built (2026-11-11, #1259).** `.github/workflows/backup.yml` runs nightly:
+`pg_dump -Fc` plus every `media` object plus exact row counts, all from one
+snapshot (`scripts/backup/dump.sh`), **encrypted with `age` on the runner**
+(the repo and its artifacts are public) and kept as an Actions artifact, 30
+days, or 90 for the one taken on the 1st. Key: the `BACKUP_AGE_KEY` secret,
+held by the PM. `.github/workflows/backup-restore-test.yml` restores the newest
+one into a throwaway local Supabase Postgres on the 3rd of each month and fails
+unless every row count matches. It connects through the session pooler, not
+the direct host (IPv6-only; runners are IPv4-only). To restore by hand: download
+the artifact, `age -d -i socialus-backup.key <file> | tar -x`, then
+`pg_restore --no-owner --no-privileges -d <target> dump.pgc`; photos are in
+`media/`, by object name.
 
 **Wire-up.** A GitHub Actions job on the item 7 pattern.
 
@@ -529,13 +543,29 @@ real page loads.
 **Why Vercel and Supabase do not cover it.** Both report on themselves. Neither
 tells you the signup form throws on submit while both status pages stay green.
 
-**Wire-up.** No code. Create a **keyword** monitor, not a plain HTTP one: point
+**Built (2026-11-11, #1260): `.github/workflows/uptime.yml`, a backstop only.**
+It keyword-checks the home page, the login page and `/api/health/db`
+(`scripts/uptime-check.sh`) and opens one `bug · socialus.org is down` Issue on
+an outage. **It cannot be the alarm:** GitHub throttles this repo's schedules
+hard (notify.yml, set to every 15 minutes, ran at 06:09, 14:15 and 21:28 UTC on
+2026-11-11; uptime.yml's first hour produced no run). So the real monitor is
+UptimeRobot, below, which needs a free account only the PM can open.
+
+**Wire-up (UptimeRobot, free).** Create a **keyword** monitor, not a plain HTTP one: point
 it at a page that renders database-backed content and have it check for a string
 that only appears when that query succeeded. An HTTP 200 monitor stays green
 while the page renders an error state.
 
 Add a second monitor on `/auth` or whichever route the login form lives at,
 since that is the path whose failure costs you the most.
+
+Concretely, the same checks the workflow makes, every 5 minutes, alerting the
+PM's email:
+
+| Monitor | URL | Keyword exists |
+|---|---|---|
+| Database, from the app | `https://socialus.org/api/health/db` | `"ok":true` |
+| Login page | `https://socialus.org/auth/login` | `name="email"` |
 
 **Note.** On the Supabase free tier this also served as the keep-alive against
 the 7-day pause. After item 2's Pro upgrade that purpose disappears, but the
@@ -545,45 +575,20 @@ monitoring reason stands on its own.
 
 ### 13. Product analytics
 
-**What it is.** Which of buy, sell, trade and gather people actually return for.
+**What it is.** Who comes back, what they use, and where they drop off.
 
-**Who provides it.** PostHog Cloud free tier, 1M events/month.
+**Who provides it.** Our own database (F133; the PM, 2026-11-12, "A A"). No
+outside tool: PostHog, the earlier plan here, keeps a history of each person on
+its servers, which the 2026-10-25 data principle refuses. Vercel Web Analytics
+may be added later as its own decision.
 
-**Why not Vercel Web Analytics.** Pro includes roughly 25k events/month of
-page-level counts. Finding a market is a question about funnels and retention,
-and pageviews cannot answer it.
-
-**Wire-up.**
-
-```bash
-npm install posthog-js
-```
-
-Env: `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`
-(`https://us.i.posthog.com`, or the EU host if you pick that region; choose
-before launch, since it is not switchable later without losing history).
-
-Initialize in a client provider mounted in the root layout. In the App Router,
-autocapture does not record client-side route changes on its own, so capture
-`$pageview` manually on pathname change.
-
-**The part that matters more than the install.** Agree the event names before
-writing them, because renaming later orphans the history:
-
-| Event | Fires when |
-|---|---|
-| `item_created` | A member posts an item, property for its one category |
-| `item_viewed` | An item detail page renders |
-| `contact_initiated` | A member reaches out about an item |
-| `group_joined` | A membership row is created |
-| `page_followed` | The T018 follow that triggers item 6's email |
-
-Instrument these **before** launch. Retrofitting analytics onto a live product
-costs you the first cohort, which is the one cohort whose behavior you most need.
-
-**Privacy.** Disable session recording and set `person_profiles: 'identified_only'`.
-A marketplace holding location data should not also be shipping full session
-replays to a third party.
+**How it works.** Server-side counts through one handler, `usage.log`
+(`src/actions/usage/log.ts`), called after the response by `countUse`
+(`src/lib/usage/count-use.ts`) from page loads and server actions. Three count
+tables with no member id (`usage_daily`, `usage_weekly`, `funnel_weekly`),
+sha256 dedupe keys in `usage_seen` deleted after 8 days, a member who turned
+sharing off on You and every builder never counted, read only by staff with
+`metrics.view` on the Metrics page. No client script, no env, $0.
 
 ---
 

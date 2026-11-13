@@ -54,9 +54,12 @@ describe('WonderPanel', () => {
     await waitFor(() => expect(a.leave).toHaveBeenCalledWith({ postId: 'p' }))
   })
 
-  it('signed out asks to sign in and comes back', () => {
-    render(<WonderPanel postId="p" view={base} loggedIn={false} canManage={false} returnTo="/g/x" actions={actions()} />)
-    expect(screen.getByRole('link', { name: COPY.wonderImIn }).getAttribute('href')).toBe('/auth/login?next=%2Fg%2Fx')
+  it('signed out asks to sign in first and comes back to finish (F134.4)', () => {
+    const a = actions()
+    render(<WonderPanel postId="p" view={base} loggedIn={false} canManage={false} returnTo="/g/x" actions={a} />)
+    fireEvent.click(screen.getByRole('button', { name: COPY.wonderImIn }))
+    expect(screen.getByTestId('sign-in-prompt-continue').getAttribute('href')).toBe(`/auth/login?next=${encodeURIComponent('/g/x?intent=respond%3Ap')}`)
+    expect(a.join).not.toHaveBeenCalled()
   })
 
   // [guards F117.5 partial: the database's role list and note length]

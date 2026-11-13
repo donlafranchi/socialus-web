@@ -79,33 +79,6 @@ describe('the card links to the announcement, not just its Page', () => {
   })
 })
 
-// F093 — a withheld announcement is a different card, chosen here.
-//
-// The choice lives in BrowseResultCard rather than in BrowseSurface so that
-// every surface rendering browse results gets it without being told: the grid,
-// the map's list, and whatever renders results next.
-describe('F093 — the signed-out form', () => {
-  const withheld = (over: Partial<BrowseResult> = {}): BrowseResult =>
-    post({ withheld: true, body: null, startsAt: null, announcementCount: 3, ...over })
-
-  it('renders the withheld card when the result is withheld', () => {
-    render(<BrowseResultCard result={withheld()} />)
-    expect(screen.getByTestId('withheld-cta')).toBeInTheDocument()
-  })
-
-  it('renders no date line, because there is no time to show', () => {
-    render(<BrowseResultCard result={withheld()} />)
-    expect(screen.queryByTestId('browse-post-when')).not.toBeInTheDocument()
-  })
-
-  it('leaves a readable announcement on the ordinary card', () => {
-    // Criterion 6 — a signed-in member sees no change.
-    render(<BrowseResultCard result={post()} />)
-    expect(screen.queryByTestId('withheld-cta')).not.toBeInTheDocument()
-    expect(screen.getByTestId('browse-post-lead')).toBeInTheDocument()
-  })
-})
-
 // #260 — the card image says what the card says, not nothing.
 describe('the card image', () => {
   it('has alt text from the title, when, and place', () => {
@@ -140,14 +113,6 @@ describe('#299 — no photo shows default art, never the emoji', () => {
   it('a Page or post without a photo carries its kind and a neutral tone', () => {
     render(<BrowseResultCard result={post({ photoUrl: null })} />)
     expect(screen.getByTestId('default-art')).toBeInTheDocument()
-    expect(screen.queryByTestId('tile-emoji')).toBeNull()
-  })
-  it('a withheld card without a photo shows a plain tile, not the sprout and not a guessed kind', () => {
-    // The withheld read carries no Page kind, so no kind icon is drawn rather than a wrong one.
-    render(<BrowseResultCard result={post({ photoUrl: null, withheld: true, body: null, startsAt: null, announcementCount: 2, groupKind: '' })} />)
-    const art = screen.getByTestId('default-art')
-    expect(art).not.toHaveAttribute('data-kind')
-    expect(art.querySelector('svg')).toBeNull()
     expect(screen.queryByTestId('tile-emoji')).toBeNull()
   })
   it('two Pages of the same kind get the same art', () => {
@@ -207,10 +172,9 @@ describe('Share on a post card', () => {
     Object.assign(navigator, { share: undefined })
   })
 
-  it('is not on a Page card, a withheld card, or a post with no address', () => {
+  it('is not on a Page card or a post with no address', () => {
     render(<BrowseResultCard result={post({ resultKind: 'page' })} />)
     render(<BrowseResultCard result={post({ href: null })} />)
-    render(<BrowseResultCard result={post({ withheld: true, announcementIds: ['p-1'], announcementCount: 1 })} />)
     expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

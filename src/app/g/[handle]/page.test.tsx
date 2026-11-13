@@ -44,7 +44,7 @@ describe('/g/[handle] (#537)', () => {
     const shop = { publicId: 'abc123', groupId: 'g-1' }
     resolvePageById.mockResolvedValue(shop)
     const body = async (owns: boolean) => {
-      loadPageView.mockResolvedValue({ viewerOwnsPage: owns })
+      loadPageView.mockResolvedValue({ viewerOwnsPage: owns, posts: [] })
       const el = await PageAtCanonicalAddress({ params: Promise.resolve({ handle: 'abc123' }) })
       const inner = (el.props as { children: { type: (p: unknown) => Promise<unknown>; props: unknown } }).children
       await inner.type(inner.props)

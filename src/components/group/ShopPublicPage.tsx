@@ -31,9 +31,8 @@ import { ReportControl } from './ReportControl'
 import { OwnerBar } from './OwnerBar'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
 import { PageLinksRow } from './PageLinksRow'
-import { contactLinksForDisplay, isSafeLinkUrl, type ContactLinks } from '@/lib/groups/social-links'
+import { contactLinksForDisplay, isSafeLinkUrl } from '@/lib/groups/social-links'
 
-const NO_LINKS: ContactLinks = { website: null, socials: [] }
 const CLAIM_HANDLERS: ClaimHandlers = { choices: claimChoicesAction, start: startClaimAction, verify: verifyClaimAction, proof: proofClaimAction }
 import { sendReportAction, sendPostReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
@@ -41,12 +40,10 @@ import { PagePosts } from './PagePosts'
 import { NO_REMINDERS, type ViewerReminders } from '@/lib/reminders/viewer-reminders'
 import { RemindEveryTimeButton } from '@/components/reminders/RemindMe'
 import { setReminderAction, removeReminderAction, remindEveryTimeForPageAction } from '@/app/_actions/reminder-actions'
-import { WithheldPagePosts, type SharedPostPreview } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
 import { wonderJoinAction, wonderLeaveAction, wonderOfferAction, wonderOfferWithdrawAction, wonderOfferDecideAction } from '@/app/_actions/wonder-actions'
 import type { WonderView } from '@/lib/wonders/wonder-view'
 import type { PagePost } from '@/lib/groups/page-posts'
-import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
 import { MapPin, Store, Users } from 'lucide-react'
@@ -104,8 +101,6 @@ interface Props {
   /** F072 — what this Page has said, newest first. RLS decides what is in
    *  here; the owner's own drafts-of-a-draft-Page come back for the owner. */
   posts?: PagePost[]
-  /** F093 — the signed-out form. Never populated at the same time as `posts`. */
-  withheldPosts?: BrowseResult[]
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
@@ -113,8 +108,6 @@ interface Props {
   wonders?: Record<string, WonderView>
   /** Don, 2026-10-31 — the post a post's own address names: its list lands on it. */
   focusPostId?: string | null
-  /** #1126 — signed out on a shared post's address: its headline, lead line and photo. */
-  sharedPreview?: SharedPostPreview | null
   /** #945 — the viewer's own reminders; absent for an owner or a visitor. */
   reminders?: ViewerReminders
   /** #301 — a draft's tag count, for its owner's publish checklist. */
@@ -124,11 +117,11 @@ interface Props {
   contactOn?: boolean
   /** #363 — Products & services: on for a business, added by any other Page. */
   productsOn?: boolean
-  /** #316 — the Page's tags; empty signed out. */
+  /** #316 — the Page's tags, signed in or out (F134). */
   tags?: string[]
-  /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
+  /** #293 — phone and hours. Signed out the phone is never shown (F134; members only, 2026-10-07). */
   contact?: PageContact | null
-  /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
+  /** #348 — where it is, signed in or out (F134). */
   where?: PageWhere | null
   /** #909 — what locals near the Page searched this month (3+ searches). Owner-only. */
   searchDemand?: PageSearchDemand | null
@@ -146,7 +139,6 @@ export function ShopPublicPage({
   viewerOwnsPage = false,
   pagePath,
   focusPostId = null,
-  sharedPreview = null,
   viewerFollows = false,
   hearts = null,
   viewerIsMember = false,
@@ -154,7 +146,6 @@ export function ShopPublicPage({
   tags = [],
   contact = null,
   where = null,
-  withheldPosts = [],
   followerCount = 0,
   reminders = NO_REMINDERS,
   wonders = NO_WONDERS,
@@ -186,21 +177,22 @@ export function ShopPublicPage({
   // F099 — and the Page picture, named as such.
   const showPictureNotice = viewerOwnsPage && shop.pictureUrl == null && !!shop.pictureHiddenAt
   const showOwnerPanel = viewerOwnsPage && Boolean(pagePath)
-  // F093 criterion 8 — signed out is the front door: name, photo, description,
-  // the withheld card and Sign up to follow. Listings and links out wait.
-  const contactLinks = loggedIn ? contactLinksForDisplay(shop.socialLinks, shop.unclaimed?.publicInfoUrl) : NO_LINKS
+  // F134 — signed out reads what a signed-in stranger reads: links, where, tags, products, posts.
+  const contactLinks = contactLinksForDisplay(shop.socialLinks, shop.unclaimed?.publicInfoUrl)
+  // The phone is for members (2026-10-07): the database does not hand it to a visitor, and this does not show one.
+  const shownContact = contact && !loggedIn ? { ...contact, phone: null } : contact
 
   const placement = fixedPlacement(where, shop.placements[0])
-  const how = loggedIn && where ? whereLine(where) : null
+  const how = where ? whereLine(where) : null
   // #896 — an area-only Page gets the area, never its point; a Page that moves, no map (#894).
-  const mapView = loggedIn ? pageMapView(shop.placements[0], where?.mode ?? null, shop.displayName) : null
-  const stops = loggedIn && (where?.mode === 'multi' || where?.mode === 'roaming') ? (where.stops ?? []) : []
+  const mapView = pageMapView(shop.placements[0], where?.mode ?? null, shop.displayName)
+  const stops = (where?.mode === 'multi' || where?.mode === 'roaming') ? (where.stops ?? []) : []
   // #896 — Don, 2026-10-18: an area-only Page has no map, but a line says where it is.
   const area = shop.placements[0]
-  const areaLine = loggedIn && !mapView && area?.kind === 'area' && (!where?.mode || where.mode === 'visit') && area.label.trim() ? `In ${area.label.trim()}` : null
-  const hasContact = loggedIn && Boolean(contact?.phone || (SHOW_OPENING_HOURS && contact?.hours) || contactLinks.website || contactLinks.socials.length)
+  const areaLine = !mapView && area?.kind === 'area' && (!where?.mode || where.mode === 'visit') && area.label.trim() ? `In ${area.label.trim()}` : null
+  const hasContact = Boolean(shownContact?.phone || (SHOW_OPENING_HOURS && shownContact?.hours) || contactLinks.website || contactLinks.socials.length)
   // #1180 — only list labels show; a stray old tag never leaves an empty section.
-  const showFound = loggedIn && picksFromTags(tags).length > 0
+  const showFound = picksFromTags(tags).length > 0
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
   const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
   // #1171 — a private Page or one that leads with joining keeps its Join button; every other Page's follow is Get updates.
@@ -216,7 +208,7 @@ export function ShopPublicPage({
     ) : null
   // #363 — off for a social group until its owner adds it (bug #341).
   // #909 — empty, it is the owner's prompt and nobody else's.
-  const showProducts = loggedIn && productsOn && (items.length > 0 || viewerOwnsPage)
+  const showProducts = productsOn && (items.length > 0 || viewerOwnsPage)
   const draftHeading = DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]
 
   const page = (
@@ -376,38 +368,32 @@ export function ShopPublicPage({
      <div className="mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_var(--panel-w)] lg:items-start lg:gap-12">
      <div className="flex min-w-0 flex-col gap-4">
       {/* Page kinds (dispatch, 2026-10-05): a group leads with its next meetup (Meetup). */}
-      {layout.lead === 'join' && loggedIn && <NextUp posts={posts} heading="Next event" limit={1} />}
+      {layout.lead === 'join' && <NextUp posts={posts} heading="Next event" limit={1} />}
 
-      {/* F093 — one list or the other, never both: two would mean two
-          elements carrying the same `announcement-<id>`. */}
-      {withheldPosts.length > 0 ? (
-        <WithheldPagePosts posts={withheldPosts} focusPostId={focusPostId} preview={sharedPreview} />
-      ) : (
-        <PagePosts
-          groupId={shop.groupId}
-          posts={posts}
-          canPost={viewerOwnsPage}
-          followerCount={followerCount}
-          isPrivate={shop.discoverability === 'private'}
-          memberId={viewerOwnsPage ? viewerMemberId : null}
-          pageName={shop.displayName}
-          pageTags={tags}
-          pictureUrl={shop.pictureUrl ?? null}
-          artKind={artKindFor(shop.kind, shop.purpose)}
-          report={{ loggedIn, returnTo: pagePath, onSend: sendReportAction }}
-          onPost={postToPageAction}
-          onEdit={editPagePostAction}
-          onDelete={deletePagePostAction}
-          onReport={sendPostReportAction}
-          loggedIn={loggedIn}
-          returnTo={pagePath}
-          pagePath={shop.lifecycleState === 'active' ? pagePath : null}
-          focusPostId={focusPostId}
-          reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
-          wonders={{ views: wonders, ...WONDER_ACTIONS }}
-          hearts={hearts}
-        />
-      )}
+      <PagePosts
+        groupId={shop.groupId}
+        posts={posts}
+        canPost={viewerOwnsPage}
+        followerCount={followerCount}
+        isPrivate={shop.discoverability === 'private'}
+        memberId={viewerOwnsPage ? viewerMemberId : null}
+        pageName={shop.displayName}
+        pageTags={tags}
+        pictureUrl={shop.pictureUrl ?? null}
+        artKind={artKindFor(shop.kind, shop.purpose)}
+        report={{ loggedIn, returnTo: pagePath, onSend: sendReportAction }}
+        onPost={postToPageAction}
+        onEdit={editPagePostAction}
+        onDelete={deletePagePostAction}
+        onReport={sendPostReportAction}
+        loggedIn={loggedIn}
+        returnTo={pagePath}
+        pagePath={shop.lifecycleState === 'active' ? pagePath : null}
+        focusPostId={focusPostId}
+        reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
+        wonders={{ views: wonders, ...WONDER_ACTIONS }}
+        hearts={hearts}
+      />
 
      </div>
       <PageAboutAside name={shop.displayName}>
@@ -441,8 +427,8 @@ export function ShopPublicPage({
         </PageSection>
       )}
 
-      {/* F093 criterion 8 — signed out sees no location and no map pin. */}
-      {loggedIn && (mapView || areaLine || how || stops.length > 0) && (
+      {/* F134 — signed out sees the location and map a signed-in stranger sees, at the owner's precision. */}
+      {(mapView || areaLine || how || stops.length > 0) && (
         <PageSection id="location" title="Location">
           {/* T143 — where this Page resolves to, at read time; #896 — the address under the map. */}
           {mapView && <PageMap view={mapView} caption={mapView.text} publicId={shop.publicId} />}
@@ -466,13 +452,13 @@ export function ShopPublicPage({
 
       {hasContact && (
         <PageSection id="contact" title="Contact">
-          <PageContactBlock contact={contact ?? null} links={contactLinks} />
+          <PageContactBlock contact={shownContact ?? null} links={contactLinks} />
         </PageSection>
       )}
 
       {showFound && (
         <PageSection id="found" title="Listed under">
-          {/* #1180 — what the Page is listed under, signed in only (F093). */}
+          {/* #1180 — what the Page is listed under, signed in or out (F134). */}
           {tags.length > 0 && <TagLinks tags={tags} />}
         </PageSection>
       )}
