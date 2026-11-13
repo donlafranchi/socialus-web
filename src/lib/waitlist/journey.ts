@@ -2,15 +2,19 @@
 // One question per screen, each at its own address under /join/. Every word here is placeholder for the PM's
 // copywriter ([public-is-draft]); every `image` is an empty slot for the copywriter's art, with the brief's note.
 
-// [open-question owner=don raised=2026-11-13] The landing headline: A "SocialUs, for the people." (recommended), B "SocialUs, a platform for the people.", C "SocialUs, by the people, for the people.", or #1272's "Locals, finding and supporting locals."
-export const LANDING_HEADLINE = '[Headline: the PM picks]'
+// The landing page is the PM's rewrite (2026-11-13, his one-page concept, "that is the landing page rewrite"):
+// his words, top to bottom. Both buttons open the waitlist, never sign-up, while SocialUs stays closed.
+export const LANDING_HEADLINE = 'Made for us.'
 
 export const LANDING = {
-  line: 'A place for locals to find and support locals, wherever you are, wherever you go.',
-  join: 'Join the waitlist',
+  sub: 'An app for finding local people, places and things to do.',
+  join: 'Join SocialUs',
+  meet: 'Meet people through the things you care about.',
+  know: 'Get to know the people around you.',
+  support: 'Support the people behind the places you go.',
+  rest: 'The rest happens in person.',
   look: 'Look around',
   lookHref: '/explore',
-  image: 'Locals at a busy street market, warm, real faces',
 }
 
 export const PLANS = {
@@ -68,23 +72,24 @@ export const SEGMENTS = 10
 export function filled(step: Step, plans: readonly string[]): number {
   const path = pathFor(plans)
   const i = Math.max(0, path.indexOf(step))
+  if (step === 'done') return SEGMENTS
   const x = (i + 1) / path.length
-  return Math.min(SEGMENTS, Math.max(1, Math.round((1 - (1 - x) ** 2) * SEGMENTS)))
+  return Math.min(SEGMENTS - 1, Math.max(1, Math.round((1 - (1 - x) ** 2) * SEGMENTS)))
 }
 
 export type Screen = { title: string; body?: string; image: string; cta?: string }
 
 export const SCREENS: Record<Step, Screen> = {
   local: {
-    title: 'Everything local, in one place',
-    body: 'The bakery, the run club, Saturday’s market, the pottery class. Find what’s happening near you.',
+    title: 'Join the waitlist',
+    body: 'SocialUs opens town by town. The bakery, the run club, Saturday’s market, the pottery class: a few quick questions put you on the list for yours.',
     image: 'A phone-sized collage of local shops, a class, a meetup',
   },
   plans: { title: 'What would you like to do here?', body: 'Pick as many as you like.', image: 'Two hands meeting across a market table' },
   'be-found': { title: 'Locals can find you', body: 'People nearby can find what you make, teach or organize.', image: 'A maker at work, seen from a customer’s side' },
   kind: { title: 'What kind of thing do you do?', image: 'Small icons per kind, hand-drawn' },
   called: { title: 'What’s it called, and where can we see it?', image: 'A shopfront sign being hung' },
-  name: { title: 'What should we call you?', body: 'Your first name, or the name people know you by.', image: 'A name tag at a neighbourhood table' },
+  name: { title: 'What should we call you?', body: 'Your first name, or the name people know you by.', image: 'A name tag at a neighborhood table' },
   zip: { title: 'Where are you?', body: 'We open town by town. Your zip counts toward yours.', image: 'A simple map with one town lit' },
   email: { title: 'Where should we send your invite?', body: 'We’ll email you once, when SocialUs opens near you. Nothing else.', image: 'An envelope tucked under a café door' },
   phone: {
@@ -113,8 +118,8 @@ export const ERRORS = {
 export const doneLines = (market: string, waiting: number | null) => [
   `You’re on the list for ${market}.`,
   waiting === null
-    ? 'When enough makers and neighbours join, we can open.'
-    : `${waiting.toLocaleString('en-US')} ${waiting === 1 ? 'local is' : 'locals are'} waiting there. When enough makers and neighbours join, we can open.`,
+    ? 'When enough makers and neighbors join, we can open.'
+    : `${waiting.toLocaleString('en-US')} ${waiting === 1 ? 'local is' : 'locals are'} waiting there. When enough makers and neighbors join, we can open.`,
 ]
 
 export const EMAIL_SHAPE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/

@@ -79,10 +79,13 @@ export const metroWaitlistJourneyJoin = defineHandler(
         ])
         await bump(existing.metro_id, existing.role, -1)
       } else {
-        await client.query(
-          `insert into public.metro_waitlist (metro_id, email, role, created_at, updated_at) values ($1, $2, $3, $4, $4)`,
+        // A second first-time submission of the same address racing this one inserts nothing and counts nothing.
+        const ins = await client.query(
+          `insert into public.metro_waitlist (metro_id, email, role, created_at, updated_at) values ($1, $2, $3, $4, $4)
+           on conflict ((lower(email))) where email is not null do nothing`,
           [result.metroId, input.email, input.side, ctx.now()],
         )
+        if (!ins.rowCount) return result
       }
       await bump(result.metroId, input.side, 1)
       return result

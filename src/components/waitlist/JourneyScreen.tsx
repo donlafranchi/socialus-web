@@ -4,11 +4,11 @@
 // and the main button pinned in thumb reach. Words: src/lib/waitlist/journey.ts (placeholder for the copywriter).
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState, useTransition, type ReactNode } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react'
 import { checkWaitlistZipAction, joinWaitlistJourneyAction } from '@/app/_actions/waitlist-journey-actions'
 import {
-  doneLines, EMAIL_SHAPE, ERRORS, filled, href, KINDS, LANDING, neighbours, OPTIONAL, phoneE164, PLANS, SAFETY,
+  doneLines, EMAIL_SHAPE, ERRORS, filled, href, KINDS, LANDING, neighbours, OPTIONAL, pathFor, phoneE164, PLANS, SAFETY,
   SCREENS, SEGMENTS, sideOf, ZIP_SHAPE, type Step,
 } from '@/lib/waitlist/journey'
 import { useWaitlist } from './WaitlistProvider'
@@ -20,7 +20,7 @@ const QUIET = `${BUTTON} text-[var(--color-ink-muted)] underline underline-offse
 
 export function ImageSlot({ note }: { note: string }) {
   return (
-    <div data-image-slot={note} className="flex aspect-[3/2] w-full items-center justify-center rounded-xs border border-dashed border-[var(--color-rule)] bg-[var(--color-paper)] p-4 text-center text-body-sm text-[var(--color-ink-muted)]">
+    <div data-image-slot={note} className="flex aspect-[2/1] w-full items-center justify-center rounded-xs border border-dashed border-[var(--color-rule)] bg-[var(--color-paper)] p-4 text-center text-body-sm text-[var(--color-ink-muted)]">
       Image: {note}
     </div>
   )
@@ -44,14 +44,23 @@ const toggled = (list: readonly string[], v: string) => (list.includes(v) ? list
 export function JourneyScreen({ step }: { step: Step }) {
   const router = useRouter()
   const { answers: a, set, ready } = useWaitlist()
-  const [error, setError] = useState<string | null>(null)
+  const sent = useSearchParams().get('e')
+  const [error, setError] = useState<string | null>(sent && sent in ERRORS ? ERRORS[sent as keyof typeof ERRORS] : null)
+  const heading = useRef<HTMLHeadingElement>(null)
+  useEffect(() => heading.current?.focus(), [step])
+  // A screen not on this person's path (a being-found screen opened directly) goes back to the plans.
+  const offPath = ready && step !== 'done' && !pathFor(a.plans).includes(step)
+  useEffect(() => {
+    if (offPath) router.replace(href('plans'))
+  }, [offPath, router])
   const [why, setWhy] = useState(false)
   const [pending, start] = useTransition()
   const screen = SCREENS[step]
   const { back, next } = neighbours(step, a.plans)
   const go = (to: string | null) => to && router.push(to)
 
-  const advance = () => {
+  const advance = (e?: FormEvent) => {
+    e?.preventDefault()
     setError(null)
     if (step === 'plans' && !a.plans.length) return setError(ERRORS.plans)
     if (step === 'name' && !a.name.trim()) return setError(ERRORS.name)
@@ -75,8 +84,8 @@ export function JourneyScreen({ step }: { step: Step }) {
         }).catch(() => null)
         if (!r) return setError(ERRORS.failed)
         if (!r.ok) {
-          if (r.step) router.push(href(r.step))
-          return setError(ERRORS.failed)
+          if (r.step && r.step !== 'phone') return router.push(`${href(r.step)}?e=${r.step}`)
+          return setError(r.step ? ERRORS[r.step] : ERRORS.failed)
         }
         set({ market: r.market, waiting: r.waiting, joined: true })
         go(next)
@@ -123,15 +132,15 @@ export function JourneyScreen({ step }: { step: Step }) {
       </>
     )
   } else if (step === 'name') {
-    body = <input aria-label="Your name" className={FIELD} value={a.name} maxLength={60} autoComplete="given-name" onChange={(e) => set({ name: e.target.value })} />
+    body = <input aria-label="Your name" aria-invalid={!!error} aria-describedby={error ? 'journey-error' : undefined} className={FIELD} value={a.name} maxLength={60} autoComplete="given-name" onChange={(e) => set({ name: e.target.value })} />
   } else if (step === 'zip') {
-    body = <input aria-label="Zip code" className={FIELD} value={a.zip} inputMode="numeric" autoComplete="postal-code" maxLength={5} pattern="[0-9]*" onChange={(e) => set({ zip: e.target.value.replace(/\D/g, '').slice(0, 5) })} />
+    body = <input aria-label="Zip code" aria-invalid={!!error} aria-describedby={error ? 'journey-error' : undefined} className={FIELD} value={a.zip} inputMode="numeric" autoComplete="postal-code" maxLength={5} pattern="[0-9]*" onChange={(e) => set({ zip: e.target.value.replace(/\D/g, '').slice(0, 5) })} />
   } else if (step === 'email') {
-    body = <input aria-label="Email" className={FIELD} value={a.email} type="email" autoComplete="email" maxLength={254} onChange={(e) => set({ email: e.target.value })} />
+    body = <input aria-label="Email" aria-invalid={!!error} aria-describedby={error ? 'journey-error' : undefined} className={FIELD} value={a.email} type="email" autoComplete="email" maxLength={254} onChange={(e) => set({ email: e.target.value })} />
   } else if (step === 'phone') {
     body = (
       <>
-        <input aria-label="Mobile number" className={FIELD} value={a.phone} type="tel" autoComplete="tel" maxLength={20} onChange={(e) => set({ phone: e.target.value })} />
+        <input aria-label="Mobile number" aria-invalid={!!error} aria-describedby={error ? 'journey-error' : undefined} className={FIELD} value={a.phone} type="tel" autoComplete="tel" maxLength={20} onChange={(e) => set({ phone: e.target.value })} />
         <p className="mt-6 text-body text-[var(--color-ink)]">
           {SAFETY.line}{' '}
           <button type="button" aria-expanded={why} aria-label="More about this" onClick={() => setWhy(!why)} className="inline-flex min-h-12 min-w-12 items-center justify-center align-middle text-title-1">
@@ -160,7 +169,7 @@ export function JourneyScreen({ step }: { step: Step }) {
 
   const optional = OPTIONAL.includes(step)
   return (
-    <div className="flex min-h-dvh flex-col">
+    <form onSubmit={advance} noValidate className="flex min-h-dvh flex-col">
       <header className="mx-auto flex w-full max-w-read items-center gap-3 px-4 pt-3">
         <Link href={back} className="inline-flex min-h-12 min-w-12 items-center text-body font-semibold text-[var(--color-ink)]" aria-label="Back">
           ← Back
@@ -174,24 +183,24 @@ export function JourneyScreen({ step }: { step: Step }) {
 
       <main className="mx-auto w-full max-w-read flex-1 px-4 pb-40 pt-6">
         <ImageSlot note={screen.image} />
-        <h1 className="mt-6 text-title-1 font-normal tracking-tight text-[var(--color-ink)]">{screen.title}</h1>
+        <h1 ref={heading} tabIndex={-1} className="mt-6 text-title-1 outline-none font-normal tracking-tight text-[var(--color-ink)]">{screen.title}</h1>
         {screen.body && <p className="mt-3 text-lede text-[var(--color-ink-muted)]">{screen.body}</p>}
         {body}
-        {error && (
-          <p role="alert" className="mt-4 text-body font-semibold text-[var(--color-danger,#b42318)]">
-            {error}
-          </p>
-        )}
       </main>
 
       <footer className="fixed inset-x-0 bottom-0 border-t border-[var(--color-rule)] bg-[var(--color-paper)] px-4 pb-[calc(--spacing(3)+env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto flex max-w-read flex-col gap-2">
+            {error && (
+              <p id="journey-error" role="alert" className="text-body font-semibold text-[var(--color-danger,#b42318)]">
+                {error}
+              </p>
+            )}
           {step === 'done' ? (
             <Link href={LANDING.lookHref} className={PRIMARY}>
               {LANDING.look}
             </Link>
           ) : (
-            <button type="button" onClick={advance} disabled={pending} className={PRIMARY}>
+            <button type="submit" disabled={pending} className={PRIMARY}>
               {screen.cta ?? 'Next'}
             </button>
           )}
@@ -202,6 +211,6 @@ export function JourneyScreen({ step }: { step: Step }) {
           )}
         </div>
       </footer>
-    </div>
+    </form>
   )
 }

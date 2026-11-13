@@ -30,6 +30,7 @@ function db(market: { metro_id: string; name: string } | null, existing: { id: s
   query.mockImplementation(async (sql: string) => {
     if (sql.includes('zip_market_key')) return { rows: market ? [market] : [] }
     if (sql.includes('from public.metro_waitlist')) return { rows: existing ? [existing] : [] }
+    if (sql.includes('insert into public.metro_waitlist')) return { rows: [], rowCount: 1 }
     return { rows: [] }
   })
 }
@@ -46,6 +47,7 @@ describe('metro.waitlist_journey_join', () => {
     expect(sqls().some((s) => s.includes('patron_count = patron_count + 1'))).toBe(true)
   })
 
+  // [guards F076.4]
   it('a second join in the same place and side writes nothing and answers the same', async () => {
     db({ metro_id: SAC, name: 'Sacramento' }, { id: 'w1', metro_id: SAC, role: 'patron' })
     const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'patron' })
@@ -53,6 +55,7 @@ describe('metro.waitlist_journey_join', () => {
     expect(sqls().some((s) => /insert into|update public\./.test(s))).toBe(false)
   })
 
+  // [guards F076.5]
   it('a new zip or side moves the count: old down, new up', async () => {
     db({ metro_id: SAC, name: 'Sacramento' }, { id: 'w1', metro_id: TAHOE, role: 'patron' })
     await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'creator' })

@@ -36,6 +36,7 @@ describe('waitlist journey (#1299)', () => {
       const steps = f.slice(1).map((v, i) => v - f[i])
       expect(steps[0]).toBeGreaterThan(steps[steps.length - 1])
       expect(f[f.length - 1]).toBe(SEGMENTS)
+      expect(f[f.length - 2]).toBeLessThan(SEGMENTS)
     }
   })
 
@@ -51,7 +52,7 @@ describe('waitlist journey (#1299)', () => {
     expect(SCREENS.phone.body).toContain('not internet numbers')
   })
 
-  it('the headline is one swappable placeholder until the PM picks', () => {
-    expect(LANDING_HEADLINE).toMatch(/^\[Headline/)
+  it('the headline is the PM’s rewrite, in one constant', () => {
+    expect(LANDING_HEADLINE).toBe('Made for us.')
   })
 })

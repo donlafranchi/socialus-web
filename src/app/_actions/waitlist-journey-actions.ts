@@ -3,6 +3,7 @@
 // #1299 — the waitlist journey's two calls: the zip screen's check, and the finish. Both sit behind the
 // waitlist-journey flag, so nobody but builders and the operator reaches them until the PM turns it on.
 
+import { z } from 'zod'
 import { createAnonClient } from '@/lib/supabase-anon'
 import { resolveAnonymousActionContext } from '@/lib/action-context'
 import { metroWaitlistJourneyJoin, ActionError } from '@/actions'
@@ -36,8 +37,23 @@ export interface WaitlistAnswers {
 
 export type JoinResult = { ok: true; market: string; waiting: number | null } | { ok: false; step: 'plans' | 'name' | 'zip' | 'email' | 'phone' | null }
 
-export async function joinWaitlistJourneyAction(a: WaitlistAnswers): Promise<JoinResult> {
+const short = (n: number) => z.string().max(n).catch('')
+const ANSWERS = z.object({
+  plans: z.array(z.string().max(40)).max(7).catch([]),
+  kinds: z.array(z.string().max(40)).max(7).catch([]),
+  offerName: short(120),
+  offerLink: short(300),
+  name: short(60),
+  zip: short(5),
+  email: short(254),
+  phone: short(20),
+})
+
+export async function joinWaitlistJourneyAction(input: WaitlistAnswers): Promise<JoinResult> {
   if (!(await flagOn('waitlist-journey'))) return { ok: false, step: null }
+  const parsed = ANSWERS.safeParse(input)
+  if (!parsed.success) return { ok: false, step: null }
+  const a = parsed.data
   const plans = (a.plans ?? []).filter((p) => PLAN_IDS.includes(p))
   if (!plans.length) return { ok: false, step: 'plans' }
   if (!a.name?.trim()) return { ok: false, step: 'name' }
