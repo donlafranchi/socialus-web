@@ -16,6 +16,8 @@ export interface MakerRow {
   address?: string | null
   /** TikTok and Instagram first: the profiles its own site links (Don, 2026-10-16). Links only. */
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
+  /** #1318 — what it carries, from the PM's item list (2026-11-13); data only, no Page field yet. */
+  carries?: string[]
   /** #909 — 3–6 things it sells or offers, each from a page on its own site. Price in dollars, optional. */
   products?: { name: string; url: string; price?: number; kind?: 'product' | 'service' }[]
   /** A market whose own site states its day and hours: real Market day posts instead of Samples (Don, 2026-10-19). */

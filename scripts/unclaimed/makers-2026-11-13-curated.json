@@ -37,7 +37,52 @@
         "url": "https://www.theconstellationmarketplace.com/store/category/Jewelry%20%26%20Accessories"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): About page lists 1021 R Street, hours Tue-Sat 10-4, footer Copyright 2026; site gives zip 95817 but R Street is 95811. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): About page lists 1021 R Street, hours Tue-Sat 10-4, footer Copyright 2026; site gives zip 95817 but R Street is 95811. Lead: search, then own site.",
+    "carries": [
+      "Classes & Workshops",
+      "Garden",
+      "Apparel",
+      "Bags",
+      "Hats & Scarves",
+      "Socks & Footwear",
+      "Apothecary",
+      "Candles & Home Fragrances",
+      "Food & Drink",
+      "Home Goods & Decor",
+      "Ceramics",
+      "Clocks",
+      "Furniture",
+      "Kitchen",
+      "Stained Glass",
+      "Sun Catchers",
+      "Trinket Trays",
+      "Wood Goods",
+      "Jewelry & Accessories",
+      "Bracelets",
+      "Earrings",
+      "Hair Accessories",
+      "Keychains",
+      "Necklaces",
+      "Rings",
+      "Kids & Baby",
+      "Accessories",
+      "Bibs",
+      "Books",
+      "Kids Apparel",
+      "Teethers, Loveys & Swaddles",
+      "Toys",
+      "Paper & Novelty",
+      "Bookmarks",
+      "Crafts",
+      "Gift Wrapping",
+      "Greeting Cards",
+      "Local Art & Prints",
+      "Stickers, Magnets & Pins",
+      "Pets",
+      "Plants & Accessories",
+      "Specialty",
+      "Tarot & Crystals"
+    ]
   },
   {
     "name": "Strapping Store",
@@ -73,7 +118,11 @@
         "url": "https://shopstrapping.com/products/SOCKS-c148036618"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): site lists 3405 Broadway with hours Mon-Sun and phone, 2026 dates in page; the Midtown location is no longer listed. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): site lists 3405 Broadway with hours Mon-Sun and phone, 2026 dates in page; the Midtown location is no longer listed. Lead: search, then own site.",
+    "carries": [
+      "Socks & Footwear",
+      "Kitchen"
+    ]
   },
   {
     "name": "The Filling Station Goods & Gifts",
@@ -109,7 +158,13 @@
         "url": "https://thefillingstationgoods.com/collections/kids-books"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Best of Benicia 2025 & 2026 banner, Benicia Main Street directory lists 828 First Street, collections all load. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Best of Benicia 2025 & 2026 banner, Benicia Main Street directory lists 828 First Street, collections all load. Lead: search, then own site.",
+    "carries": [
+      "Classes & Workshops",
+      "Apparel",
+      "Bags",
+      "Toys"
+    ]
   },
   {
     "name": "The Wild Grove Collective",
@@ -149,7 +204,21 @@
         "url": "https://www.thewildgrovecollective.com/category/candles"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer 2025, address 510 Main St, hours Tue-Sat 10-4 and Sun 11-3 posted, workshops/event listings dated 2026, all category pages load. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2025, address 510 Main St, hours Tue-Sat 10-4 and Sun 11-3 posted, workshops/event listings dated 2026, all category pages load. Lead: search, then own site.",
+    "carries": [
+      "Classes & Workshops",
+      "Wood Goods",
+      "Greeting Cards",
+      "Stickers, Magnets & Pins",
+      "Bracelets",
+      "Earrings",
+      "Bags",
+      "Food & Drink",
+      "Pets",
+      "Plants & Accessories",
+      "Apothecary",
+      "Candles & Home Fragrances"
+    ]
   },
   {
     "name": "The Little Art Shop",
@@ -162,7 +231,11 @@
       "instagram": "https://instagram.com/littleartshop.benicia",
       "facebook": "https://www.facebook.com/thelittleartshop.benicia"
     },
-    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with address, phone and 11-5 seven-day hours, listed in Benicia Main Street directory; no footer year or dated content on the site itself. Lead: search, then own site."
+    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with address, phone and 11-5 seven-day hours, listed in Benicia Main Street directory; no footer year or dated content on the site itself. Lead: search, then own site.",
+    "carries": [
+      "Jewelry & Accessories",
+      "Local Art & Prints"
+    ]
   },
   {
     "name": "The Artery",
@@ -175,7 +248,11 @@
       "instagram": "https://www.instagram.com/arterydavis/",
       "facebook": "https://www.facebook.com/ArteryofDavis/"
     },
-    "confidence": "High; own site checked 2026-11-13 (ok): footer 1974-2026, current exhibit with reception on 2026-11-13, hours Mon-Sat 10-6 and Sun 11-5 at 207 G Street. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 1974-2026, current exhibit with reception on 2026-11-13, hours Mon-Sat 10-6 and Sun 11-5 at 207 G Street. Lead: search, then own site.",
+    "carries": [
+      "Local Art & Prints",
+      "Classes & Workshops"
+    ]
   },
   {
     "name": "Rill",
@@ -209,7 +286,21 @@
         "url": "https://therillstudio.com/collections/jewelry"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Visit Us page lists 623 1st Street with hours Mon-Sat 11-6 and Sun 11-4, collections load. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Visit Us page lists 623 1st Street with hours Mon-Sat 11-6 and Sun 11-4, collections load. Lead: search, then own site.",
+    "carries": [
+      "Candles & Home Fragrances",
+      "Greeting Cards",
+      "Apothecary",
+      "Necklaces",
+      "Keychains",
+      "Bracelets",
+      "Bags",
+      "Socks & Footwear",
+      "Hats & Scarves",
+      "Apparel",
+      "Food & Drink",
+      "Jewelry & Accessories"
+    ]
   },
   {
     "name": "Winters Collective",
@@ -242,7 +333,14 @@
         "url": "https://winterscollective.com/collections/home-decor"
       }
     ],
-    "confidence": "Medium; own site checked 2026-11-13 (ok): footer 2026, site calls itself a curated mercantile in downtown Winters; street address 41 Main St and Tue-Sun hours come from the Discover Winters listing, not the shop's own site. Lead: search, then own site."
+    "confidence": "Medium; own site checked 2026-11-13 (ok): footer 2026, site calls itself a curated mercantile in downtown Winters; street address 41 Main St and Tue-Sun hours come from the Discover Winters listing, not the shop's own site. Lead: search, then own site.",
+    "carries": [
+      "Apparel",
+      "Hats & Scarves",
+      "Jewelry & Accessories",
+      "Home Goods & Decor",
+      "Classes & Workshops"
+    ]
   },
   {
     "name": "Mozart Earhart & Me",
@@ -255,7 +353,10 @@
       "instagram": "https://www.instagram.com/mozartearhartandme/",
       "facebook": "https://www.facebook.com/427926025334"
     },
-    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Benicia location page lists 620 First Street with 11-5 hours, Gifts & Toys page loads. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Benicia location page lists 620 First Street with 11-5 hours, Gifts & Toys page loads. Lead: search, then own site.",
+    "carries": [
+      "Toys"
+    ]
   },
   {
     "name": "Uptown Collective",
@@ -305,7 +406,15 @@
         "url": "https://makelocalhabitgrassvalley.com/collections/childrens-clothing"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer (c) 2026, About page says owner is in the eleventh year, address and hours (Wed-Sun) on Contact page, collection pages load. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer (c) 2026, About page says owner is in the eleventh year, address and hours (Wed-Sun) on Contact page, collection pages load. Lead: search, then own site.",
+    "carries": [
+      "Apothecary",
+      "Food & Drink",
+      "Apparel",
+      "Kids Apparel",
+      "Jewelry & Accessories",
+      "Home Goods & Decor"
+    ]
   },
   {
     "name": "KITKITDIZZI",
@@ -336,7 +445,16 @@
         "url": "https://kitkitdizzi.com/collections/wear-it"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer (c) 2026, Contact page lists 231 Broad St and phone, About page describes the shop since 2012, collection pages load. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer (c) 2026, Contact page lists 231 Broad St and phone, About page describes the shop since 2012, collection pages load. Lead: search, then own site.",
+    "carries": [
+      "Home Goods & Decor",
+      "Apothecary",
+      "Jewelry & Accessories",
+      "Rings",
+      "Earrings",
+      "Apparel",
+      "Candles & Home Fragrances"
+    ]
   },
   {
     "name": "Kiya's Naturals",
@@ -420,7 +538,16 @@
         "url": "https://www.midnightkin.com/cards"
       }
     ],
-    "confidence": "Medium; own site checked 2026-11-13 (ok): address, daily hours, phone and About page on site, category pages load; no footer year, a 2023 local article also lists it. Lead: search, then own site."
+    "confidence": "Medium; own site checked 2026-11-13 (ok): address, daily hours, phone and About page on site, category pages load; no footer year, a 2023 local article also lists it. Lead: search, then own site.",
+    "carries": [
+      "Bags",
+      "Greeting Cards",
+      "Hats & Scarves",
+      "Socks & Footwear",
+      "Kids Apparel",
+      "Apothecary",
+      "Apparel"
+    ]
   },
   {
     "name": "Nava & Co.",
@@ -431,7 +558,16 @@
     "social": {
       "instagram": "https://www.instagram.com/navaandco/"
     },
-    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with weekly hours and workshops but no street address or year; address from Visit Lodi directory. Lead: search, then own site."
+    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with weekly hours and workshops but no street address or year; address from Visit Lodi directory. Lead: search, then own site.",
+    "carries": [
+      "Jewelry & Accessories",
+      "Ceramics",
+      "Home Goods & Decor",
+      "Plants & Accessories",
+      "Apothecary",
+      "Classes & Workshops",
+      "Local Art & Prints"
+    ]
   },
   {
     "name": "The Little Shop on The Mile",
