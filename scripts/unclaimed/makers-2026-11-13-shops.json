@@ -1,0 +1,554 @@
+[
+  {
+    "name": "BrainyZoo Toys",
+    "category": "Toy shop",
+    "makes": "Family-owned specialty toy store in Historic Folsom (served the Sacramento area since 1982) with hand-picked educational, sensory, STEAM and puzzle toys; also has a Folsom Premium Outlets store.",
+    "area": "Folsom (Sacramento)",
+    "address": "718 Sutter Street, Suite 103, Folsom, CA 95630",
+    "site": "https://www.brainyzootoys.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/brainyzoo_toys/",
+      "facebook": "https://www.facebook.com/BrainyZooToys"
+    },
+    "products": [
+      {
+        "name": "GAMES + BRAIN TEASERS",
+        "url": "https://www.brainyzootoys.com/shop-by-interest/games-brain-teasers/"
+      },
+      {
+        "name": "PUZZLES",
+        "url": "https://www.brainyzootoys.com/shop-by-interest/puzzles/"
+      },
+      {
+        "name": "SCIENCE",
+        "url": "https://www.brainyzootoys.com/shop-by-interest/science/"
+      },
+      {
+        "name": "ART",
+        "url": "https://www.brainyzootoys.com/shop-by-interest/art/"
+      },
+      {
+        "name": "STUFFIES",
+        "url": "https://www.brainyzootoys.com/shop-by-interest/stuffies/"
+      },
+      {
+        "name": "Calico Critters",
+        "url": "https://www.brainyzootoys.com/shop-by-interest/dolls/calico-critters/"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): About page gives both Folsom addresses, hours and phone, footer 2026, current featured products with Santa items. Lead: search, then own site."
+  },
+  {
+    "name": "Wit & Whimsy Toys",
+    "category": "Toy shop",
+    "makes": "Locally owned toy store in Granite Bay selling games, puzzles, science kits, plush, building toys and arts and crafts, with game nights and make-and-take events; open daily.",
+    "area": "Granite Bay (Placer)",
+    "address": "8679B Auburn-Folsom Rd, Granite Bay, CA 95746",
+    "site": "https://www.witandwhimsytoys.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/witandwhimsytoys/",
+      "facebook": "https://www.facebook.com/witandwhimsytoys"
+    },
+    "products": [
+      {
+        "name": "Games",
+        "url": "https://www.witandwhimsytoys.com/games/"
+      },
+      {
+        "name": "Puzzles",
+        "url": "https://www.witandwhimsytoys.com/puzzles/"
+      },
+      {
+        "name": "Science",
+        "url": "https://www.witandwhimsytoys.com/science/"
+      },
+      {
+        "name": "Building",
+        "url": "https://www.witandwhimsytoys.com/building/"
+      },
+      {
+        "name": "Plush",
+        "url": "https://www.witandwhimsytoys.com/plush/"
+      },
+      {
+        "name": "Arts & Crafts",
+        "url": "https://www.witandwhimsytoys.com/arts-crafts/"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer lists address, hours Mon-Sat 10-6 and Sun 10-5, Copyright 2026. Its own photos show children or are not usable: stock photos only. Lead: search, then own site."
+  },
+  {
+    "name": "Old City Kites",
+    "category": "Toy shop",
+    "makes": "Old Sacramento shop selling kites, yo-yos, puzzles, games, windsocks and garden art, including Talavera pottery; open daily in the afternoon.",
+    "area": "Sacramento (Sacramento)",
+    "address": "1021 Front Street, Sacramento, CA 95814",
+    "site": "https://www.kitesatoldcity.com/",
+    "social": {},
+    "products": [
+      {
+        "name": "Stunt Kites",
+        "url": "https://www.kitesatoldcity.com/collections/stunt-kites"
+      },
+      {
+        "name": "Puzzles",
+        "url": "https://www.kitesatoldcity.com/collections/puzzles"
+      },
+      {
+        "name": "Yo-Yos",
+        "url": "https://www.kitesatoldcity.com/collections/yoyo"
+      },
+      {
+        "name": "Games",
+        "url": "https://www.kitesatoldcity.com/collections/games"
+      },
+      {
+        "name": "Toys",
+        "url": "https://www.kitesatoldcity.com/collections/toys"
+      },
+      {
+        "name": "Talavera Mexican Art Pottery",
+        "url": "https://www.kitesatoldcity.com/collections/talavera-mexican-art-pottery"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): About page gives 1021 Front St and phone, 'Open daily', footer 2026; no social links on the site. Lead: search, then own site."
+  },
+  {
+    "name": "Terra Cottage",
+    "category": "Gift shop",
+    "makes": "Boutique with gifts, home decor, baby items, apparel and food, which began with local makers and hand-painted furniture; shops in Historic Folsom and Roseville, open daily 10 to 8.",
+    "area": "Folsom (Sacramento)",
+    "site": "https://terracottageshop.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/terra_cottage/",
+      "facebook": "https://www.facebook.com/TerraCottageShop/"
+    },
+    "products": [
+      {
+        "name": "Giftable Items",
+        "url": "https://terracottageshop.com/collections/giftable-items"
+      },
+      {
+        "name": "Home Decor",
+        "url": "https://terracottageshop.com/collections/home-decor-1"
+      },
+      {
+        "name": "Baby & Kids",
+        "url": "https://terracottageshop.com/collections/baby"
+      },
+      {
+        "name": "Food & Drink",
+        "url": "https://terracottageshop.com/collections/food-drink"
+      },
+      {
+        "name": "Holiday Collection",
+        "url": "https://terracottageshop.com/collections/holiday-collection"
+      },
+      {
+        "name": "Shop New Arrivals",
+        "url": "https://terracottageshop.com/collections/new-arrivals"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): Shop Hours page lists 722 Sutter St (Folsom) and 1005 Galleria Blvd Ste 120, Roseville 95678, 10-8 daily, holiday collection live. Folsom zip not on site (95630 assumed). Lead: search, then own site."
+  },
+  {
+    "name": "Jam Baby",
+    "category": "Gift shop",
+    "makes": "Oak Park kids and baby shop selling clothing, books, toys such as Maileg and Candylab, baby shower gifts and decor from small brands; open Wednesday to Sunday.",
+    "area": "Sacramento (Sacramento)",
+    "address": "3330 Broadway, Sacramento, CA 95817",
+    "site": "https://shopjambaby.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/jambabyshop"
+    },
+    "products": [
+      {
+        "name": "Maileg",
+        "url": "https://shopjambaby.com/collections/maileg"
+      },
+      {
+        "name": "books",
+        "url": "https://shopjambaby.com/collections/books"
+      },
+      {
+        "name": "Baby",
+        "url": "https://shopjambaby.com/collections/baby-shower-gifts"
+      },
+      {
+        "name": "Candylab",
+        "url": "https://shopjambaby.com/collections/candylab"
+      },
+      {
+        "name": "Meri Meri",
+        "url": "https://shopjambaby.com/collections/meri-meri"
+      },
+      {
+        "name": "decor",
+        "url": "https://shopjambaby.com/collections/decor"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): site lists 3330 Broadway, hours Wed-Sun, footer 2026. Kids' shop, so toy and gift fit is partial. Lead: search, then own site."
+  },
+  {
+    "name": "Fast Track Hobbies",
+    "category": "Toy shop",
+    "makes": "Family-friendly hobby shop in Rocklin selling RC cars, slot cars, models, toys and games, with an in-store slot car raceway and party rooms; closed Tuesday and Wednesday.",
+    "area": "Rocklin (Placer)",
+    "address": "4420 Granite Dr, Suite 400, Rocklin, CA 95677",
+    "site": "https://www.fasttrackhobbies.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/fasttrackhobbies",
+      "facebook": "https://www.facebook.com/FastTrackHobbies/"
+    },
+    "products": [
+      {
+        "name": "HOBBIES & TOYS",
+        "url": "https://www.fasttrackhobbies.com/hobbiesandtoys"
+      },
+      {
+        "name": "RC HOBBIES",
+        "url": "https://www.fasttrackhobbies.com/rchobbies"
+      },
+      {
+        "name": "SLOT CARS",
+        "url": "https://www.fasttrackhobbies.com/slotcars"
+      },
+      {
+        "name": "TURBO KIDS",
+        "url": "https://www.fasttrackhobbies.com/turbokids"
+      },
+      {
+        "name": "WORKBENCH",
+        "url": "https://www.fasttrackhobbies.com/workbench"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): address, hours, phone listed, 2026 dates in page content. Lead: search, then own site."
+  },
+  {
+    "name": "Five Star Bricks",
+    "category": "Toy shop",
+    "makes": "LEGO shop in Orangevale that buys and sells LEGO sets and pieces and hosts build, sort and trade nights; a second shop is in Elk Grove.",
+    "area": "Orangevale (Sacramento)",
+    "address": "6228 Main Ave, Orangevale, CA 95662",
+    "site": "https://www.fivestarbricks.com/",
+    "social": {
+      "tiktok": "https://www.tiktok.com/@fivestarbricks_elkgrove",
+      "instagram": "https://www.instagram.com/fivestarbrickshobbyshop/",
+      "facebook": "https://www.facebook.com/fivestarbrickshobbyshop/"
+    },
+    "confidence": "Medium; own site checked 2026-11-13 (ok): home page lists both addresses, hours and phones; no dated content or footer year found. Only an events page exists, so no products. Lead: search, then own site."
+  },
+  {
+    "name": "Avid & Co.",
+    "category": "Toy shop",
+    "makes": "Davis independent toy store next to The Avid Reader, run by the Arnold family, with Calico Critters, STEAM and science toys, arts and crafts supplies and small gifts; curbside pickup and local delivery.",
+    "area": "Davis (Yolo)",
+    "site": "https://avidandco.com/",
+    "social": {},
+    "products": [
+      {
+        "name": "Calico Critters",
+        "url": "https://avidandco.com/collections/calico-critters"
+      },
+      {
+        "name": "STEAM Education",
+        "url": "https://avidandco.com/collections/steam-education"
+      },
+      {
+        "name": "Trinkets & Luxuries",
+        "url": "https://avidandco.com/collections/trinkets-luxuries"
+      },
+      {
+        "name": "Arts & Crafts",
+        "url": "https://avidandco.com/collections/artsandcrafts"
+      },
+      {
+        "name": "In Stock",
+        "url": "https://avidandco.com/collections/in-stock"
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-11-13 (ok): footer 2026, collections updated 2026-11-13, site says 'located in downtown Davis' but gives no street address; 605 2nd Street comes from the Davis event listing (thedirt.online) and Visit Davis names the shop. Lead: search, then own site."
+  },
+  {
+    "name": "Creme de la Creme Gifts",
+    "category": "Gift shop",
+    "makes": "Owner-run downtown Davis gift shop, open since 2005 on a stone pathway off D Street, selling gifts and accents for the home, for women and for babies; open Tuesday to Saturday.",
+    "area": "Davis (Yolo)",
+    "address": "222 D Street #6B, Davis, CA 95616",
+    "site": "https://cremedelacremedavis.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/cremedelacremedavis/",
+      "facebook": "https://www.facebook.com/cremedelacremedavis/"
+    },
+    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with address and hours Tue-Sat 10:30-5:30, theme file updated Jan 2026, no footer year. Lead: search, then own site."
+  },
+  {
+    "name": "Haven a Boutique",
+    "category": "Gift shop",
+    "makes": "Woodland Main Street boutique selling women's clothing, jewelry, handbags and accessories plus a home section with candles, kitchen items, self care, stationery and cards; open daily.",
+    "area": "Woodland (Yolo)",
+    "address": "617 Main St, Woodland, CA 95695",
+    "site": "https://havenaboutique.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/havenaboutique/",
+      "facebook": "https://www.facebook.com/havenaboutique/"
+    },
+    "products": [
+      {
+        "name": "Home",
+        "url": "https://havenaboutique.com/collections/home"
+      },
+      {
+        "name": "Candles",
+        "url": "https://havenaboutique.com/collections/candles"
+      },
+      {
+        "name": "Jewelry",
+        "url": "https://havenaboutique.com/collections/jewelry"
+      },
+      {
+        "name": "Best Sellers",
+        "url": "https://havenaboutique.com/collections/best-sellers"
+      },
+      {
+        "name": "Under 25",
+        "url": "https://havenaboutique.com/collections/under-25"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, address 617 Main St with posted hours Mon-Fri 10-6, Sat 10-5, Sun 11-4. Lead: search, then own site."
+  },
+  {
+    "name": "Mad Alpaca Games",
+    "category": "Toy shop",
+    "makes": "Tabletop game store with Fairfield (Gateway Blvd) and Davis (G Street) locations selling Magic: The Gathering, Warhammer, D&D and other games and hosting tournaments and play events.",
+    "area": "Fairfield (Solano)",
+    "address": "1325 Gateway Blvd Ste C-2, Fairfield, CA 94533",
+    "site": "https://www.madalpaca.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/madalpacagames/",
+      "facebook": "https://www.facebook.com/MadAlpacaGames/"
+    },
+    "confidence": "High; own site checked 2026-11-13 (ok): 2026 content, Fairfield and Davis location pages with addresses and hours. Lead: search, then own site."
+  },
+  {
+    "name": "Forgotten Path Games",
+    "category": "Toy shop",
+    "makes": "Vacaville board game and trading card game store selling board games, dice, miniatures supplies and card accessories, with event nights; open daily.",
+    "area": "Vacaville (Solano)",
+    "address": "1919 Peabody Road, Vacaville, CA 95687",
+    "site": "https://forgottenpathgames.com/",
+    "social": {
+      "tiktok": "https://www.tiktok.com/@forgottenpathgames",
+      "instagram": "http://instagram.com/forgottenpathgames",
+      "facebook": "https://facebook.com/forgottenpathgames"
+    },
+    "products": [
+      {
+        "name": "Board Games",
+        "url": "https://forgottenpathgames.com/collections/board-games"
+      },
+      {
+        "name": "Dice",
+        "url": "https://forgottenpathgames.com/collections/dice"
+      },
+      {
+        "name": "Chessex",
+        "url": "https://forgottenpathgames.com/collections/chessex"
+      },
+      {
+        "name": "Dragon Shield",
+        "url": "https://forgottenpathgames.com/collections/dragon-shield"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, 1919 Peabody Road with hours Mon-Sat 11-10, Sun 11-7, collections load. Lead: search, then own site."
+  },
+  {
+    "name": "Ace Hobby Shop",
+    "category": "Toy shop",
+    "makes": "Vacaville hobby shop for RC cars, trucks, airplanes, kits, batteries and parts, with repair services; open Tuesday to Saturday.",
+    "area": "Vacaville (Solano)",
+    "address": "825 Davis St Suite D, Vacaville, CA 95687",
+    "site": "https://acehobbyshop.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/acehobbyshop/",
+      "facebook": "https://www.facebook.com/profile.php?id=100095128748760"
+    },
+    "products": [
+      {
+        "name": "Airplanes",
+        "url": "https://acehobbyshop.com/collections/airplanes"
+      },
+      {
+        "name": "Cars & Trucks",
+        "url": "https://acehobbyshop.com/collections/cars-trucks"
+      },
+      {
+        "name": "Kits",
+        "url": "https://acehobbyshop.com/collections/kits"
+      },
+      {
+        "name": "Electronics",
+        "url": "https://acehobbyshop.com/collections/electronics"
+      },
+      {
+        "name": "RC Cars",
+        "url": "https://acehobbyshop.com/collections/r-c-cars"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, contact page lists 825 Davis St Suite D, hours Tue-Fri 10-5, Sat 10-2. Lead: search, then own site."
+  },
+  {
+    "name": "Mountain Pastimes",
+    "category": "Toy shop",
+    "makes": "Family-run Nevada City toy store selling toys, games, kites and puzzles since 1989 at 320 Spring Street, open Tuesday through Sunday 11 to 5.",
+    "area": "Nevada City (Nevada)",
+    "address": "320 Spring St, Nevada City, CA 95959",
+    "site": "https://mountainpastimes.com",
+    "social": {},
+    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, address, phone and hours (Tue-Sun 11-5) on home page. No social links on site. Lead: search, then own site."
+  },
+  {
+    "name": "Two Little Birds Boutique",
+    "category": "Gift shop",
+    "makes": "Nevada City children's boutique selling Maileg and other toys, dolls, books, costumes, art and craft kits, plus baby and kids' clothing, open seven days a week on Commercial Street.",
+    "area": "Nevada City (Nevada)",
+    "address": "234 Commercial St, Nevada City, CA 95959",
+    "site": "https://twolittlebirdsnevadacity.com",
+    "social": {
+      "instagram": "https://www.instagram.com/twolittlebirdsnevadacity/",
+      "facebook": "https://www.facebook.com/twolittlebirdsnevadacity/"
+    },
+    "products": [
+      {
+        "name": "Dolls and Accessories",
+        "url": "https://twolittlebirdsnevadacity.com/collections/dolls-and-accesories"
+      },
+      {
+        "name": "Art, Crafts and Activities",
+        "url": "https://twolittlebirdsnevadacity.com/collections/art-crafts-and-activities"
+      },
+      {
+        "name": "Books",
+        "url": "https://twolittlebirdsnevadacity.com/collections/books"
+      },
+      {
+        "name": "Costumes",
+        "url": "https://twolittlebirdsnevadacity.com/collections/costumes"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, store address, phone and hours in footer, collection pages load. Mostly children's clothing, with a toy and gift section. Its own photos show children or are not usable: stock photos only. Lead: search, then own site."
+  },
+  {
+    "name": "T.W. Bonkers Toy & Candy Emporium",
+    "category": "Toy shop",
+    "makes": "Downtown Placerville toy and candy shop selling classic, educational and contemporary toys, games, jigsaw puzzles, plush, magic tricks, plus retro candy and chocolate from local makers such as Annabelle's.",
+    "area": "Placerville (El Dorado)",
+    "address": "398 Main St, Placerville, CA 95667",
+    "site": "https://bonkerstoystore.com",
+    "social": {
+      "instagram": "https://www.instagram.com/bonkerstoys/",
+      "facebook": "https://www.facebook.com/BonkersToyStore/"
+    },
+    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, address, phone and hours on home page, Instagram and Facebook linked. Lead: search, then own site."
+  },
+  {
+    "name": "Mystic Forge Toys",
+    "category": "Toy shop",
+    "makes": "Placerville hobby and toy shop selling Pokemon cards, Lego sets, models, Gundam kits, equipment and radio-control vehicles.",
+    "area": "Placerville (El Dorado)",
+    "site": "https://www.mysticforgetoys.com",
+    "social": {},
+    "products": [
+      {
+        "name": "Lego",
+        "url": "https://www.mysticforgetoys.com/shop/lego/54G7KILCGOHAPP5RBIL3FU7K"
+      },
+      {
+        "name": "Models",
+        "url": "https://www.mysticforgetoys.com/shop/models/DO4OTJQVHWZ4TS5A3NPUC3W2"
+      },
+      {
+        "name": "Radio Control",
+        "url": "https://www.mysticforgetoys.com/shop/radio-control/JMF2SJZALWNTDVFYJPBXUYNG"
+      },
+      {
+        "name": "Pokemon",
+        "url": "https://www.mysticforgetoys.com/shop/pokemon/G4VMPXNT4JVT25QWWHVHO6PS"
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-11-13 (ok, rendered in browser): footer (c) 2026 and live in-stock items, but the site shows no street address. The Placerville Main Street address and hours come from a local Placerville listing, not the site. Lead: search, then own site."
+  },
+  {
+    "name": "Not Too Shabby",
+    "category": "Gift shop",
+    "makes": "Folsom Historic District gift and home decor shop with Annie Sloan chalk paint, workshops, home decor, jewelry, baby gifts, candles, cards and food gifts chosen by the owner, in business since 2005.",
+    "area": "Folsom (Sacramento)",
+    "address": "702 Sutter St Ste D, Folsom, CA 95630",
+    "site": "https://nottooshabbyshop.com",
+    "social": {
+      "instagram": "https://www.instagram.com/nottooshabbyshop/",
+      "facebook": "https://www.facebook.com/nottooshabbyshop/"
+    },
+    "products": [
+      {
+        "name": "Home Decor",
+        "url": "https://nottooshabbyshop.com/collections/home-decor"
+      },
+      {
+        "name": "Jewelry",
+        "url": "https://nottooshabbyshop.com/collections/jewelry"
+      },
+      {
+        "name": "Baby",
+        "url": "https://nottooshabbyshop.com/collections/baby-1"
+      },
+      {
+        "name": "Candles & Scents",
+        "url": "https://nottooshabbyshop.com/collections/soaps-lotions-and-candles"
+      },
+      {
+        "name": "Food",
+        "url": "https://nottooshabbyshop.com/collections/food"
+      },
+      {
+        "name": "Cards",
+        "url": "https://nottooshabbyshop.com/collections/cards"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, About page lists 702 Sutter St, hours and Thanksgiving holiday hours, collection pages load. Lead: search, then own site."
+  },
+  {
+    "name": "The Rabbit Hole Trading Co",
+    "category": "Gift shop",
+    "makes": "Downtown Lodi gift and collectibles shop with vintage vinyl records, pop culture and Disney items, candles, a build-your-own plush critter experience and workshops; open daily.",
+    "area": "Lodi (San Joaquin)",
+    "address": "100 W Pine St, Lodi, CA 95242",
+    "site": "https://therabbitholetradingco.com",
+    "social": {
+      "instagram": "https://www.instagram.com/therabbitholetradingco"
+    },
+    "products": [
+      {
+        "name": "Vinyl Records",
+        "url": "https://therabbitholetradingco.com/vinyl-records"
+      },
+      {
+        "name": "Wonderland Critters",
+        "url": "https://therabbitholetradingco.com/wonderland-critters"
+      },
+      {
+        "name": "Whimsical and Blessed",
+        "url": "https://therabbitholetradingco.com/once-upon-a-string"
+      },
+      {
+        "name": "10 Shillings and a Sixpence",
+        "url": "https://therabbitholetradingco.com/10-shillings-and-a-sixpence"
+      },
+      {
+        "name": "Through the Looking Glass",
+        "url": "https://therabbitholetradingco.com/through-the-looking-glass"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): address and daily hours on /hours, shop pages load, recent Instagram embeds. Lead: search, then own site."
+  }
+]
