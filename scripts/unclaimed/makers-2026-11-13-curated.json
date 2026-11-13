@@ -1,0 +1,471 @@
+[
+  {
+    "name": "The Constellation Marketplace",
+    "category": "Makers' shop",
+    "makes": "Retail gift shop in the Arthouse on R Street selling small-batch, handmade and vintage goods, with a collection of Sacramento-region makers, plus kids' items, candles, cards and local art; open Tuesday to Saturday.",
+    "area": "Sacramento (Sacramento)",
+    "address": "1021 R Street, Sacramento, CA 95811",
+    "site": "https://www.theconstellationmarketplace.com/",
+    "social": {
+      "tiktok": "https://www.tiktok.com/@constellationmarket",
+      "instagram": "https://www.instagram.com/constellationmarketplace",
+      "facebook": "https://www.facebook.com/ConstellationMarketplace"
+    },
+    "products": [
+      {
+        "name": "Kids & Baby",
+        "url": "https://www.theconstellationmarketplace.com/store/category/Kids%20%26%20Baby"
+      },
+      {
+        "name": "Candles & Home Fragrances",
+        "url": "https://www.theconstellationmarketplace.com/store/category/Candles%20%26%20Home%20Fragrances"
+      },
+      {
+        "name": "Greeting Cards",
+        "url": "https://www.theconstellationmarketplace.com/store/category/Greeting%20Cards"
+      },
+      {
+        "name": "Local Art & Prints",
+        "url": "https://www.theconstellationmarketplace.com/store/category/Local%20Art%20%26%20Prints"
+      },
+      {
+        "name": "Ceramics",
+        "url": "https://www.theconstellationmarketplace.com/store/category/Ceramics"
+      },
+      {
+        "name": "Jewelry & Accessories",
+        "url": "https://www.theconstellationmarketplace.com/store/category/Jewelry%20%26%20Accessories"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): About page lists 1021 R Street, hours Tue-Sat 10-4, footer Copyright 2026; site gives zip 95817 but R Street is 95811. Lead: search, then own site."
+  },
+  {
+    "name": "Strapping Store",
+    "category": "Gift shop",
+    "makes": "Oak Park gift store selling mugs, socks, home goods and novelty items, including a California and Sacramento products section; open daily.",
+    "area": "Sacramento (Sacramento)",
+    "address": "3405 Broadway, Sacramento, CA 95817",
+    "site": "https://shopstrapping.com/",
+    "social": {
+      "tiktok": "https://www.tiktok.com/@strapping_store",
+      "instagram": "http://instagram.com/StrappingStore",
+      "facebook": "http://facebook.com/StrappingStore"
+    },
+    "products": [
+      {
+        "name": "California & Sacramento",
+        "url": "https://shopstrapping.com/products/CALIFORNIA-c148756836"
+      },
+      {
+        "name": "Silly Things",
+        "url": "https://shopstrapping.com/products/FUN-STUFF-c149167638"
+      },
+      {
+        "name": "Fun Things for your Home",
+        "url": "https://shopstrapping.com/products/HOME-c148756089"
+      },
+      {
+        "name": "Mugs",
+        "url": "https://shopstrapping.com/products/MUGS-c148760086"
+      },
+      {
+        "name": "Socks",
+        "url": "https://shopstrapping.com/products/SOCKS-c148036618"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): site lists 3405 Broadway with hours Mon-Sun and phone, 2026 dates in page; the Midtown location is no longer listed. Lead: search, then own site."
+  },
+  {
+    "name": "The Filling Station Goods & Gifts",
+    "category": "Gift shop",
+    "makes": "Benicia gift and home goods shop on First Street that stocks local, American-made and sustainable products, plus a refill bar for soap and cleaning supplies, Jellycat and Maileg plush, stationery and kids books.",
+    "area": "Benicia (Solano)",
+    "address": "828 First Street, Benicia, CA 94510",
+    "site": "https://thefillingstationgoods.com/",
+    "social": {
+      "tiktok": "https://www.tiktok.com/@thefillingstationgoods",
+      "instagram": "https://www.instagram.com/thefillingstationgoods/",
+      "facebook": "https://www.facebook.com/thefillingstationgoods"
+    },
+    "products": [
+      {
+        "name": "LOCAL",
+        "url": "https://thefillingstationgoods.com/collections/local"
+      },
+      {
+        "name": "Jellycat",
+        "url": "https://thefillingstationgoods.com/collections/jellycat"
+      },
+      {
+        "name": "Maileg",
+        "url": "https://thefillingstationgoods.com/collections/maileg"
+      },
+      {
+        "name": "Stationery",
+        "url": "https://thefillingstationgoods.com/collections/stationary"
+      },
+      {
+        "name": "Kids Books",
+        "url": "https://thefillingstationgoods.com/collections/kids-books"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Best of Benicia 2025 & 2026 banner, Benicia Main Street directory lists 828 First Street, collections all load. Lead: search, then own site."
+  },
+  {
+    "name": "The Wild Grove Collective",
+    "category": "Makers' shop",
+    "makes": "Woodland shop on Main Street where more than 30 local artists and small makers sell housewares, toys, jewelry, body care, candles and food; open Tuesday to Sunday and hosts workshops.",
+    "area": "Woodland (Yolo)",
+    "address": "510 Main St, Woodland, CA 95695",
+    "site": "https://www.thewildgrovecollective.com/",
+    "social": {
+      "tiktok": "https://www.tiktok.com/@the.wild.grove.co",
+      "instagram": "https://www.instagram.com/the_wildgrove_collective/",
+      "facebook": "https://www.facebook.com/profile.php?id=61576992436940"
+    },
+    "products": [
+      {
+        "name": "All Products",
+        "url": "https://www.thewildgrovecollective.com/category/all-products"
+      },
+      {
+        "name": "Housewares",
+        "url": "https://www.thewildgrovecollective.com/category/housewares"
+      },
+      {
+        "name": "Toys",
+        "url": "https://www.thewildgrovecollective.com/category/toys"
+      },
+      {
+        "name": "Jewelry",
+        "url": "https://www.thewildgrovecollective.com/category/jewelry"
+      },
+      {
+        "name": "Body Care",
+        "url": "https://www.thewildgrovecollective.com/category/body-care"
+      },
+      {
+        "name": "Candles",
+        "url": "https://www.thewildgrovecollective.com/category/candles"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2025, address 510 Main St, hours Tue-Sat 10-4 and Sun 11-3 posted, workshops/event listings dated 2026, all category pages load. Lead: search, then own site."
+  },
+  {
+    "name": "The Little Art Shop",
+    "category": "Makers' shop",
+    "makes": "Benicia gallery and gift shop in the historic Tannery Building showing work by over 30 hand-picked local and Bay Area artists in glass, wood, metal, clay, textiles and mosaics, open 11 to 5 every day.",
+    "area": "Benicia (Solano)",
+    "address": "129 First Street, Benicia, CA 94510",
+    "site": "https://www.thelittleartshop.com/home",
+    "social": {
+      "instagram": "https://instagram.com/littleartshop.benicia",
+      "facebook": "https://www.facebook.com/thelittleartshop.benicia"
+    },
+    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with address, phone and 11-5 seven-day hours, listed in Benicia Main Street directory; no footer year or dated content on the site itself. Lead: search, then own site."
+  },
+  {
+    "name": "The Artery",
+    "category": "Makers' shop",
+    "makes": "Davis artists' cooperative gallery with about 65 Northern California member artists selling fine art and fine craft; open daily, with exhibits and second Friday receptions.",
+    "area": "Davis (Yolo)",
+    "address": "207 G Street, Davis, CA 95616",
+    "site": "https://www.theartery.net/",
+    "social": {
+      "instagram": "https://www.instagram.com/arterydavis/",
+      "facebook": "https://www.facebook.com/ArteryofDavis/"
+    },
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 1974-2026, current exhibit with reception on 2026-11-13, hours Mon-Sat 10-6 and Sun 11-5 at 207 G Street. Lead: search, then own site."
+  },
+  {
+    "name": "Rill",
+    "category": "Gift shop",
+    "makes": "Benicia lifestyle boutique opened in 2026 by a former buyer, selling curated gifts, home goods, candles, greeting cards, jewelry and clothing; open daily.",
+    "area": "Benicia (Solano)",
+    "address": "623 1st Street, Benicia, CA 94510",
+    "site": "https://therillstudio.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/therillstudio"
+    },
+    "products": [
+      {
+        "name": "Curated Gifts",
+        "url": "https://therillstudio.com/collections/curated-gifts"
+      },
+      {
+        "name": "Elevated Home Essentials",
+        "url": "https://therillstudio.com/collections/curated-home-goods"
+      },
+      {
+        "name": "Candles & Home Fragrance",
+        "url": "https://therillstudio.com/collections/scent"
+      },
+      {
+        "name": "Greeting Cards",
+        "url": "https://therillstudio.com/collections/greeting-cards"
+      },
+      {
+        "name": "Jewelry for Daily Wear",
+        "url": "https://therillstudio.com/collections/jewelry"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Visit Us page lists 623 1st Street with hours Mon-Sat 11-6 and Sun 11-4, collections load. Lead: search, then own site."
+  },
+  {
+    "name": "Winters Collective",
+    "category": "Gift shop",
+    "makes": "Downtown Winters mercantile with mixed retail vendors and creative classes; the online store lists clothing, jewelry, handbags, accessories and seasonal home items, with local goods noted on the site's collection list.",
+    "area": "Winters (Yolo)",
+    "site": "https://winterscollective.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/winterscollective/"
+    },
+    "products": [
+      {
+        "name": "Women Clothing & Accessories",
+        "url": "https://winterscollective.com/collections/womens-clothing"
+      },
+      {
+        "name": "Jewelry",
+        "url": "https://winterscollective.com/collections/jewelry"
+      },
+      {
+        "name": "Handbags",
+        "url": "https://winterscollective.com/collections/handbags"
+      },
+      {
+        "name": "Accessories",
+        "url": "https://winterscollective.com/collections/accessories"
+      },
+      {
+        "name": "Holiday Home Tour",
+        "url": "https://winterscollective.com/collections/home-decor"
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-11-13 (ok): footer 2026, site calls itself a curated mercantile in downtown Winters; street address 41 Main St and Tue-Sun hours come from the Discover Winters listing, not the shop's own site. Lead: search, then own site."
+  },
+  {
+    "name": "Mozart Earhart & Me",
+    "category": "Toy shop",
+    "makes": "Benicia toy, gift and music shop on First Street with toys and games based on music, science and art, specialty gifts and jewelry, instrument repair, rentals and handmade instruments; a second store is in Livermore.",
+    "area": "Benicia (Solano)",
+    "address": "620 First Street, Benicia, CA 94510",
+    "site": "https://mozartearhartandme.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/mozartearhartandme/",
+      "facebook": "https://www.facebook.com/427926025334"
+    },
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, Benicia location page lists 620 First Street with 11-5 hours, Gifts & Toys page loads. Lead: search, then own site."
+  },
+  {
+    "name": "Uptown Collective",
+    "category": "Makers' shop",
+    "makes": "Shared downtown Dixon store run by a group of small business owners and local artisans selling handmade goods, including Dixon-themed items.",
+    "area": "Dixon (Solano)",
+    "site": "https://www.instagram.com/uptown.collective.dixon/",
+    "social": {
+      "instagram": "https://www.instagram.com/uptown.collective.dixon/"
+    },
+    "confidence": "Medium; no own website, Instagram profile fetched 2026-11-13: bio says shared store in Downtown Dixon, '106 North', posts dated Nov 2026; street number varies (108 N First St in a 2025 Dixon Independent Voice article, 115 E A St in the Chamber directory), confirm before seeding. Lead: search, then own site."
+  },
+  {
+    "name": "Make Local Habit",
+    "category": "Makers' shop",
+    "makes": "Sells goods made by Grass Valley and Nevada County artists and makers, including natural body care, tea and botanicals, jewelry, home and garden items, children's clothing and local collaboration gift baskets; open Wednesday to Sunday.",
+    "area": "Grass Valley (Nevada)",
+    "address": "112 W Main St, Grass Valley, CA 95945",
+    "site": "https://makelocalhabitgrassvalley.com",
+    "social": {
+      "instagram": "https://www.instagram.com/make_local_habit/",
+      "facebook": "https://www.facebook.com/makelocalhabitgrassvalley"
+    },
+    "products": [
+      {
+        "name": "Local Collab Baskets",
+        "url": "https://makelocalhabitgrassvalley.com/collections/local-collab-basket"
+      },
+      {
+        "name": "Natural Body Care",
+        "url": "https://makelocalhabitgrassvalley.com/collections/natural-body-care"
+      },
+      {
+        "name": "Tea + Botanicals",
+        "url": "https://makelocalhabitgrassvalley.com/collections/tea-botanicals"
+      },
+      {
+        "name": "Jewelry",
+        "url": "https://makelocalhabitgrassvalley.com/collections/jewelry"
+      },
+      {
+        "name": "Home + Garden",
+        "url": "https://makelocalhabitgrassvalley.com/collections/home-decor"
+      },
+      {
+        "name": "Children",
+        "url": "https://makelocalhabitgrassvalley.com/collections/childrens-clothing"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer (c) 2026, About page says owner is in the eleventh year, address and hours (Wed-Sun) on Contact page, collection pages load. Lead: search, then own site."
+  },
+  {
+    "name": "KITKITDIZZI",
+    "category": "Makers' shop",
+    "makes": "Nevada City shop selling artisan-made and ethically sourced home decor, body care, jewelry, clothing and curated vintage, with goods from California makers such as Yuba River-themed jewelry; owned by two Nevada City natives.",
+    "area": "Nevada City (Nevada)",
+    "address": "231 Broad St, Nevada City, CA 95959",
+    "site": "https://kitkitdizzi.com",
+    "social": {
+      "instagram": "https://instagram.com/kitkitdizzi",
+      "facebook": "https://www.facebook.com/Kitkitdizzi/"
+    },
+    "products": [
+      {
+        "name": "Home",
+        "url": "https://kitkitdizzi.com/collections/home"
+      },
+      {
+        "name": "Bling",
+        "url": "https://kitkitdizzi.com/collections/jewelry"
+      },
+      {
+        "name": "Self Care",
+        "url": "https://kitkitdizzi.com/collections/bodycare"
+      },
+      {
+        "name": "Wear It",
+        "url": "https://kitkitdizzi.com/collections/wear-it"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok): footer (c) 2026, Contact page lists 231 Broad St and phone, About page describes the shop since 2012, collection pages load. Lead: search, then own site."
+  },
+  {
+    "name": "Kiya's Naturals",
+    "category": "Toy shop",
+    "makes": "Nevada City toy and gift store focused on natural and sustainably made toys, including Grimm's wooden toys, plush and dolls, games, art supplies, kids' books and baby goods, at 241 Commercial Street.",
+    "area": "Nevada City (Nevada)",
+    "address": "241 Commercial St, Nevada City, CA 95959",
+    "site": "https://www.kiyasnaturals.com",
+    "social": {},
+    "products": [
+      {
+        "name": "Wooden Toys",
+        "url": "https://www.kiyasnaturals.com/shop/wooden-toys/TOFCYE5KZEU6DPBXLARDUNI5"
+      },
+      {
+        "name": "Games",
+        "url": "https://www.kiyasnaturals.com/shop/games/SYTHG5S2AA5EHIPVAQ2E6R7U"
+      },
+      {
+        "name": "Dolls & Plush",
+        "url": "https://www.kiyasnaturals.com/shop/dolls-plush/26P44NU7QXS5J7FGUS3TJAIT"
+      },
+      {
+        "name": "Baby Toys",
+        "url": "https://www.kiyasnaturals.com/shop/baby-toys/MGWZJ5XM4IO2GDNUKVQJVXKH"
+      },
+      {
+        "name": "Art Supply",
+        "url": "https://www.kiyasnaturals.com/shop/art-supply/UWEB3D2DNY27Y45FA45JAYRM"
+      },
+      {
+        "name": "Home Decor",
+        "url": "https://www.kiyasnaturals.com/shop/home-decor/OTB562ZRY7NOTTTWXU4V2YUI"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-13 (ok, rendered in browser): footer (c) 2026, homepage states brick-and-mortar store at 241 Commercial Street, shop category pages load. Site has no social links. Lead: search, then own site."
+  },
+  {
+    "name": "The Earth Store",
+    "category": "Toy shop",
+    "makes": "Nevada City nature and science gift shop selling educational toys, games and puzzles for kids, geodes, books, maps, binoculars, chimes and birdhouses; reopened under new owners at 408 Broad Street.",
+    "area": "Nevada City (Nevada)",
+    "address": "408 Broad St Ste 8, Nevada City, CA 95959",
+    "site": "https://www.earthstorenc.com",
+    "social": {
+      "instagram": "https://www.instagram.com/theearthstorenc",
+      "facebook": "https://www.facebook.com/people/The-Earth-Store/61577104381687/"
+    },
+    "confidence": "High; own site checked 2026-11-13 (ok, rendered in browser): new-owner announcement, address 408 Broad St Ste 8 and weekly hours on home page, Instagram and Facebook links on page. Lead: search, then own site."
+  },
+  {
+    "name": "Midnight Kin",
+    "category": "Makers' shop",
+    "makes": "Placerville shop selling handmade and naturally made home goods, skincare, tabletop items, books, cards and baby and kids items from a circle of craftspeople, open daily on Main Street.",
+    "area": "Placerville (El Dorado)",
+    "address": "435 Main St, Placerville, CA 95667",
+    "site": "https://www.midnightkin.com",
+    "social": {
+      "instagram": "http://instagram.com/midnightkin",
+      "facebook": "http://www.facebook.com/1207355164"
+    },
+    "products": [
+      {
+        "name": "Tabletop",
+        "url": "https://www.midnightkin.com/tabletop"
+      },
+      {
+        "name": "Body",
+        "url": "https://www.midnightkin.com/body"
+      },
+      {
+        "name": "Baby / Kid",
+        "url": "https://www.midnightkin.com/baby-1"
+      },
+      {
+        "name": "Books",
+        "url": "https://www.midnightkin.com/books"
+      },
+      {
+        "name": "Cards",
+        "url": "https://www.midnightkin.com/cards"
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-11-13 (ok): address, daily hours, phone and About page on site, category pages load; no footer year, a 2023 local article also lists it. Lead: search, then own site."
+  },
+  {
+    "name": "Nava & Co.",
+    "category": "Makers' shop",
+    "makes": "Downtown Lodi boutique selling owner Letty Nava's handmade jewelry and paintings, handbuilt ceramics, home decor and gifts, plus craft workshops; closed Monday and Tuesday.",
+    "area": "Lodi (San Joaquin)",
+    "site": "https://www.navaandco.com",
+    "social": {
+      "instagram": "https://www.instagram.com/navaandco/"
+    },
+    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with weekly hours and workshops but no street address or year; address from Visit Lodi directory. Lead: search, then own site."
+  },
+  {
+    "name": "The Little Shop on The Mile",
+    "category": "Makers' shop",
+    "makes": "Stockton gift shop on the Miracle Mile selling stickers, jewelry, pins, stationery, greeting cards, home items and kids items from local creators, with online ordering.",
+    "area": "Stockton (San Joaquin)",
+    "site": "https://www.thelittleshoponthemile.com",
+    "social": {
+      "tiktok": "https://www.tiktok.com/@thelittleshop_onthemile",
+      "instagram": "https://www.instagram.com/thelittleshop_onthemile",
+      "facebook": "https://www.facebook.com/thelittleshoponthemile"
+    },
+    "products": [
+      {
+        "name": "Stickers",
+        "url": "https://www.thelittleshoponthemile.com/stickers"
+      },
+      {
+        "name": "Jewelry",
+        "url": "https://www.thelittleshoponthemile.com/jewelry"
+      },
+      {
+        "name": "Pins",
+        "url": "https://www.thelittleshoponthemile.com/pins"
+      },
+      {
+        "name": "Stationary",
+        "url": "https://www.thelittleshoponthemile.com/stationary"
+      },
+      {
+        "name": "Little Ones",
+        "url": "https://www.thelittleshoponthemile.com/little-ones"
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with 2026 footer and category pages, but shows no address; address from Poyst directory listing. Lead: search, then own site."
+  }
+]
