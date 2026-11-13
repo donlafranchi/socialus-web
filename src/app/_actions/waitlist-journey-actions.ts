@@ -14,8 +14,8 @@ import { EMAIL_SHAPE, KINDS, PLAN_IDS, ZIP_SHAPE, phoneE164, sideOf } from '@/li
 /** http(s) links only; a bare domain gets https://. Anything else (javascript:, data:, words) is dropped. */
 function webLink(raw: string): string {
   const t = (raw ?? '').trim()
-  if (/^https?:\/\/[^\s/$.?#][^\s]*$/i.test(t)) return t
-  return /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(t) ? `https://${t}` : ''
+  const link = /^https?:\/\/[^\s/$.?#][^\s]*$/i.test(t) ? t : /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(t) ? `https://${t}` : ''
+  return link.length <= 300 ? link : ''
 }
 
 export type ZipCheck = { ok: true; market: string } | { ok: false }

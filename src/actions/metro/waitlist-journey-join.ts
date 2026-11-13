@@ -64,10 +64,10 @@ export const metroWaitlistJourneyJoin = defineHandler(
       )
       const existing = existingRes.rows[0] ?? null
       const answers = [input.name, input.phone, input.zip, input.plans, input.offers, input.offerName || null, input.offerLink || null]
-      // A member's own row is readable by that member, and anyone can type anyone's email: answers never go on it (F076.3).
-      const onMember = !!existing?.member_id
+      // A member's row belongs to that member: anyone can type anyone's email, so the journey never moves it, recounts
+      // it or puts answers on it (F076.3). The response is the same as any other join (F076.14).
+      if (existing?.member_id) return result
       if (existing && existing.metro_id === result.metroId && existing.role === input.side) {
-        if (onMember) return result
         // Same place, same side: the answers refresh, the counts do not move.
         await client.query(
           `update public.metro_waitlist set name = $2, phone = $3, zip = $4, plans = $5, offers = $6, offer_name = $7, offer_link = $8, updated_at = $9 where id = $1`,
@@ -87,15 +87,7 @@ export const metroWaitlistJourneyJoin = defineHandler(
         )
       }
 
-      if (existing && onMember) {
-        await client.query(`update public.metro_waitlist set metro_id = $2, role = $3, updated_at = $4 where id = $1`, [
-          existing.id,
-          result.metroId,
-          input.side,
-          ctx.now(),
-        ])
-        await bump(existing.metro_id, existing.role, -1)
-      } else if (existing) {
+      if (existing) {
         await client.query(
           `update public.metro_waitlist
               set metro_id = $2, role = $3, name = $4, phone = $5, zip = $6, plans = $7, offers = $8, offer_name = $9, offer_link = $10, updated_at = $11
