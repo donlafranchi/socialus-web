@@ -96,8 +96,9 @@ Previews
 - `PREVIEWS_MODE` (Vercel environment, and the GitHub repo variable of the same name) is `off` until the 10-23 freeze: only `main` builds. `labelled` builds previews only for PRs labelled `human-review` (`scripts/vercel-ignore.mjs`).
 
 Build concurrency
-- Max 2 changes building or testing at once.
-- Every Playwright run uses `--workers=2`.
+- Cloud sessions each run on their own machine: no cap on how many build at once. Only one branch with a migration waits for the PM's apply at a time, so applies stay in order (the PM, 2026-11-11: the two-at-once limit was the old Mac's).
+- On the Mac (replaced 2026-11-11 with a much more powerful one): at most 4 changes building or testing at once, a starting point to raise or lower after the first busy week.
+- Every Playwright run on the Mac uses `--workers=4`; CI keeps its own setting.
 - Each change gets its own dev server port, and the server is shut down when the change finishes.
 - Close all headless browsers when a run ends; never leave them open between runs.
 

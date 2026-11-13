@@ -184,15 +184,6 @@ describe.skipIf(!RUNNABLE)('#280 — with the switch off, builder content is inv
       expect(await ids(sub, `select item_id as id from public.discoverable_items where item_id = $1`, [B_ITEM])).toEqual([])
     })
 
-    it(`the withheld-post card counts nothing a builder posted, for ${who}`, async () => {
-      const rows = await as<{ group_id: string }>(
-        sub,
-        `select group_id from public.announcements_withheld(p_metro_id => $1, p_limit => 500)`,
-        [metroId],
-      )
-      expect(rows.map((r) => r.group_id)).not.toContain(B_PAGE)
-    })
-
     it(`a builder's handle resolves nothing for ${who}`, async () => {
       const rows = await as<{ id: string | null }>(
         sub,
@@ -256,10 +247,11 @@ describe.skipIf(!RUNNABLE)('#388 — with the switch on, builder content shows; 
 
   // F093 — signed out gets a Page's front door and never its posts, builder
   // content or not; the switch changes whose content shows, not that rule.
-  it('signed out sees the builder Page, and its post no more than any post', async () => {
+  // F134 — signed out reads posts as a signed-in stranger does, so the builder's post shows as any post would.
+  it('signed out sees the builder Page and its post, as any Page and post', async () => {
     const shown = await feed(null)
     expect(shown).toContain(B_PAGE)
-    expect(shown).not.toContain(B_POST)
+    expect(shown).toContain(B_POST)
     expect(await ids(null, `select id from public.groups where id = $1`, [B_PAGE])).toEqual([B_PAGE])
   })
 

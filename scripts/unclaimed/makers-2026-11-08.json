@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Pine Valley Ranch",
+    "category": "Farm",
+    "makes": "Choose-and-cut Christmas tree farm in Auburn that also sells mandarin oranges, lambs and local crafts; open daily 9am-5pm beginning the day after Thanksgiving (Nov 27, 2026), with wreath-making",
+    "area": "Auburn (Placer)",
+    "address": "10680 Kemper Road, Auburn, CA 95603",
+    "site": "https://sites.google.com/view/pinevalleyranchauburn/home",
+    "confidence": "Medium; own site checked 2026-11-08 (ok): address and season rule posted; no footer year or dated posts; Instagram/Facebook handles shown as text only, so no social links. Photos not viewed: stock only. Holiday (Christmas trees). Lead: search, then own site."
+  },
+  {
+    "name": "Friends of the Granite Bay Library",
+    "category": "Friends of the library",
+    "makes": "Volunteer group supporting the Granite Bay Library by raising funds and awareness, with memberships, volunteer sign-up, donations and library book sales",
+    "area": "Granite Bay (Placer)",
+    "site": "https://folgranitebay.org",
+    "social": {
+      "instagram": "http://instagram.com/folgranitebay",
+      "facebook": "https://www.facebook.com/folgranitebay/"
+    },
+    "confidence": "High; own site checked 2026-11-08 (ok): footer 2026, book-sale items, membership, volunteer and donate pages live; no street address on the site. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Meals on Wheels Yolo County",
+    "category": "Senior meals program (nonprofit)",
+    "makes": "Woodland nonprofit that delivers fully prepared meals to food-insecure, isolated seniors across Yolo County, with volunteer driver and donation pages",
+    "area": "Woodland (Yolo)",
+    "address": "P.O. Box 528, Woodland, CA 95776",
+    "site": "http://www.mowyolo.org",
+    "social": {
+      "instagram": "http://www.instagram.com/mowyolocounty/",
+      "facebook": "https://www.facebook.com/MOWYolo/"
+    },
+    "confidence": "High; own site checked 2026-11-08 (ok): news posts dated Apr-Jun 2026, volunteer and donate pages live. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Old North Davis Neighborhood Association",
+    "category": "Neighborhood association",
+    "makes": "Resident association for Davis's Old North neighborhood: works to improve public facilities and services, build friendly community ties and work with local government; monthly meetings on the first Thursday",
+    "area": "Davis (Yolo)",
+    "site": "http://www.oldnorthdavis.org",
+    "confidence": "Medium; own site checked 2026-11-08 (ok): calendar lists a Nov 5, 2026 meeting; no footer year, no social links, no street address. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Friends of the Lincoln Public Library",
+    "category": "Friends of the library",
+    "makes": "All-volunteer charity supporting the Lincoln Public Library through memberships, donations, grants and sales of donated books and media",
+    "area": "Lincoln (Placer)",
+    "address": "P.O. Box 1177, Lincoln, CA 95648",
+    "site": "http://lincolnlibraryfriends.org",
+    "social": {
+      "instagram": "https://www.instagram.com/lincolnpubliclibrary_friends/",
+      "facebook": "https://www.facebook.com/FriendsoftheLincolnLibrary"
+    },
+    "confidence": "Medium; own site checked 2026-11-08 (ok): post dated 10/22/2026, membership, donate and book-donation pages live; footer says 2024. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Sierra Wildlife Rescue",
+    "category": "Animal rescue",
+    "makes": "El Dorado County nonprofit that rescues, rehabilitates and releases injured and orphaned native wildlife and teaches the public, with volunteer, home-rehabber and donate pages",
+    "area": "Placerville (El Dorado)",
+    "address": "PO Box 2127, Placerville, CA 95667",
+    "site": "https://www.sierrawildliferescue.org",
+    "social": {
+      "facebook": "https://facebook.com/SierraWildlifeRescue"
+    },
+    "confidence": "High; own site checked 2026-11-08 (ok): footer 2026, 2026 classes banner, volunteer and donate pages live. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "All About Equine Animal Rescue",
+    "category": "Animal rescue",
+    "makes": "Volunteer-based Shingle Springs nonprofit that takes in abused, neglected and at-risk horses, rehabilitates and rehomes them, with volunteer, foster, sponsor-a-horse and donate pages and a used tack store open daily noon-4",
+    "area": "Shingle Springs (El Dorado)",
+    "address": "4050 Durock Road #6, Shingle Springs, CA 95682",
+    "site": "https://www.allaboutequine.org",
+    "social": {
+      "instagram": "https://instagram.com/allaboutequine",
+      "facebook": "https://facebook.com/allaboutequineanimalrescueinc"
+    },
+    "confidence": "Medium; own site checked 2026-11-08 (ok): volunteer, foster, donate and sponsor pages live; footer says 2009-2025, no 2026-dated event. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  }
+]

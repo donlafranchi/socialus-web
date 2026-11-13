@@ -14,9 +14,10 @@ import {
 } from './requires-account'
 
 describe('everything that touches another person is gated', () => {
-  it('names follow, get-updates, support, report, respond, message, map, heart and save', () => {
+  // F134 — the map is open signed out, so it is no longer gated; Remind me is.
+  it('names follow, get-updates, support, report, respond, message, heart, save and remind', () => {
     expect([...GATED_ACTIONS].sort()).toEqual(
-      ['follow', 'get-updates', 'map', 'message', 'report', 'respond', 'support', 'heart', 'save'].sort(),
+      ['follow', 'get-updates', 'message', 'report', 'respond', 'support', 'heart', 'save', 'remind'].sort(),
     )
   })
 
@@ -54,8 +55,10 @@ describe('deferred registration — the tap is not lost', () => {
     expect(next).toBe('/explore?metro=x&intent=follow')
   })
 
-  it('reads a known intent back', () => {
-    for (const a of GATED_ACTIONS) expect(parseIntent(a)).toBe(a)
+  it('reads a known intent back, with the thing tapped when it names one', () => {
+    for (const a of GATED_ACTIONS) expect(parseIntent(a)).toEqual({ action: a, target: null })
+    expect(parseIntent('heart:p-1')).toEqual({ action: 'heart', target: 'p-1' })
+    expect(parseIntent('delete:p-1')).toBeNull()
   })
 
   // An intent is a string from a URL. It decides what runs after sign-in, so

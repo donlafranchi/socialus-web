@@ -1,0 +1,110 @@
+name: Uptime
+
+# Is socialus.org up? (#1260, INFRASTRUCTURE.md §12)
+#
+# Every 10 minutes, from outside our infrastructure: the home page and the login
+# page render their real content, and the deployment says its database answers.
+# Keyword checks, not bare 200s — an error page answers 200 too. Three tries a
+# minute apart before anything counts as down (scripts/uptime-check.sh).
+#
+# Down opens ONE Issue and pings Don (GitHub emails him). Still down: silent, so
+# an outage is one email, not one every ten minutes. Back up: a comment, and the
+# Issue closes. Same open-or-update shape as main-build-alarm.yml.
+#
+# A BACKSTOP, not the alarm. GitHub throttles this repo's schedules hard:
+# notify.yml, set to every 15 minutes, ran three times on 2026-11-11, hours
+# apart. The real monitor is UptimeRobot (INFRASTRUCTURE.md §12); this one
+# still files the Issue whenever GitHub does let it run.
+#
+# deploy-health.yml is the deeper, once-a-day check (schema current, etc.); this
+# one is shallow and frequent on purpose.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: socialus.org is up
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+
+      # [guard-proves-itself]: a check for text that is never on the page must
+      # report down, or a green run below means nothing.
+      - name: The check can fail (self-test)
+        env:
+          UPTIME_CHECKS: 'self-test|https://www.socialus.org/|this-text-is-never-on-the-page-7f3a'
+          UPTIME_TRIES: '1'
+          UPTIME_OUT: ${{ runner.temp }}/selftest.txt
+        run: |
+          if bash scripts/uptime-check.sh; then
+            echo "::error::The uptime check passed a page that lacks its text. It is not catching anything."
+            exit 1
+          fi
+          echo "Self-test: the check reported the page down, as it must."
+
+      - name: Check the site
+        id: check
+        env:
+          UPTIME_OUT: ${{ runner.temp }}/down.txt
+        run: |
+          if bash scripts/uptime-check.sh; then
+            echo "down=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "down=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open, or close, the outage Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DOWN: ${{ steps.check.outputs.down }}
+          DOWN_FILE: ${{ runner.temp }}/down.txt
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="bug · socialus.org is down"
+          now="$(date -u '+%Y-%m-%d %H:%M UTC')"
+          existing="$(gh issue list -R "$REPO" --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)"
+
+          if [ "$DOWN" = true ]; then
+            if [ -n "$existing" ]; then
+              # Green on purpose: a red scheduled run emails too, and one
+              # email per outage is the point. The open Issue is the signal.
+              echo "Still down; #$existing is already open."
+              exit 0
+            fi
+            body="socialus.org stopped answering properly at $now.
+
+          What failed:
+          $(sed 's/^/- /' "$DOWN_FILE")
+
+          Run: $RUN
+
+          This closes itself when the site is back. Vercel status: https://www.vercel-status.com · Supabase status: https://status.supabase.com
+
+          Kind: bug
+          Scenario: none
+          Path: well-worn. Precedent: Upptime (scheduled Actions uptime checks that open an Issue per outage).
+
+          @donlafranchi"
+            gh issue create -R "$REPO" --title "$title" --body "$body" --label bug --label area:ops
+            exit 1
+          fi
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" -R "$REPO" --body "Back up at $now. $RUN"
+            gh issue close "$existing" -R "$REPO" --reason completed
+          fi
+          echo "Up."

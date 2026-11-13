@@ -1,4 +1,4 @@
-// F121 — Explore's shelves for the signed-in reader, rendered on the server and streamed in under the first look,
+// F121 — Explore's shelves (a member's own; none signed out, F134.2), rendered on the server and streamed in under the first look,
 // so the rest of Explore never waits for them. Each is a sideways row with See all (#1154's BrowseShelves).
 
 import { createClient } from '@/lib/supabase-server'

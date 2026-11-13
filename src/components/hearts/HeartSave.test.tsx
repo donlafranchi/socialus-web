@@ -18,10 +18,15 @@ beforeEach(() => {
 
 const POST = '00000000-0000-4000-8000-000000000001'
 
-// #1171 (plan #269, Don 2026-11-02): a heart and a save, as separate things; small and calm; hidden signed out.
+// #1171 (plan #269, Don 2026-11-02): a heart and a save, as separate things; small and calm. F134: shown signed out.
 describe('the heart and the save', () => {
-  it('are hidden signed out', () => {
+  // F134.4 — shown signed out; a tap asks first (tests/f134-writes-ask-first.test.tsx). Hidden only while the session is read.
+  it('show signed out, and hide only while the session is still being read', () => {
     act(() => resetMarks({ signedIn: false }))
+    render(<><HeartButton target={{ postId: POST }} /><SaveButton postId={POST} /></>)
+    expect(screen.getAllByRole('button')).toHaveLength(2)
+    cleanup()
+    act(() => resetMarks({ signedIn: null }))
     render(<><HeartButton target={{ postId: POST }} /><SaveButton postId={POST} /></>)
     expect(screen.queryByRole('button')).toBeNull()
   })

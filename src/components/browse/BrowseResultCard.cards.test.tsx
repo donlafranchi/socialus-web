@@ -15,7 +15,7 @@ const base = {
   photoUrl: 'https://example.test/p.jpg', description: 'Sourdough and pastries, baked daily.', body: null,
   tags: ['Food & drink', 'Local business', 'Farmers markets'], startsAt: null, locationId: 'l1', locationLabel: 'Midtown',
   latitude: 38.57, longitude: -121.47, pageCreatedAt: '2026-09-01T00:00:00Z', updatedAt: '2026-10-16T00:00:00Z',
-  postedAt: null, sortAt: '2026-10-16T00:00:00Z', withheld: false, announcementCount: null, announcementIds: null,
+  postedAt: null, sortAt: '2026-10-16T00:00:00Z',
 } as const
 
 const page = (over: Partial<BrowseResult> = {}): BrowseResult =>
@@ -248,13 +248,13 @@ describe('the post card: heart and save', () => {
     expect(screen.getByTestId('tile-card').className).toMatch(/@container/)
   })
 
-  it('shows neither on a sample, and neither signed out', () => {
+  it('shows neither on a sample; signed out shows both, and a tap asks first (F134.4)', () => {
     act(() => resetMarks({ signedIn: true }))
     render(<BrowseResultCard result={post({ sampleKind: 'deal', headline: 'Two for one' })} />)
     expect(screen.queryByTestId('post-marks')).toBeNull()
     cleanup()
     act(() => resetMarks({ signedIn: false }))
     render(<BrowseResultCard result={post({ headline: 'Pumpkin bread is back' })} />)
-    expect(screen.queryByRole('button', { name: /heart|save/i })).toBeNull()
+    expect(screen.getAllByRole('button', { name: /heart|save/i })).toHaveLength(2)
   })
 })

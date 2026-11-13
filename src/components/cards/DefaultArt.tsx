@@ -11,7 +11,7 @@ const ICON = { shop: Store, service: Wrench, group: Users } as const
 const TILE = 'bg-[var(--color-frame)] text-[var(--color-highlight-soft)]'
 
 /** #363 — a business sells or serves (its use case says which); a group gathers.
- *  Unknown (the signed-out withheld read carries no kind) draws no icon. */
+ *  Unknown draws no icon. */
 export function artKindFor(groupKind: string | null | undefined, purpose?: string | null): ArtKind | null {
   if (!groupKind) return null
   if (purpose === 'offer') return 'service'

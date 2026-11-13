@@ -11,7 +11,6 @@ import { metroDate, shiftDays } from '@/lib/metro/metro-week'
 import { classifyEvent, type EventType } from '@/lib/unclaimed/event-type'
 import { venueShow } from '@/lib/posts/lead-line'
 import { postKindOf } from './filters'
-import { COPY } from '@/lib/copy'
 
 export interface ResultGroup {
   key: string
@@ -42,8 +41,6 @@ const POST_KINDS: [key: string, label: string][] = [
   ['wonder', 'Count me in'],
   ['hiring', 'Hiring'],
   ['news', 'News'],
-  // Signed out, a post is held back behind its Page's card (F093): its kind is not the reader's to see.
-  ['withheld', COPY.withheldCta],
 ]
 
 // Venue kinds after Pollstar's and Bandsintown's venue types (arena, theater, club), which track room size and so
@@ -87,7 +84,6 @@ function timeGroup(r: BrowseResult, now: Date): string | null {
 }
 
 function postKindGroup(r: BrowseResult): string {
-  if (r.withheld) return 'withheld'
   const kind = postKindOf(r) ?? 'news'
   if (kind !== 'event') return kind
   if (OPEN_MIC.test([r.headline, r.body].filter(Boolean).join(' '))) return 'open-mics'

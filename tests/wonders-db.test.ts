@@ -150,7 +150,8 @@ describe.skipIf(!RUNNABLE)('F117 — a Wonder', () => {
     const v = await view(FRAN, WONDER)
     expect(v).toMatchObject({ total: 4, threshold: 3 })
     expect(await as(EVE, `select wonder_in_count, wonder_threshold from public.page_posts where id = $1`, [WONDER])).toEqual([{ wonder_in_count: 4, wonder_threshold: 3 }])
-    expect(await view(null, WONDER)).toBeNull()
+    // F134 — signed out, the total and the threshold too, without anyone's name (F134.7).
+    expect(await view(null, WONDER)).toMatchObject({ total: 4, threshold: 3, inNames: [], mine: null })
   })
 
   // [guards F117.4]

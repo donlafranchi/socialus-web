@@ -31,4 +31,8 @@ builder-runs/
 
 # #527 tap-speed output
 speed-out/
+load-out/
 speed.log
+
+# F125 (#1218): CI checks out socialus-plan and socialus-ops here for the knowledge import test.
+/.knowledge/

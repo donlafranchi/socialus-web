@@ -27,7 +27,6 @@ import { HandoffLink } from '@/components/cards/HandoffLink'
 import { locationLine } from '@/components/cards/location'
 import { QuickLinks } from '@/components/cards/QuickLinks'
 import { TypeMark, SampleLabel, SampleWatermark } from '@/components/cards/CardMarks'
-import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatCardWhen } from '@/lib/metro/metro-time'
 import { cardHeadline, cardPreview, leadLineParts, venueShow } from '@/lib/posts/lead-line'
 import { postKindOf } from '@/lib/browse/filters'
@@ -56,11 +55,6 @@ export function BrowseResultCard({
   /** #270 — 'div' when the caller already provides the list item. */
   as?: 'li' | 'div'
 }) {
-  // F093 — a withheld announcement is a different card, and the choice lives
-  // here rather than in BrowseSurface so that every surface rendering browse
-  // results gets it without being told: the grid, the map's list, and whatever
-  // renders results next.
-  if (result.withheld) return <WithheldAnnouncementCard result={result} as={as} />
   return result.resultKind === 'post' ? <PostCard result={result} as={as} prefetch={prefetch} now={now} /> : <PageCard result={result} as={as} prefetch={prefetch} />
 }
 

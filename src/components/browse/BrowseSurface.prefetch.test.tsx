@@ -26,8 +26,7 @@ const SAC = { id: 'm1', slug: 'sacramento-roseville-ca', name: 'Sacramento-Rosev
 const result = (i: number): BrowseResult => ({
   resultKind: 'page', resultId: `r${i}`, groupId: `g${i}`, groupKind: 'business', slug: `page-${i}`, name: `Page ${i}`, href: `/g/p${i}`,
   photoUrl: null, description: 'd', body: null, tags: [], startsAt: null, locationId: 'l', locationLabel: 'Midtown', longitude: -121.4, latitude: 38.5,
-  pageCreatedAt: '2026-09-01T00:00:00Z', updatedAt: '2026-09-02T00:00:00Z', postedAt: null, sortAt: '2026-09-02T00:00:00Z', withheld: false,
-  announcementCount: null, announcementIds: null,
+  pageCreatedAt: '2026-09-01T00:00:00Z', updatedAt: '2026-09-02T00:00:00Z', postedAt: null, sortAt: '2026-09-02T00:00:00Z',
 })
 const snapshot = (n: number): BrowseSnapshot => ({
   results: Array.from({ length: n }, (_, i) => result(i)), following: [], happening: { today: [], thisWeek: [], thisWeekend: [] }, map: [],

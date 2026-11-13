@@ -119,7 +119,7 @@ describe('resolveShop — where the Page is', () => {
     expect(selects[0]).not.toContain('anchor_location_id')
   })
 
-  it('signed out, carries no anchor and resolves no address', async () => {
+  it('a refused anchor read carries no anchor and drops the address, so the address never outruns the caller', async () => {
     const shop = await resolveShop(
       makeSupabaseStub({ group: ACTIVE_ROW, anchorError: { message: 'permission denied' } }),
       'oak-park-sourdough',
@@ -127,7 +127,6 @@ describe('resolveShop — where the Page is', () => {
     expect(shop).not.toBeNull()
     expect(shop!.anchorLocationId).toBeNull()
     expect(shop!.placements).toEqual([])
-    expect(resolvePagePlacements).not.toHaveBeenCalled()
   })
 
   it('signed in, carries the anchor and its address', async () => {

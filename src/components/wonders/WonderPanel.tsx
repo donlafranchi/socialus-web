@@ -4,6 +4,7 @@
 // a visitor says I'm in (with a size) or offers to help; the Page's managers see the split, who is in and
 // every offer, and accept or decline. What reaches this component is already only what the viewer may see.
 
+import { useSignInFirst } from '@/hooks/useSignInFirst'
 import { useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
 import { COPY } from '@/lib/copy'
@@ -75,6 +76,16 @@ export function WonderPanel({
     setPicking(false)
     setView({ ...view, total: r.inCount, mine: { option } })
   }
+  // F134.4 — signed out, "I'm in" asks for sign-in first; back signed in, it carries on.
+  const gate = useSignInFirst({
+    action: 'respond',
+    target: postId,
+    signedIn: loggedIn,
+    returnTo,
+    onReturn: () => {
+      if (!view.mine) void (hasSizes ? setPicking(true) : join(null))
+    },
+  })
   const leave = async () => {
     const r = await run(() => actions.leave({ postId }))
     if (!r || !('inCount' in r)) return
@@ -140,16 +151,19 @@ export function WonderPanel({
       {view.helpers.length > 0 && (
         <p data-testid="wonder-helpers" className="text-body-sm text-[var(--color-fg)]">
           <span className="font-semibold">{COPY.wonderHelpers}: </span>
-          {view.helpers.map((h) => `${h.name} · ${COPY.wonderRoles[h.role]}`).join(', ')}
+          {view.helpers.map((h) => `${h.name ?? COPY.aNeighbour} · ${COPY.wonderRoles[h.role]}`).join(', ')}
         </p>
       )}
 
       {!canManage && (
         <div className="flex flex-col gap-2">
           {!loggedIn ? (
-            <a href={`/auth/login?next=${encodeURIComponent(returnTo)}`} className="btn-primary self-start">
-              {COPY.wonderImIn}
-            </a>
+            <>
+              <button type="button" data-testid="wonder-im-in-signin" className="btn-primary self-start" onClick={() => gate.ask(() => {})}>
+                {COPY.wonderImIn}
+              </button>
+              {gate.sheet}
+            </>
           ) : view.mine && !picking ? (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-body-sm font-semibold text-[var(--color-fg)]">{COPY.wonderYoureIn(view.mine.option)}</span>
