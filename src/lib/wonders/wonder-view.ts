@@ -11,7 +11,8 @@ export interface WonderView {
   options: string[]
   mine: { option: string | null } | null
   myOffers: { id: string; role: WonderRole; status: 'pending' | 'accepted' | 'declined' }[]
-  helpers: { name: string; role: WonderRole }[]
+  /** `name` is null signed out (F134.7). */
+  helpers: { name: string | null; role: WonderRole }[]
   inNames?: string[]
   byOption?: { option: string; count: number }[]
   people?: { name: string; option: string | null }[]

@@ -1,0 +1,39 @@
+{
+  "about": "F129 (#1239): what SocialUs can and can't do, one line per thing, in words a member would use. Hand-kept. Each line names the feature and the criteria in build-log/reports/rollup.json that must all be shipped, checked and not unsmoked for it to read as 'can'; who it is for (visitor: no account; member: signed in; runner: runs a Page or an event); and the routes in evals/screens/routes.ts whose live smoke proves it. 'notPlanned' marks a line nobody intends to build. Words are the PM's to change.",
+  "lines": [
+    { "feature": "F093", "criteria": ["4", "5", "7", "10", "11"], "who": ["visitor"], "words": "See which Pages near you have something on, and sign in to read it", "routes": ["explore", "page"] },
+    { "feature": "F076", "criteria": ["1", "2"], "who": ["visitor"], "words": "Type a zip to find out whether SocialUs is open where you live", "routes": ["join"] },
+    { "feature": "F076", "criteria": ["13", "14"], "who": ["visitor"], "words": "Leave an email to be told when your area opens, without an account", "routes": ["join"] },
+    { "feature": "F081", "criteria": ["1", "2", "3", "4", "8"], "who": ["visitor"], "words": "Sign up with your name, email and zip; the zip sets your area", "routes": ["join", "auth-login"] },
+    { "feature": "F118", "criteria": ["1", "2", "6"], "who": ["visitor", "member"], "words": "Help open your town by saying whether you make things or come to find them", "routes": ["open", "open-town"] },
+
+    { "feature": "F059", "criteria": ["1", "2", "3", "8"], "who": ["member"], "words": "Browse the Pages and posts near you, newest and closest first", "routes": ["explore"] },
+    { "feature": "F059", "criteria": ["5b"], "who": ["member"], "words": "See the list and the map side by side on a wide screen", "routes": ["explore-map"] },
+    { "feature": "F091", "criteria": ["1a", "2", "3", "5"], "who": ["member"], "words": "See what's happening today and this week", "routes": ["explore"] },
+    { "feature": "F092", "criteria": ["2", "3", "4", "6"], "who": ["member"], "words": "Narrow what you see in plain words, and type the same words again later", "routes": ["explore"] },
+    { "feature": "F121", "criteria": ["2", "3a", "4", "5a", "6", "8", "10"], "who": ["member"], "words": "Shelves of things to buy and do, including what's on in the next 7 days", "routes": ["explore"] },
+    { "feature": "F121", "criteria": ["7"], "who": ["member"], "words": "Get a shelf for each interest you pick, up to three", "routes": ["explore", "you"] },
+    { "feature": "F105", "criteria": ["1", "2", "3"], "who": ["member"], "words": "Look around from a town you type, not only from home", "routes": ["explore"] },
+    { "feature": "F119", "criteria": ["1", "2", "3"], "who": ["member"], "words": "Ask a question in plain words and be taken to the page that answers it", "routes": ["explore"] },
+    { "feature": "F065", "criteria": ["1", "4", "5"], "who": ["member"], "words": "Follow a person, a Page or a venue, and see them in one list", "routes": ["you-following", "page"] },
+    { "feature": "F063", "criteria": ["1", "2", "4"], "who": ["member"], "words": "Say you're coming to something, and take it back with one tap", "routes": ["page-gathering"] },
+    { "feature": "F117", "criteria": ["2", "3", "5", "7"], "who": ["member"], "words": "Say you're in on a Proposal, or offer to help make it happen", "routes": ["page"] },
+    { "feature": "F078", "criteria": ["1", "9", "10", "11"], "who": ["member"], "words": "Report anything you see, with a reason you choose", "routes": ["report-sheet", "report-sent"] },
+    { "feature": "F102", "criteria": ["1", "2", "3a", "4"], "who": ["member"], "words": "If your post is hidden, be told why and answer once, or fix it and post again", "routes": ["page"] },
+    { "feature": "F077", "criteria": ["2", "3"], "who": ["member"], "words": "Show a display name to others while your legal name stays private", "routes": ["member-profile"] },
+    { "feature": "F081", "criteria": ["4"], "who": ["member"], "words": "Change your zip and your area and home town follow", "routes": ["you-settings-tab"] },
+    { "feature": "F060", "criteria": ["1", "2", "3"], "who": ["member"], "words": "Host a gathering without opening a shop", "routes": ["you-sell"] },
+
+    { "feature": "F061", "criteria": ["1", "2"], "who": ["runner"], "words": "Start a Page by answering one question, what kind it is", "routes": ["you-sell"] },
+    { "feature": "F082", "criteria": ["1", "3", "4", "6", "8", "9"], "who": ["runner"], "words": "Agree to the house rules once, then publish your Page", "routes": ["page-edit"] },
+    { "feature": "F056", "criteria": ["1a", "5"], "who": ["runner"], "words": "Edit your Page's picture, name and description from one page", "routes": ["page-edit"] },
+    { "feature": "F056", "criteria": ["6", "7a"], "who": ["runner"], "words": "Put your Page on the map by address or by neighborhood", "routes": ["page-edit"] },
+    { "feature": "F056", "criteria": ["8"], "who": ["runner"], "words": "Tag your Page in your own words", "routes": ["page-edit"] },
+    { "feature": "F099", "criteria": ["1", "3", "4", "5", "6", "10", "12"], "who": ["runner"], "words": "Give your Page a picture and add one photo to each post", "routes": ["page", "page-edit"] },
+    { "feature": "F072", "criteria": ["1a", "2a", "3", "4", "5"], "who": ["runner"], "words": "Post an event or news from your Page, with a time and place", "routes": ["page"] },
+    { "feature": "F074", "criteria": ["1", "2", "3", "7"], "who": ["runner"], "words": "Make an event repeat every week", "routes": ["page"] },
+    { "feature": "F117", "criteria": ["1", "4", "6", "9"], "who": ["runner"], "words": "Post a Proposal, see who's in and by size, and accept helpers", "routes": ["page"] },
+    { "feature": "F069", "criteria": ["1", "3", "4"], "who": ["runner"], "words": "Run more than one Page, and pick up any draft where you left it", "routes": ["you"] },
+    { "feature": "F106", "criteria": ["2", "3"], "who": ["runner"], "words": "Say which town your Page gives back to, and show the local badge", "routes": ["page"] }
+  ]
+}

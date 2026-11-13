@@ -23,9 +23,8 @@ export const COPY = {
   pageWordsHiddenNote: "Your Page's name and description are hidden from others after a report. Edit either one to show them again.",
   reportSentCourtesy: 'The Page owner gets a courtesy notice first. Thanks for looking out.',
   reportSentPerson: "It's being sent to a person from our team. Thanks for looking out.",
-  // F093 criterion 8 — the withheld card's ask, the front door's main button.
-  // Don's words, 2026-10-04 ("Sign up to follow" is the secondary). Placeholder.
-  withheldCta: "Sign in to see what's happening",
+  // F134.7 — a member's name, signed out: names stay between members, the person still counts.
+  aNeighbour: 'A neighbour',
   // #260 — downloads an .ics. Placeholder ([public-is-draft]).
   addToCalendar: 'Add to calendar',
   // F081 criterion 5 — what the app is for, on the signup screen. Don's words, ruled 2026-10-01.
@@ -97,6 +96,8 @@ export const COPY = {
   wonderReached: 'Goal reached. Still counting.',
   // #1127 — who is in, by name, under the bar. Draft copy ([public-is-draft]).
   wonderInNames: (names: string[], total: number) => {
+    // F134.7 — signed out the names don't come back; the count still does.
+    if (names.length === 0) return `${total.toLocaleString('en-US')} ${total === 1 ? 'neighbour is' : 'neighbours are'} in`
     const shown = names.slice(0, 3)
     const more = Math.max(0, total - shown.length)
     const people = more > 0 ? [...shown, `${more.toLocaleString('en-US')} more`] : shown

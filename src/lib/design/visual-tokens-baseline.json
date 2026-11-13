@@ -20,11 +20,6 @@
     "text-[11px]",
     "text-[11px]"
   ],
-  "src/components/browse/WithheldAnnouncementCard.tsx": [
-    "min-h-[2.5rem]",
-    "min-h-[3.75rem]",
-    "text-[15px]"
-  ],
   "src/components/cards/ExampleCard.tsx": [
     "min-h-[1.25rem]",
     "min-h-[2.5rem]",

@@ -1,5 +1,6 @@
 // F118 — one town's page: two bars, what's here so far, the people opening it, and how to help.
 
+import { COPY } from '@/lib/copy'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -142,7 +143,8 @@ export default async function TownPage({ params }: Props) {
           <ol className="mt-2 divide-y divide-[var(--color-border)]">
             {people.map((p, i) => (
               <li key={i} className="flex justify-between py-2 text-body">
-                <span className="text-[var(--color-fg)]">{p.first_name}</span>
+                {/* F134.7 — first names stay between members. */}
+                <span className="text-[var(--color-fg)]">{data.user ? p.first_name : COPY.aNeighbour}</span>
                 <span className="text-body-sm text-[var(--color-fg-muted)]">{p.brought > 0 ? `${p.brought} brought in` : `${p.added} added`}</span>
               </li>
             ))}

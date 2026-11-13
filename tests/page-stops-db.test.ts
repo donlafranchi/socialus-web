@@ -68,8 +68,10 @@ describe.skipIf(!RUNNABLE)("#896 — a Page's stops", () => {
     expect(rows).toEqual([{ label: 'Midtown Farmers Market', when_text: 'Saturdays, 8am–1pm' }])
   })
 
-  it('never answer a signed-out caller', async () => {
-    await expect(as(null, `select label from public.page_stops where group_id = '${PAGE}'`)).rejects.toThrow(/permission denied/)
+  // F134 — a Page's stops are where it is: read signed out as signed in.
+  it('answer a signed-out caller as a signed-in one', async () => {
+    const q = `select label from public.page_stops where group_id = '${PAGE}' order by label`
+    expect(await as(null, q)).toEqual(await as(OWNER, q))
   })
 
   it('refuse a write from a member, even the owner', async () => {

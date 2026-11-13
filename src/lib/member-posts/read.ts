@@ -17,7 +17,8 @@ export interface MemberPost {
   expiresAt: string
   labels: string[]
   labelsPinned: boolean
-  displayName: string
+  /** Null signed out (F134.7): names stay between members. */
+  displayName: string | null
   avatarUrl: string | null
   mine: boolean
   /** Taken down, hidden or expired: only its poster still reads it. */

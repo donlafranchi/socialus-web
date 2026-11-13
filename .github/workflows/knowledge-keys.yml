@@ -1,0 +1,89 @@
+name: Knowledge keys
+
+# F125 / T1018 (#1219) — the knowledge store's lookup tool lets an agent in by
+# its own key, and reaches the store as the store's own login. This sets that
+# login's password and registers or revokes agent keys, from a phone.
+#
+# MANUAL ONLY (Actions → Knowledge keys → Run workflow). Nothing secret is ever
+# printed: this repository's Actions logs are public. The password and the key
+# come from two repository secrets the PM keeps:
+#   KNOWLEDGE_DB_PASSWORD  the store login's password; the same value goes in
+#                          Vercel as KNOWLEDGE_DB_PASSWORD, so the app can log in.
+#   KNOWLEDGE_AGENT_KEY    the key for the agent being added; the same value is
+#                          saved where that agent runs (scripts/knowledge/keys.ts).
+# To add a second agent, change KNOWLEDGE_AGENT_KEY first and give a new name.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'password: set the store login''s password. add: register the agent below. revoke: revoke it.'
+        required: true
+        type: choice
+        options: [password, add, revoke]
+        default: add
+      agent:
+        description: 'Agent name, such as cloud-sessions or mac (add and revoke).'
+        required: false
+        type: string
+        default: cloud-sessions
+      departments:
+        description: 'Departments, comma separated (building, finance, telemetry-and-bugs, communications, trust-and-safety, legal). Ignored for the PM''s own key.'
+        required: false
+        type: string
+        default: 'building,finance,telemetry-and-bugs,communications,trust-and-safety,legal'
+      operator:
+        description: 'The PM''s own key: sees and decides everything. Only for a key the PM alone holds, never one shared by sessions.'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: knowledge-import
+  cancel-in-progress: false
+
+jobs:
+  keys:
+    name: Knowledge keys
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Keys
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          KNOWLEDGE_DB_PASSWORD: ${{ secrets.KNOWLEDGE_DB_PASSWORD }}
+          KNOWLEDGE_AGENT_KEY: ${{ secrets.KNOWLEDGE_AGENT_KEY }}
+          ACTION: ${{ inputs.action }}
+          AGENT: ${{ inputs.agent }}
+          DEPARTMENTS: ${{ inputs.departments }}
+          OPERATOR: ${{ inputs.operator }}
+        run: |
+          set -euo pipefail
+          args=("$ACTION")
+          if [ "$ACTION" != "password" ]; then args+=(--agent "$AGENT"); fi
+          if [ "$ACTION" = "add" ]; then
+            args+=(--departments "$DEPARTMENTS")
+            if [ "$OPERATOR" = "true" ]; then args+=(--operator); fi
+          fi
+          npx tsx scripts/knowledge/keys.ts "${args[@]}"

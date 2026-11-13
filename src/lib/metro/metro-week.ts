@@ -1,24 +1,10 @@
-// F093 criterion 5 — the week the signed-out count is over.
+// The metro's calendar: its date, its weekday, and its week, all in the metro's own zone.
 //
-// The count on a withheld card is "3 announcements this week", and "this week"
-// is a wall-clock question in the METRO's timezone: a Sacramento Page's week
-// turns over at midnight in Sacramento, whoever is reading. Computed here and
-// passed into `announcements_withheld` as two instants, so the zone stays in
-// this one directory — #173 gives each metro its own zone, and when it lands
-// it changes `metro-time.ts` and this file and no SQL.
-//
-// ISO weeks, Monday–Sunday, matching `weekRange` in the browse filters. The
-// reason there was that "this weekend" must fall inside "this week"; the
-// reason here is only that the app should not have two answers to which day a
-// week starts on.
+// ISO weeks, Monday–Sunday, matching `weekRange` in the browse filters, so "this weekend" falls inside "this week"
+// and the app has one answer to which day a week starts on. (Written for F093's withheld count, retired by F134;
+// the date helpers are read across the app.)
 
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from './metro-time'
-
-/**
- * The words on the card. Criterion 5: a count that cannot be read as a period
- * is not a count, so the period is named rather than implied.
- */
-export const METRO_WEEK_LABEL = 'this week'
 
 export interface MetroWeek {
   /** Monday 00:00 in the metro, inclusive. */

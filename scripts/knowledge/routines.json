@@ -1,0 +1,11 @@
+{
+  "note": "F135: the practices that are repeated routines. every_days is how long the monthly upkeep waits before listing a routine with no run. Loaded by the knowledge import (scripts/knowledge/runs.ts).",
+  "routines": [
+    {
+      "practice": "practice.load-sim-and-checkpoints",
+      "name": "Load simulation",
+      "every_days": 90,
+      "workflow": ".github/workflows/load.yml"
+    }
+  ]
+}

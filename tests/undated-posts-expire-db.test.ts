@@ -4,7 +4,7 @@ import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
 // #314 (Don, 2026-10-02) — an undated post drops off Explore 14 days after it was posted, unless its owner
-// set a "show until" date. browse_feed and announcements_withheld read one rule, post_current_until.
+// set a "show until" date. browse_feed reads one rule, post_current_until.
 
 const DATABASE_URL =
   process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL
@@ -97,15 +97,6 @@ describe.skipIf(!RUNNABLE)('#314 — undated posts expire after 14 days', () => 
         `select result_id from public.browse_feed(p_metro_id => ${METRO}, p_result_kinds => array['post'], p_limit => 500)`,
       )
       expect(shown(rows)).toEqual(['extended', 'fresh'])
-    })
-  })
-
-  it('the withheld counts follow the same rule', async () => {
-    await asVisitor(async () => {
-      const { rows } = await client.query<{ announcement_ids: string[] }>(
-        `select announcement_ids from public.announcements_withheld(p_metro_id => ${METRO}, p_limit => 500)`,
-      )
-      expect(shown(rows.flatMap((r) => r.announcement_ids).map((result_id) => ({ result_id })))).toEqual(['extended', 'fresh'])
     })
   })
 

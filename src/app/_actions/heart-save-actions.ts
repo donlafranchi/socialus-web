@@ -3,17 +3,19 @@
 // #1171 — ♡ and Save. Failures come back as data, never as a throw; signedOut tells the button to ask for sign-in.
 
 import { createClient } from '@/lib/supabase-server'
+import { viewerId } from '@/lib/auth/viewer'
 import { resolveActionContext } from '@/lib/action-context'
 import { memberHeartSet, memberSaveSet, type MemberHeartSetInput } from '@/actions'
 
 type Result = { ok: true; on: boolean } | { ok: false; signedOut?: true }
 
 async function run(fn: (id: string) => Promise<{ on: boolean }>): Promise<Result> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) return { ok: false, signedOut: true }
+  // #1269 — who taps, from the verified token (as #791 does for reads), not a round trip to the auth server:
+  // under a burst of taps that round trip failed and answered "signed out" to signed-in members.
+  const memberId = await viewerId(await createClient())
+  if (!memberId) return { ok: false, signedOut: true }
   try {
-    return { ok: true, ...(await fn(data.user.id)) }
+    return { ok: true, ...(await fn(memberId)) }
   } catch (err) {
     console.error('[hearts-saves] action failed:', err instanceof Error ? err.message : err)
     return { ok: false }

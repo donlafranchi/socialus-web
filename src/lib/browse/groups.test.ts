@@ -32,9 +32,6 @@ function row(over: Partial<BrowseResult>): BrowseResult {
     updatedAt: '2026-09-01T00:00:00Z',
     postedAt: null,
     sortAt: '2026-09-01T00:00:00Z',
-    withheld: false,
-    announcementCount: null,
-    announcementIds: null,
     ...over,
   }
 }
@@ -90,11 +87,6 @@ describe('groupResults', () => {
     expect(groupResults([], NOW)).toEqual([])
   })
 
-  it('a signed-out card that holds a post back is never filed under a kind it might not be', () => {
-    const groups = groupResults([row({ withheld: true, announcementCount: 2 }), row({ withheld: true })], NOW)
-    expect(groups.map((g) => g.key)).toEqual(['withheld'])
-    expect(groups[0]!.label).toBe(COPY.withheldCta)
-  })
 
   it('groups undated posts by their kind', () => {
     expect(keys([row({ postKind: 'sale' }), row({ postKind: 'hiring' })])).toEqual(['sale', 'hiring'])

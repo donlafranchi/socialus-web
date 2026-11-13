@@ -77,9 +77,7 @@ export function pickLead(results: readonly BrowseResult[], o: LeadOptions): { le
   const isNew = (r: BrowseResult) =>
     r.resultKind === 'page'
       ? r.pageCreatedAt > since
-      : r.withheld
-        ? r.sortAt > since // signed out: a Page that posted since, as its "sign in to see" card (F093.7)
-        : onDuring(r, hw.tonight) || onDuring(r, hw.weekend) || (Boolean(r.postedAt) && r.postedAt! >= postedLately && onDuring(r, soon))
+      : onDuring(r, hw.tonight) || onDuring(r, hw.weekend) || (Boolean(r.postedAt) && r.postedAt! >= postedLately && onDuring(r, soon))
 
   const order = (rows: BrowseResult[]) => {
     const seed = o.seed ?? ''

@@ -20,7 +20,7 @@ import { ReportSheet, PlainError } from './ReportSheet'
 import type { ReportCategory } from '@/lib/reports/categories'
 import { COPY } from '@/lib/copy'
 import { URGENT_CATEGORIES } from '@/lib/reports/categories'
-import { SignInPrompt } from '@/components/auth/SignInPrompt'
+import { useSignInFirst } from '@/hooks/useSignInFirst'
 
 interface Props {
   subjectId: string
@@ -47,13 +47,23 @@ interface Props {
 export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false, itemLabel, leadItems = [] }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post' | undefined>(subjectKind)
+  // F134.4 — signed out, the sheet asks for sign-in first; back signed in, the report sheet opens on what was tapped.
+  // Back from sign-in, the sheet opens on the same report the visitor picked (its words, its photo…).
+  const gate = useSignInFirst({
+    action: 'report',
+    target: subjectId,
+    signedIn: loggedIn,
+    returnTo,
+    onReturn: (kind) => {
+      if (kind) setReporting(kind as typeof reporting)
+      setSheetOpen(true)
+    },
+  })
   const open = (kind: typeof reporting) => {
     setReporting(kind)
-    if (loggedIn) setSheetOpen(true)
-    else setPromptOpen(true)
+    gate.ask(() => setSheetOpen(true), kind ?? null)
   }
   const [confirmed, setConfirmed] = useState<'courtesy' | 'person' | null>(null)
-  const [promptOpen, setPromptOpen] = useState(false)
   // The sheet is opened from a menu item that unmounts with its menu, so the
   // sheet cannot work out on its own where focus came from. Escape must land
   // back on the ⋯, which is the control the member was actually using.
@@ -89,7 +99,7 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
         ]}
       />
 
-      {promptOpen && <SignInPrompt action="report" currentPath={returnTo ?? '/'} onClose={() => setPromptOpen(false)} />}
+      {gate.sheet}
 
       <ReportSheet
         open={sheetOpen}

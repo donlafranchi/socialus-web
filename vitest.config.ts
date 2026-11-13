@@ -108,7 +108,7 @@ const VISIBILITY_SUITES = ['tests/visibility.test.ts']
 // Worktrees now live outside the repo (socialus-ops CLAUDE.md § Sessions), so
 // this should never fire — it stays because the failure it prevents looks
 // like a real bug in your own code, and costs an hour before you suspect it.
-const EXCLUDE = ['evals/**', 'node_modules/**', '.stryker-tmp/**', 'reports/**', '.claude/**']
+const EXCLUDE = ['evals/**', 'node_modules/**', '.stryker-tmp/**', 'reports/**', '.claude/**', '.knowledge/**']
 
 const shared = {
   plugins: [react()],

@@ -9,6 +9,7 @@ import { ValidationError } from '@/actions/_lib/errors'
 import { NOT_ON_LIST, TOO_MANY } from '@/actions/group/labels'
 import { readMemberPosts, type MemberPost } from '@/lib/member-posts/read'
 import type { BrowseScope } from '@/lib/feed/browse-feed'
+import { countUse } from '@/lib/usage/count-use'
 
 const SAYABLE = new Set<string>([...Object.values(MEMBER_POST_REFUSED), NOT_ON_LIST, TOO_MANY])
 
@@ -29,7 +30,13 @@ async function run<T>(fn: (id: string) => Promise<T>): Promise<Result<T>> {
 }
 
 export async function createMemberPostAction(input: MemberPostCreateInput): Promise<Result<{ postId: string }>> {
-  return run((id) => memberPostCreate(resolveActionContext({ actingMemberId: id }), input))
+  return run(async (id) => {
+    const r = await memberPostCreate(resolveActionContext({ actingMemberId: id }), input)
+    // F133 — writing a post (an Ask is its own part) and, once, a first post; counted after the response.
+    await countUse({ part: input.kind === 'ask' ? 'ask' : 'posts' }, id)
+    await countUse({ step: 'first_post' }, id)
+    return r
+  })
 }
 
 export async function withdrawMemberPostAction(postId: string): Promise<Result<{ done: true }>> {

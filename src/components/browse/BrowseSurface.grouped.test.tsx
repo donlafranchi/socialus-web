@@ -23,13 +23,15 @@ vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false
 vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
-const browseMapAction = vi.fn()
+const browseMapAction = vi.fn(async (..._args: unknown[]): Promise<unknown[]> => [])
 vi.mock('@/app/explore/actions', () => ({
   browseMapAction: (...args: unknown[]) => browseMapAction(...args),
   browseFeedAction: (...args: unknown[]) => browseFeedAction(...args),
   searchAreasAction: async () => [{ id: 'p-1', name: 'Midtown' }],
 }))
 
+// F134 — Explore's neighbour search and pins run signed out too; neither is what these tests are about.
+vi.mock('@/app/_actions/member-post-actions', () => ({ searchMemberPostsAction: async () => [] }))
 vi.mock('@/hooks/useScrollRestoration', () => ({ useScrollRestoration: () => {} }))
 
 const SAC = { id: 'm1', slug: 'sacramento-roseville-ca', name: 'Sacramento-Roseville, CA', isOpen: true }
@@ -57,9 +59,6 @@ function result(over: Partial<BrowseResult> = {}): BrowseResult {
     updatedAt: '2026-09-02T00:00:00Z',
     postedAt: null,
     sortAt: '2026-09-02T00:00:00Z',
-    withheld: false,
-    announcementCount: null,
-    announcementIds: null,
     ...over,
   }
 }

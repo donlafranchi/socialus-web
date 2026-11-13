@@ -1,0 +1,82 @@
+name: Knowledge import
+
+# F125 / T1017 (#1218) — brings socialus-plan's live rulings and principles,
+# the two absolutes files and the ontology registry into the knowledge store
+# (#1217) in socialus-db.
+#
+# MANUAL ONLY, like apply.yml: nothing writes to production unless a person
+# comes here and runs it (Actions → Knowledge import → Run workflow). Type
+# "import" to write; anything else is a dry run that does all the work and
+# rolls it back, so the summary shows what a real run would change.
+#
+# Re-runnable: a second run on unchanged files records nothing. The import
+# writes only through the store's functions, as the store's own login, with a
+# key minted for this run and revoked at its end (scripts/knowledge/import.ts).
+# It refuses to write when the store's export of constraints/code.md would
+# differ from socialus-plan's own.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "import" to write to the production database. Anything else is a dry run.'
+        required: false
+        type: string
+        default: dry run
+
+permissions:
+  contents: read
+
+# Never two imports at once, and never alongside a migration.
+concurrency:
+  group: knowledge-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    name: Import into the knowledge store
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # The import reads main of both: the rulings as they stand today.
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-plan
+          path: .knowledge/socialus-plan
+          persist-credentials: false
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-ops
+          path: .knowledge/socialus-ops
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      # The same connection apply.yml uses (scripts/supabase-db-url.sh); it
+      # only mints this run's key and hands over to the store's own login.
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Import
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          export PLAN_COMMIT="$(git -C .knowledge/socialus-plan rev-parse HEAD)"
+          export OPS_COMMIT="$(git -C .knowledge/socialus-ops rev-parse HEAD)"
+          write=""
+          if [ "$CONFIRM" = "import" ]; then write="--commit"; else echo "Dry run: nothing will be written."; fi
+          npx tsx scripts/knowledge/import.ts --plan .knowledge/socialus-plan --ops .knowledge/socialus-ops $write

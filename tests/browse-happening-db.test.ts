@@ -78,7 +78,11 @@ afterAll(async () => {
 })
 
 async function asVisitor<T>(fn: () => Promise<T>): Promise<T> {
-  await client.query('begin')
+  // One snapshot for all three reads: the feed is metro-wide, and other suites
+  // insert posts in the same metro while this runs, so under read committed a
+  // post committed between the reads made the two calls disagree (CI, 2026-11-07
+  // and 2026-11-10).
+  await client.query('begin isolation level repeatable read')
   try {
     await client.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: VISITOR, role: 'authenticated' })])
     await client.query('set local role authenticated')
@@ -113,15 +117,22 @@ describe.skipIf(!RUNNABLE)('browse_happening', () => {
     })
   })
 
-  it('a signed-out caller gets no posts', async () => {
-    await client.query('begin')
+  // F134 (F091.7 restated) — a signed-out caller gets the same posts a signed-in stranger gets.
+  // [guards F091.7 partial: the database's rows for the happening row; the loader asks the same read, guarded in load.test]
+  it('a signed-out caller gets the same posts as a signed-in stranger', async () => {
+    const read = `select bucket, result_id from public.browse_happening(p_metro_id => ${METRO}, p_place_id => null, p_from => $1, p_weekend_from => $2, p_before => $3, p_limit => $4) order by 1, 2`
+    const args = [WEEK_FROM, WEEKEND_FROM, BEFORE, LIMIT]
+    // One snapshot for both reads, as asVisitor does: other suites post into the same metro while this runs.
+    await client.query('begin isolation level repeatable read')
     try {
+      await client.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: VISITOR, role: 'authenticated' })])
+      await client.query('set local role authenticated')
+      const member = (await client.query(read, args)).rows
+      await client.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ role: 'anon' })])
       await client.query('set local role anon')
-      const { rows } = await client.query(
-        `select 1 from public.browse_happening(p_metro_id => ${METRO}, p_place_id => null, p_from => $1, p_weekend_from => $2, p_before => $3, p_limit => $4)`,
-        [WEEK_FROM, WEEKEND_FROM, BEFORE, LIMIT],
-      )
-      expect(rows).toHaveLength(0)
+      const { rows } = await client.query(read, args)
+      expect(member.length).toBeGreaterThan(0)
+      expect(rows).toEqual(member)
     } finally {
       await client.query('rollback')
     }

@@ -113,16 +113,14 @@ afterAll(async () => {
 const READERS: [string, string | null][] = [['signed out', null], ['a signed-in stranger', STRANGER], ['another member', SOLO_OWNER]]
 
 describe.skipIf(!RUNNABLE)('a seller on a Page is not named by what the Page lists', () => {
-  // [guards F093.8]
   it.each(READERS)('discoverable_items keeps member_handle to itself for %s', async (_who, sub) => {
     await expect(as(sub, `select member_handle from public.discoverable_items limit 1`)).rejects.toThrow(/permission denied/)
   })
 
-  // [guards F093.8]
   it.each(READERS)("the venue and feed lists never carry a Page item's seller handle, for %s", async (_who, sub) => {
     const hosted = await as(sub, `select * from public.venue_hosted_items($1, $2)`, [LOCATION, PAGE])
-    // Anonymous callers cannot read locations at all, so only signed-in readers get the nearby list.
-    const nearby = sub ? await as(sub, `select * from public.venue_nearby_items($1, null, 100000)`, [LOCATION]) : []
+    // F134 — signed out reads locations as signed in, so every reader gets the nearby list.
+    const nearby = await as(sub, `select * from public.venue_nearby_items($1, null, 100000)`, [LOCATION])
     const feed = await as(sub, `select * from public.locality_feed_items(null, null, 50)`)
     expect(hosted.map((r) => r.item_id)).toEqual([GROUPED])
     expect(JSON.stringify([hosted, nearby, feed])).not.toContain(HANDLE[SELLER])
@@ -142,7 +140,6 @@ describe.skipIf(!RUNNABLE)('a seller on a Page is not named by what the Page lis
 })
 
 describe.skipIf(!RUNNABLE)('the media bucket does not list its uploaders', () => {
-  // [guards F093.8]
   it.each(READERS)('%s sees no file of anyone else', async (_who, sub) => {
     const rows = await as(sub, `select name from storage.objects where bucket_id = 'media'`)
     expect(rows).toEqual([])
