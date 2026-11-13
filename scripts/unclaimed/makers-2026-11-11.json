@@ -1,0 +1,75 @@
+[
+  {
+    "name": "Sierra Symphony",
+    "category": "Community orchestra (nonprofit)",
+    "makes": "Volunteer community orchestra based in Placerville playing in Cameron Park and Rescue, with a Christmas Concert Dec 12, 2026 (4-6 pm), a spring concert on Apr 25, 2027 and open chairs for oboe, trombone, mallet percussion, double bass and viola",
+    "area": "Placerville (El Dorado)",
+    "site": "https://sierrasymphony.org",
+    "social": {
+      "facebook": "https://www.facebook.com/sierrasymphony/"
+    },
+    "confidence": "Medium; own site read 2026-11-11: 2026-27 season and Christmas concert page live; mailing address only (P.O. Box) and no footer year. Photos not viewed: stock only. Holiday (Christmas concert). Lead: search, then own site."
+  },
+  {
+    "name": "Folsom Concert Association",
+    "category": "Concert series (nonprofit)",
+    "makes": "Folsom nonprofit presenting an afternoon concert series at the Harris Center: The Dreamboats Nov 22, 2026 at 2 pm, then Jan 10, Feb 21 and Apr 18, 2027, with a support-us page",
+    "area": "Folsom (Sacramento)",
+    "site": "https://folsomconcertassociation.org",
+    "social": {
+      "instagram": "https://www.instagram.com/folsomconcerts/",
+      "facebook": "https://www.facebook.com/FolsomConcerts/"
+    },
+    "confidence": "High; own site read 2026-11-11: footer 2026, dated 2026-27 concert list with ticket prices. Venue is the Harris Center (10 College Parkway); the association lists no address of its own. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Davis Sings",
+    "category": "Community choir (nonprofit)",
+    "makes": "Davis community choral nonprofit running the Davis Chorale, an auditioned adult choir rehearsing Mondays 7-9:30 pm, and hosting the Downtown Candlelight Parade and Winter Wonderland on Dec 3, 2026; volunteer, sponsor and donate pages",
+    "area": "Davis (Yolo)",
+    "address": "216 F Street #45, Davis, CA 95616",
+    "site": "https://davissings.org",
+    "social": {
+      "instagram": "https://www.instagram.com/davissingschoirs/",
+      "facebook": "https://www.facebook.com/davissingschoirs/"
+    },
+    "confidence": "Medium; own site read 2026-11-11: Dec 3 parade page live and Chorale dues posted; no footer year. The org also runs a youth choir, so stock photos only and the Page speaks of the adult Chorale. Holiday (Winter Wonderland). Lead: search, then own site."
+  },
+  {
+    "name": "Vallejo Symphony",
+    "category": "Community symphony (nonprofit)",
+    "makes": "Vallejo community symphony playing at Hogan Auditorium: Holiday Spectacular Sun Dec 6, 2026 at 3 pm, Great American Songbook Feb 28, 2027 and Ode to Joy Apr 18, 2027, with single and season tickets and volunteer and donate pages",
+    "area": "Vallejo (Solano)",
+    "address": "850 Rosewood Avenue, Vallejo, CA 94591",
+    "site": "https://vallejosymphony.org",
+    "social": {
+      "instagram": "https://www.instagram.com/vallejosymphony/",
+      "facebook": "http://www.facebook.com/vallejosymphony"
+    },
+    "confidence": "Medium; own site read 2026-11-11: 2026-27 concert dates and ticket prices posted; no footer year. Photos not viewed: stock only. Holiday (Holiday Spectacular). Lead: search, then own site."
+  },
+  {
+    "name": "Solano Winds",
+    "category": "Community band (nonprofit)",
+    "makes": "Fairfield volunteer adult community concert band in its 32nd season, rehearsing Tuesdays 7-9:30 pm at Golden West Middle School, with Sparkle for the Holidays on Fri Dec 4, 2026 at 7:30 pm at the Downtown Theatre, concerts Mar 14 and May 7, 2027, and a join-the-band page",
+    "area": "Fairfield (Solano)",
+    "site": "https://solanowinds.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/solanowinds",
+      "facebook": "https://www.facebook.com/solanowinds/"
+    },
+    "confidence": "High; own site read 2026-11-11: footer 2026, dated 2026-27 concerts and rehearsal details posted; mailing address only (P.O. Box). Photos not viewed: stock only. Holiday (Sparkle for the Holidays). Lead: search, then own site."
+  },
+  {
+    "name": "Truckee Tahoe Community Chorus",
+    "category": "Community chorus (nonprofit)",
+    "makes": "Truckee adult community chorus, no audition needed, rehearsing Mondays 5:45-8:35 pm at the Sierra College Truckee campus, with holiday concerts Dec 12 at 4 pm and Dec 13 at 2 pm at Truckee High School and a $75 join page",
+    "area": "Truckee (Nevada)",
+    "site": "http://www.truckeechorus.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/truckeechorus/",
+      "facebook": "https://www.facebook.com/truckeechorus/"
+    },
+    "confidence": "Medium; own site read 2026-11-11: December concert dates posted without a year (Dec 12 is a Saturday in 2026) and footer 2025; no street address. Photos not viewed: stock only. Holiday (holiday concerts). Lead: search, then own site."
+  }
+]

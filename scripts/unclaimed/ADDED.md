@@ -370,6 +370,16 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-06 | Foothill Conservancy | Creek conservancy (nonprofit) | Sutter Creek | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-11-06 | California Native Plant Society, Redbud Chapter | Native plant society (nonprofit) | Auburn | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-11-06 | Downtown Vacaville Farmers' Market | Farm | Vacaville | Farmers markets, Sustainability | Green and outdoors (market with dated events); stock photos only; lead: search, then own site |
+| 2026-11-10 | Boarding On The Lake | Ranch | Granite Bay | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | PT Ranch | Farm stay & agritourism | Ione | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | Long Dream Farm | Farm stay & agritourism | Lincoln | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | Pine Valley Ranch | Farm | Auburn | Farmers markets, Sustainability | Volunteer and mutual aid (farms; holiday (Christmas trees)); stock photos only; lead: search, then own site |
+| 2026-11-10 | Twin Lakes Food Bank | Food bank (nonprofit) | Folsom | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Seniors First (Meals on Wheels Placer County) | Meal program (nonprofit) | Rocklin | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Sierra Senior Services (Meals on Wheels Tahoe-Truckee) | Meal program (nonprofit) | Truckee | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Sustainable Solano | Community garden (nonprofit) | Benicia | Gardening, Sustainability | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Solano-Napa Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | The Salvation Army Lodi Corps | Meal program (nonprofit) | Lodi | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-11-12 | Step I Dance & Fitness | Dance fitness studio | Sacramento | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own adult photo and 3 fillers; Zumba + hip hop; lead: search, then own site |
 | 2026-11-12 | Premier Fitness Elk Grove | Gym with dance and step classes | Elk Grove | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; Zumba + hip hop; lead: search, then own site |
 | 2026-11-12 | Applegate Dance Studio | Dance fitness studio | Davis | Fitness & outdoors, Neighborhood life | Fitness and dance classes; stock photos only; adult Zumba; lead: search, then own site |
