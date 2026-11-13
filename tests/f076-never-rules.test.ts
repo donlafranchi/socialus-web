@@ -119,6 +119,7 @@ describe('F076 c3 — no role is stored on the member', () => {
     const copied = offenders(['src'], /metro_waitlist/, [
       'src/actions/metro/waitlist-join.ts',
       'src/actions/metro/waitlist-join-anonymous.ts',
+      'src/actions/metro/waitlist-journey-join.ts',
       OPENER,
     ])
     expect({ adds, creates, copied }).toEqual({ adds: [], creates: [], copied: [] })
@@ -153,6 +154,7 @@ describe('F076 c12 — crossing the threshold never opens a metro', () => {
 const LIVE_COUNT_READERS = [
   'src/actions/metro/waitlist-join.ts',
   'src/actions/metro/waitlist-join-anonymous.ts',
+  'src/actions/metro/waitlist-journey-join.ts',
   'src/lib/metro/waitlist-counts.ts',
   'src/lib/metro/waitlist-standing.ts',
 ]
@@ -206,5 +208,21 @@ describe.skipIf(!WRITABLE)('F076 c14 — the response is identical whether or no
     expect(Object.keys(first).sort()).toEqual(['metroId', 'metroName', 'open'])
     // The writes really happened: two addresses, two rows (so "identical" is not "nothing ran").
     expect(afterRows.rows[0].n).toBe(2)
+  })
+})
+
+// #1299 — the waitlist journey checks nothing with a carrier: no Twilio, no Lookup, no Verify, no texted code.
+const JOURNEY = [
+  'src/app/join',
+  'src/components/waitlist',
+  'src/lib/waitlist',
+  'src/app/_actions/waitlist-journey-actions.ts',
+  'src/actions/metro/waitlist-journey-join.ts',
+]
+
+describe('F076 c18 — nothing is checked at join', () => {
+  // [guards F076.18]
+  it('no file of the waitlist journey reaches Twilio, Lookup, Verify or a code', () => {
+    expect(offenders(JOURNEY, /twilio|lookups?\.|verify\.|verifications|sendCode|one-time-code|signInWithOtp/i)).toEqual([])
   })
 })

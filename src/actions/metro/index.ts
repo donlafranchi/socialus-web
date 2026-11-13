@@ -13,3 +13,9 @@ export {
   type MetroWaitlistJoinAnonymousInput,
   type MetroWaitlistJoinAnonymousResult,
 } from './waitlist-join-anonymous'
+export {
+  metroWaitlistJourneyJoin,
+  metroWaitlistJourneyJoinInput,
+  type MetroWaitlistJourneyJoinInput,
+  type MetroWaitlistJourneyJoinResult,
+} from './waitlist-journey-join'
