@@ -23,6 +23,12 @@ export const metroWaitlistJourneyJoinInput = z.object({
     .transform((raw) => raw.trim().toLowerCase())
     .refine((e) => EMAIL_SHAPE.test(e), { message: 'That does not look like an email address.' }),
   side: z.enum(['creator', 'patron']),
+  name: z.string().trim().min(1).max(60),
+  phone: z.string().regex(/^\+1[2-9]\d{2}[2-9]\d{6}$/),
+  plans: z.array(z.string().max(40)).min(1).max(7),
+  offers: z.array(z.string().max(40)).max(7),
+  offerName: z.string().trim().max(120),
+  offerLink: z.string().trim().max(300),
 })
 
 export type MetroWaitlistJourneyJoinInput = z.infer<typeof metroWaitlistJourneyJoinInput>
@@ -48,8 +54,8 @@ export const metroWaitlistJourneyJoin = defineHandler(
       if (!market?.metro_id || !market.name) throw new ValidationError('We don’t recognize that zip.')
       const result = { metroId: market.metro_id, marketName: market.name }
 
-      const existingRes = await client.query<{ id: string; metro_id: string; role: WaitlistRole }>(
-        `select w.id, w.metro_id, w.role
+      const existingRes = await client.query<{ id: string; metro_id: string; role: WaitlistRole; member_id: string | null }>(
+        `select w.id, w.metro_id, w.role, w.member_id
            from public.metro_waitlist w
            left join auth.users u on u.id = w.member_id
           where lower(w.email) = $1 or lower(u.email) = $1
@@ -57,7 +63,18 @@ export const metroWaitlistJourneyJoin = defineHandler(
         [input.email],
       )
       const existing = existingRes.rows[0] ?? null
-      if (existing && existing.metro_id === result.metroId && existing.role === input.side) return result
+      const answers = [input.name, input.phone, input.zip, input.plans, input.offers, input.offerName || null, input.offerLink || null]
+      // A member's row belongs to that member: anyone can type anyone's email, so the journey never moves it, recounts
+      // it or puts answers on it (F076.3). The response is the same as any other join (F076.14).
+      if (existing?.member_id) return result
+      if (existing && existing.metro_id === result.metroId && existing.role === input.side) {
+        // Same place, same side: the answers refresh, the counts do not move.
+        await client.query(
+          `update public.metro_waitlist set name = $2, phone = $3, zip = $4, plans = $5, offers = $6, offer_name = $7, offer_link = $8, updated_at = $9 where id = $1`,
+          [existing.id, ...answers, ctx.now()],
+        )
+        return result
+      }
 
       // sql-injection-safe: the column comes from a literal map keyed by a Zod enum.
       const bump = (metroId: string, role: WaitlistRole, delta: 1 | -1) => {
@@ -71,19 +88,20 @@ export const metroWaitlistJourneyJoin = defineHandler(
       }
 
       if (existing) {
-        await client.query(`update public.metro_waitlist set metro_id = $2, role = $3, updated_at = $4 where id = $1`, [
-          existing.id,
-          result.metroId,
-          input.side,
-          ctx.now(),
-        ])
+        await client.query(
+          `update public.metro_waitlist
+              set metro_id = $2, role = $3, name = $4, phone = $5, zip = $6, plans = $7, offers = $8, offer_name = $9, offer_link = $10, updated_at = $11
+            where id = $1`,
+          [existing.id, result.metroId, input.side, ...answers, ctx.now()],
+        )
         await bump(existing.metro_id, existing.role, -1)
       } else {
         // A second first-time submission of the same address racing this one inserts nothing and counts nothing.
         const ins = await client.query(
-          `insert into public.metro_waitlist (metro_id, email, role, created_at, updated_at) values ($1, $2, $3, $4, $4)
+          `insert into public.metro_waitlist (metro_id, email, role, name, phone, zip, plans, offers, offer_name, offer_link, created_at, updated_at)
+           values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $11)
            on conflict ((lower(email))) where email is not null do nothing`,
-          [result.metroId, input.email, input.side, ctx.now()],
+          [result.metroId, input.email, input.side, ...answers, ctx.now()],
         )
         if (!ins.rowCount) return result
       }

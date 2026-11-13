@@ -9,7 +9,14 @@ import { resolveAnonymousActionContext } from '@/lib/action-context'
 import { metroWaitlistJourneyJoin, ActionError } from '@/actions'
 import { flagOn } from '@/lib/flags/check'
 import { waitingCountFor } from '@/lib/metro/waitlist-counts'
-import { EMAIL_SHAPE, PLAN_IDS, ZIP_SHAPE, phoneE164, sideOf } from '@/lib/waitlist/journey'
+import { EMAIL_SHAPE, KINDS, PLAN_IDS, ZIP_SHAPE, phoneE164, sideOf } from '@/lib/waitlist/journey'
+
+/** http(s) links only; a bare domain gets https://. Anything else (javascript:, data:, words) is dropped. */
+function webLink(raw: string): string {
+  const t = (raw ?? '').trim()
+  const link = /^https?:\/\/[^\s/$.?#][^\s]*$/i.test(t) ? t : /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(t) ? `https://${t}` : ''
+  return link.length <= 300 ? link : ''
+}
 
 export type ZipCheck = { ok: true; market: string } | { ok: false }
 
@@ -61,10 +68,20 @@ export async function joinWaitlistJourneyAction(input: WaitlistAnswers): Promise
   if (!EMAIL_SHAPE.test((a.email ?? '').trim())) return { ok: false, step: 'email' }
   if (!phoneE164(a.phone ?? '')) return { ok: false, step: 'phone' }
 
-  // [open-question owner=code raised=2026-11-13] Name, phone, zip, plans and the being-found details are stored once the waitlist-answers migration is applied (the follow-up PR); until then only the email, market and side are written.
+  const found = sideOf(plans) === 'creator'
   let joined
   try {
-    joined = await metroWaitlistJourneyJoin(resolveAnonymousActionContext(), { zip: a.zip, email: a.email, side: sideOf(plans) })
+    joined = await metroWaitlistJourneyJoin(resolveAnonymousActionContext(), {
+      zip: a.zip,
+      email: a.email,
+      side: sideOf(plans),
+      name: a.name.trim(),
+      phone: phoneE164(a.phone)!,
+      plans,
+      offers: found ? (a.kinds ?? []).filter((k) => (KINDS as readonly string[]).includes(k)) : [],
+      offerName: found ? (a.offerName ?? '') : '',
+      offerLink: found ? webLink(a.offerLink) : '',
+    })
   } catch (err) {
     if (err instanceof ActionError) return { ok: false, step: 'zip' }
     throw err
