@@ -10,6 +10,7 @@ vi.mock('../_lib/db', () => ({
 import { metroWaitlistJourneyJoin } from './waitlist-journey-join'
 import type { ActionContext } from '../_lib/context'
 
+const A = { name: 'Sam', phone: '+19165550142', plans: ['find-events'], offers: [], offerName: '', offerLink: '' }
 const SAC = '11111111-1111-1111-1111-111111111111'
 const TAHOE = '22222222-2222-2222-2222-222222222222'
 
@@ -43,7 +44,7 @@ describe('metro.waitlist_journey_join', () => {
 
   // [guards F076.17]
   it('joins the zip’s market even when that market is marked open (every zip waits while closed)', async () => {
-    const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: ' A@B.co ', side: 'patron' })
+    const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: ' A@B.co ', side: 'patron', ...A })
     expect(r).toEqual({ metroId: SAC, marketName: 'Sacramento' })
     expect(sqls().some((s) => s.includes('insert into public.metro_waitlist'))).toBe(true)
     expect(query.mock.calls.find((c) => String(c[0]).includes('insert'))?.[1]).toContain('a@b.co')
@@ -51,17 +52,28 @@ describe('metro.waitlist_journey_join', () => {
   })
 
   // [guards F076.4]
-  it('a second join in the same place and side writes nothing and answers the same', async () => {
+  it('a second join in the same place and side moves no count, refreshes the answers and answers the same', async () => {
     db({ metro_id: SAC, name: 'Sacramento' }, { id: 'w1', metro_id: SAC, role: 'patron' })
-    const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'patron' })
+    const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'patron', ...A })
     expect(r).toEqual({ metroId: SAC, marketName: 'Sacramento' })
-    expect(sqls().some((s) => /insert into|update public\./.test(s))).toBe(false)
+    expect(sqls().some((s) => /insert into|metro_polygons/.test(s) && !s.includes('zip_market_key'))).toBe(false)
+    expect(sqls().some((s) => s.includes('update public.metro_waitlist set name'))).toBe(true)
+  })
+
+  it('stores the answers with the row: name, E.164 phone, zip, plans', async () => {
+    await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'patron', ...A })
+    const params = query.mock.calls.find((c) => String(c[0]).includes('insert'))?.[1] as unknown[]
+    expect(params).toEqual(expect.arrayContaining(['Sam', '+19165550142', '95814', ['find-events']]))
+  })
+
+  it('refuses a phone that is not a US mobile shape', async () => {
+    await expect(metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'patron', ...A, phone: '555' })).rejects.toThrow()
   })
 
   // [guards F076.5]
   it('a new zip or side moves the count: old down, new up', async () => {
     db({ metro_id: SAC, name: 'Sacramento' }, { id: 'w1', metro_id: TAHOE, role: 'patron' })
-    await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'creator' })
+    await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'creator', ...A })
     const s = sqls()
     expect(s.some((x) => x.includes('greatest(patron_count - 1, 0)'))).toBe(true)
     expect(s.some((x) => x.includes('creator_count = creator_count + 1'))).toBe(true)
@@ -70,11 +82,11 @@ describe('metro.waitlist_journey_join', () => {
 
   it('refuses a zip with no market', async () => {
     db(null, null)
-    await expect(metroWaitlistJourneyJoin(ctx(), { zip: '00000', email: 'a@b.co', side: 'patron' })).rejects.toThrow()
+    await expect(metroWaitlistJourneyJoin(ctx(), { zip: '00000', email: 'a@b.co', side: 'patron', ...A })).rejects.toThrow()
   })
 
   it('never opens a market and returns no count', async () => {
-    const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'creator' })
+    const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'creator', ...A })
     expect(sqls().some((s) => s.includes('is_open'))).toBe(false)
     expect(Object.keys(r).sort()).toEqual(['marketName', 'metroId'])
   })
