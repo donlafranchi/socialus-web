@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Step I Dance & Fitness",
+    "category": "Dance fitness studio",
+    "makes": "Natomas dance and fitness studio with adult drop-in Zumba (Mon, Tue and Wed at 6 pm, Sat and Sun at 10 am, $15), cardio hip hop (Fierce Funk) and hip hop dance classes on weekday evenings, plus Soca dance fitness, barre and Pilates",
+    "area": "Sacramento (Sacramento)",
+    "address": "4710 Natomas Blvd Suite 150, Sacramento, CA 95835",
+    "site": "https://step1danceandfitness.com",
+    "social": {
+      "instagram": "https://www.instagram.com/steponedanceandfitness/",
+      "facebook": "https://www.facebook.com/steponedanceandfitness"
+    },
+    "confidence": "High; own site and adult schedule PDF read 2026-11-12: Zumba and hip hop times and $15 drop-in rate posted, address in footer. Photos viewed 2026-11-12: its own adult dancer photo first. Lead: search, then own site."
+  },
+  {
+    "name": "Premier Fitness Elk Grove",
+    "category": "Gym with dance and step classes",
+    "makes": "Elk Grove gym running 60-minute Zumba classes (Mon and Thu 5:30 pm, Tue, Fri and Sat 9:30 am) and a hip hop dance-cardio class, alongside Xtreme Burn, functional training, yoga and HIIT",
+    "area": "Elk Grove (Sacramento)",
+    "address": "9186 Harbour Point Dr, Elk Grove, CA 95758",
+    "site": "https://www.premierfitnesselkgrove.com",
+    "social": {
+      "instagram": "https://instagram.com/premierfitnesselkgrove",
+      "facebook": "https://facebook.com/premierfit4u"
+    },
+    "confidence": "High; own site class pages read 2026-11-12: Zumba times and trainer posted, footer 2026; hip hop times by phone. Photos viewed 2026-11-12: its own, adults only. Lead: search, then own site."
+  },
+  {
+    "name": "Applegate Dance Studio",
+    "category": "Dance fitness studio",
+    "makes": "Village Homes dance studio in Davis with adult drop-in Zumba (taught by Kristina and Brenda, one hour, all levels), hip hop, barre and hula classes, plus a Winters downtown studio",
+    "area": "Davis (Yolo)",
+    "address": "2657 Portage Bay E #7, Davis, CA 95616",
+    "site": "https://www.applegatedance.com",
+    "social": {
+      "instagram": "https://www.instagram.com/applegatedancecompany/",
+      "facebook": "https://www.facebook.com/applegatedancestudio/"
+    },
+    "confidence": "High; own site read 2026-11-12: Fall 2026 classes and adult drop-in Zumba pages live, address in footer. Its own photos show children: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "InstaPhysique Roseville",
+    "category": "Rebounder fitness studio",
+    "makes": "Roseville studio offering InstaBounce, a music-driven low-impact rebounder (mini-trampoline) workout, alongside Lagree Megaformer classes, with classes booked on its schedule",
+    "area": "Roseville (Placer)",
+    "address": "1470 Eureka Rd #100, Roseville, CA 95661",
+    "site": "https://instaphysique.com/roseville/",
+    "social": {
+      "instagram": "https://www.instagram.com/getinstaphysique/",
+      "facebook": "https://www.facebook.com/InstaPhysique/"
+    },
+    "confidence": "High; own site read 2026-11-12: Roseville studio page with Bounce Classes section and address. Class times sit behind its booking schedule. Photos viewed 2026-11-12: its own, adults only. Lead: search, then own site."
+  },
+  {
+    "name": "Thrive FitClub Rocklin",
+    "category": "Rebounder fitness studio",
+    "makes": "Rocklin fitness club whose signature BOUNCE is a 30-minute mini-trampoline rebounding class for strength, balance and bone density, aimed at adults 40 and up; classes are free with a beverage purchase and booked online",
+    "area": "Rocklin (Placer)",
+    "address": "4810 Granite Dr A3, Rocklin, CA 95677",
+    "site": "https://www.rocklinthrive.com",
+    "social": {
+      "instagram": "https://www.instagram.com/thrive_rocklin_/",
+      "facebook": "https://www.facebook.com/thriverocklin"
+    },
+    "confidence": "High; own site Bounce page read 2026-11-12: description, address and phone posted. Class times sit behind its booking page. No own photos found: stock. Lead: search, then own site."
+  },
+  {
+    "name": "Maximum Fitness Vacaville",
+    "category": "Gym with dance and step classes",
+    "makes": "Downtown Vacaville gym with step aerobics (bench-step cardio with choreography that changes every few weeks) and Zumba group classes, plus TRX, Les Mills, yoga and water aerobics",
+    "area": "Vacaville (Solano)",
+    "address": "201 Main St, Vacaville, CA 95688",
+    "site": "https://www.maximumfitnessvacaville.com",
+    "social": {
+      "instagram": "https://www.instagram.com/maxfitvacaville/",
+      "facebook": "https://www.facebook.com/MaxFitVacaville/"
+    },
+    "confidence": "High; own site classes page read 2026-11-12: step aerobics and Zumba described, address and hours in footer. Photos viewed 2026-11-12: its own building and class flyer (adults). Lead: search, then own site."
+  }
+]

@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-11-10** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-12** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -380,3 +380,9 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-10 | Sustainable Solano | Community garden (nonprofit) | Benicia | Gardening, Sustainability | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-11-10 | Solano-Napa Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-11-10 | The Salvation Army Lodi Corps | Meal program (nonprofit) | Lodi | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-12 | Step I Dance & Fitness | Dance fitness studio | Sacramento | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own adult photo and 3 fillers; Zumba + hip hop; lead: search, then own site |
+| 2026-11-12 | Premier Fitness Elk Grove | Gym with dance and step classes | Elk Grove | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; Zumba + hip hop; lead: search, then own site |
+| 2026-11-12 | Applegate Dance Studio | Dance fitness studio | Davis | Fitness & outdoors, Neighborhood life | Fitness and dance classes; stock photos only; adult Zumba; lead: search, then own site |
+| 2026-11-12 | InstaPhysique Roseville | Rebounder fitness studio | Roseville | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; rebounder; lead: search, then own site |
+| 2026-11-12 | Thrive FitClub Rocklin | Rebounder fitness studio | Rocklin | Fitness & outdoors, Neighborhood life | Fitness and dance classes; stock photos only; rebounder; lead: search, then own site |
+| 2026-11-12 | Maximum Fitness Vacaville | Gym with dance and step classes | Vacaville | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; step aerobics + Zumba; lead: search, then own site |
