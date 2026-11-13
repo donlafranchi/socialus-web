@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-11-12** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-13** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -386,3 +386,20 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-12 | InstaPhysique Roseville | Rebounder fitness studio | Roseville | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; rebounder; lead: search, then own site |
 | 2026-11-12 | Thrive FitClub Rocklin | Rebounder fitness studio | Rocklin | Fitness & outdoors, Neighborhood life | Fitness and dance classes; stock photos only; rebounder; lead: search, then own site |
 | 2026-11-12 | Maximum Fitness Vacaville | Gym with dance and step classes | Vacaville | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; step aerobics + Zumba; lead: search, then own site |
+| 2026-11-13 | The Constellation Marketplace | Makers' shop | Sacramento | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Strapping Store | Gift shop | Sacramento | Local business | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Filling Station Goods & Gifts | Gift shop | Benicia | Local business | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Wild Grove Collective | Makers' shop | Woodland | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Little Art Shop | Makers' shop | Benicia | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Artery | Makers' shop | Davis | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Rill | Gift shop | Benicia | Local business | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Winters Collective | Gift shop | Winters | Local business | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Mozart Earhart & Me | Toy shop | Benicia | Kids & family | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Uptown Collective | Makers' shop | Dixon | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Make Local Habit | Makers' shop | Grass Valley | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | KITKITDIZZI | Makers' shop | Nevada City | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Kiya's Naturals | Toy shop | Nevada City | Kids & family | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Earth Store | Toy shop | Nevada City | Kids & family | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Midnight Kin | Makers' shop | Placerville | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Nava & Co. | Makers' shop | Lodi | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Little Shop on The Mile | Makers' shop | Stockton | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
