@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { LEGACY_STEPS } from "./src/lib/waitlist/journey";
 
 const nextConfig: NextConfig = {
   // #978 — sharp's native image library (17 MB) was packed into 41 of 53 routes because Next's own runtime
@@ -33,6 +34,8 @@ const nextConfig: NextConfig = {
       { source: '/map', destination: '/explore?view=map', permanent: false },
       { source: '/register-business', destination: '/you', permanent: false },
       { source: '/qr', destination: '/join', permanent: false },
+      // #1320 — the waitlist's eight question screens became plans, business and contact.
+      ...Object.entries(LEGACY_STEPS).map(([old, now]) => ({ source: `/join/${old}`, destination: `/join/${now}`, permanent: false })),
     ]
   },
 };

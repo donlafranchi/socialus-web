@@ -39,14 +39,26 @@ export const PLAN_IDS: readonly string[] = [...PLANS.discover, ...PLANS.found].m
 /** Being found on any chip puts the person on the makers' side of the count; otherwise the supporters'. */
 export const sideOf = (plans: readonly string[]): 'creator' | 'patron' => (plans.some((p) => FOUND_IDS.includes(p)) ? 'creator' : 'patron')
 
-export const STEPS = ['local', 'plans', 'be-found', 'kind', 'called', 'name', 'zip', 'email', 'phone', 'done'] as const
+export const STEPS = ['plans', 'business', 'contact', 'done'] as const
 export type Step = (typeof STEPS)[number]
 export const isStep = (s: string): s is Step => (STEPS as readonly string[]).includes(s)
 
-const FOUND_ONLY: readonly Step[] = ['be-found', 'kind', 'called']
-export const OPTIONAL: readonly Step[] = ['kind', 'called']
+/** The first build's eight question screens, each now a section of one of the pages above (#1320). Old links redirect. */
+export const LEGACY_STEPS: Record<string, Step> = {
+  local: 'plans',
+  'be-found': 'business',
+  kind: 'business',
+  called: 'business',
+  name: 'contact',
+  zip: 'contact',
+  email: 'contact',
+  phone: 'contact',
+}
 
-/** The screens this person walks, given their plans: the being-found screens only when a being-found chip is picked. */
+const FOUND_ONLY: readonly Step[] = ['business']
+export const OPTIONAL: readonly Step[] = ['business']
+
+/** The screens this person walks, given their plans: the business page only when a being-found chip is picked. */
 export function pathFor(plans: readonly string[]): Step[] {
   const found = sideOf(plans) === 'creator'
   return STEPS.filter((s) => found || !FOUND_ONLY.includes(s))
@@ -63,39 +75,33 @@ export function neighbours(step: Step, plans: readonly string[]): { back: string
   }
 }
 
-export const SEGMENTS = 10
+/** Three steps: what you want, your business (skipped by most), how we reach you. The finish fills the bar. */
+export const SEGMENTS = 3
 
-/**
- * Filled segments: fast at the start, slower toward the end (Villar et al., 32 experiments), and no step count,
- * since branching changes it. 1 - (1 - x)^2 of the way after each answered screen; the finish fills it.
- */
-export function filled(step: Step, plans: readonly string[]): number {
-  const path = pathFor(plans)
-  const i = Math.max(0, path.indexOf(step))
-  if (step === 'done') return SEGMENTS
-  const x = (i + 1) / path.length
-  return Math.min(SEGMENTS - 1, Math.max(1, Math.round((1 - (1 - x) ** 2) * SEGMENTS)))
+export function filled(step: Step): number {
+  return step === 'plans' ? 1 : step === 'business' ? 2 : SEGMENTS
 }
 
-export type Screen = { title: string; body?: string; image: string; cta?: string }
+export type Screen = { title: string; body?: string; explainer?: string; image: string; cta?: string }
+
+export const PHONE_WHY = 'Your mobile number keeps out bots and spam. Only real cell numbers work, not internet numbers.'
 
 export const SCREENS: Record<Step, Screen> = {
-  local: {
-    title: 'Join the waitlist',
-    body: 'SocialUs opens town by town. The bakery, the run club, Saturday’s market, the pottery class: a few quick questions put you on the list for yours.',
-    image: 'A phone-sized collage of local shops, a class, a meetup',
+  plans: {
+    title: 'What would you like to do here?',
+    explainer: 'SocialUs opens town by town. A few quick questions put you on the list for yours.',
+    body: 'Pick as many as you like.',
+    image: 'Two hands meeting across a market table',
   },
-  plans: { title: 'What would you like to do here?', body: 'Pick as many as you like.', image: 'Two hands meeting across a market table' },
-  'be-found': { title: 'Locals can find you', body: 'People nearby can find what you make, teach or organize.', image: 'A maker at work, seen from a customer’s side' },
-  kind: { title: 'What kind of thing do you do?', image: 'Small icons per kind, hand-drawn' },
-  called: { title: 'What’s it called, and where can we see it?', image: 'A shopfront sign being hung' },
-  name: { title: 'What should we call you?', body: 'Your first name, or the name people know you by.', image: 'A name tag at a neighborhood table' },
-  zip: { title: 'Where are you?', body: 'We open town by town. Your zip counts toward yours.', image: 'A simple map with one town lit' },
-  email: { title: 'Where should we send your invite?', body: 'We’ll email you once, when SocialUs opens near you. Nothing else.', image: 'An envelope tucked under a café door' },
-  phone: {
-    title: 'Your mobile number',
-    body: 'Your mobile number keeps out bots and spam. Only real cell numbers work, not internet numbers.',
-    image: 'A phone in a hand, outdoors',
+  business: {
+    title: 'Tell us about what you do',
+    body: 'People nearby can find what you make, teach or organize. All optional.',
+    image: 'A maker at work, seen from a customer’s side',
+  },
+  contact: {
+    title: 'How we reach you',
+    body: 'Your first name, or the name people know you by. We’ll email you once, when SocialUs opens near you. Nothing else.',
+    image: 'An envelope tucked under a café door',
     cta: 'Join the waitlist',
   },
   done: { title: 'You’re on the list', image: 'The same market, a little fuller' },
