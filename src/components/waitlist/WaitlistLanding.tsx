@@ -29,7 +29,7 @@ function Picture({ art, sizes, eager }: { art: Art; sizes: string; eager?: boole
 }
 
 export function WaitlistLanding() {
-  const join = href('local')
+  const join = href('plans')
   return (
     <div className="flex min-h-dvh flex-col">
       <header>

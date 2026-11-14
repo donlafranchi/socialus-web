@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from 'react'
 import { checkWaitlistZipAction, joinWaitlistJourneyAction } from '@/app/_actions/waitlist-journey-actions'
 import {
-  doneLines, EMAIL_SHAPE, ERRORS, filled, href, KINDS, LANDING, neighbours, OPTIONAL, pathFor, phoneE164, PLANS, SAFETY,
+  doneLines, EMAIL_SHAPE, ERRORS, filled, href, KINDS, LANDING, neighbours, OPTIONAL, pathFor, phoneE164, PHONE_WHY, PLANS, SAFETY,
   SCREENS, SEGMENTS, sideOf, ZIP_SHAPE, type Step,
 } from '@/lib/waitlist/journey'
 import { useWaitlist } from './WaitlistProvider'
@@ -48,8 +48,8 @@ export function JourneyScreen({ step }: { step: Step }) {
   const [error, setError] = useState<string | null>(sent && Object.hasOwn(ERRORS, sent) ? ERRORS[sent as keyof typeof ERRORS] : null)
   const heading = useRef<HTMLHeadingElement>(null)
   useEffect(() => heading.current?.focus(), [step])
-  // A screen not on this person's path (a being-found screen opened directly) goes back to the plans.
-  const offPath = ready && step !== 'done' && !pathFor(a.plans).includes(step)
+  // A screen not on this person's path (the business page opened directly) goes back to the plans.
+  const offPath = ready && step !== 'done' && (!pathFor(a.plans).includes(step) || (step === 'contact' && !a.plans.length))
   useEffect(() => {
     if (offPath) router.replace(href('plans'))
   }, [offPath, router])
@@ -59,32 +59,30 @@ export function JourneyScreen({ step }: { step: Step }) {
   const { back, next } = neighbours(step, a.plans)
   const go = (to: string | null) => to && router.push(to)
 
+  useEffect(() => {
+    if (error) document.querySelector<HTMLElement>('input[aria-invalid="true"]')?.focus()
+  }, [error])
   const advance = (e?: FormEvent) => {
     e?.preventDefault()
     setError(null)
     if (step === 'plans' && !a.plans.length) return setError(ERRORS.plans)
-    if (step === 'name' && !a.name.trim()) return setError(ERRORS.name)
-    if (step === 'email' && !EMAIL_SHAPE.test(a.email.trim())) return setError(ERRORS.email)
-    if (step === 'zip') {
+    if (step === 'contact') {
+      if (!a.name.trim()) return setError(ERRORS.name)
       if (!ZIP_SHAPE.test(a.zip)) return setError(ERRORS.zip)
-      return start(async () => {
-        const r = await checkWaitlistZipAction(a.zip)
-        if (!r.ok) return setError(ERRORS.zip)
-        set({ market: r.market })
-        go(next)
-      })
-    }
-    if (step === 'phone') {
+      if (!EMAIL_SHAPE.test(a.email.trim())) return setError(ERRORS.email)
       if (!phoneE164(a.phone)) return setError(ERRORS.phone)
       const found = sideOf(a.plans) === 'creator'
       return start(async () => {
+        const z = await checkWaitlistZipAction(a.zip).catch(() => null)
+        if (!z?.ok) return setError(z ? ERRORS.zip : ERRORS.failed)
+        set({ market: z.market })
         const r = await joinWaitlistJourneyAction({
           plans: a.plans, kinds: found ? a.kinds : [], offerName: found ? a.offerName : '', offerLink: found ? a.offerLink : '',
           name: a.name.trim(), zip: a.zip, email: a.email.trim(), phone: a.phone,
         }).catch(() => null)
         if (!r) return setError(ERRORS.failed)
         if (!r.ok) {
-          if (r.step && r.step !== 'phone') return router.push(`${href(r.step)}?e=${r.step}`)
+          if (r.step === 'plans') return router.push(`${href('plans')}?e=plans`)
           return setError(r.step ? ERRORS[r.step] : ERRORS.failed)
         }
         set({ market: r.market, waiting: r.waiting, joined: true })
@@ -110,17 +108,17 @@ export function JourneyScreen({ step }: { step: Step }) {
         ))}
       </>
     )
-  } else if (step === 'kind') {
-    body = (
-      <div className="mt-6 flex flex-wrap gap-3">
-        {KINDS.map((k) => (
-          <Chip key={k} label={k} on={a.kinds.includes(k)} toggle={() => set({ kinds: toggled(a.kinds, k) })} />
-        ))}
-      </div>
-    )
-  } else if (step === 'called') {
+  } else if (step === 'business') {
     body = (
       <>
+        <fieldset className="mt-6">
+          <legend className="text-body-sm font-semibold text-[var(--color-ink-muted)]">What kind of thing do you do?</legend>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {KINDS.map((k) => (
+              <Chip key={k} label={k} on={a.kinds.includes(k)} toggle={() => set({ kinds: toggled(a.kinds, k) })} />
+            ))}
+          </div>
+        </fieldset>
         <label className="mt-6 block text-body-sm font-semibold">
           Business or group name
           <input className={FIELD} value={a.offerName} maxLength={120} autoComplete="organization" onChange={(e) => set({ offerName: e.target.value })} />
@@ -131,23 +129,36 @@ export function JourneyScreen({ step }: { step: Step }) {
         </label>
       </>
     )
-  } else if (step === 'name') {
-    body = <input aria-label="Your name" aria-invalid={!!error} aria-describedby={error ? 'journey-error' : undefined} className={FIELD} value={a.name} maxLength={60} autoComplete="given-name" onChange={(e) => set({ name: e.target.value })} />
-  } else if (step === 'zip') {
-    body = <input aria-label="Zip code" aria-invalid={!!error} aria-describedby={error ? 'journey-error' : undefined} className={FIELD} value={a.zip} inputMode="numeric" autoComplete="postal-code" maxLength={5} pattern="[0-9]*" onChange={(e) => set({ zip: e.target.value.replace(/\D/g, '').slice(0, 5) })} />
-  } else if (step === 'email') {
-    body = <input aria-label="Email" aria-invalid={!!error} aria-describedby={error ? 'journey-error' : undefined} className={FIELD} value={a.email} type="email" autoComplete="email" maxLength={254} onChange={(e) => set({ email: e.target.value })} />
-  } else if (step === 'phone') {
+  } else if (step === 'contact') {
+    const bad = (k: keyof typeof ERRORS) => error === ERRORS[k]
+    const ATTRS = (k: keyof typeof ERRORS) => ({ 'aria-invalid': bad(k), 'aria-describedby': bad(k) ? 'journey-error' : undefined })
+    const LABEL = 'mt-5 block text-body-sm font-semibold'
     body = (
       <>
-        <input aria-label="Mobile number" aria-invalid={!!error} aria-describedby={error ? 'journey-error' : undefined} className={FIELD} value={a.phone} type="tel" autoComplete="tel" maxLength={20} onChange={(e) => set({ phone: e.target.value })} />
+        <label className={LABEL}>
+          Your name
+          <input {...ATTRS('name')} className={FIELD.replace('mt-6', 'mt-2')} value={a.name} maxLength={60} name="given-name" autoComplete="given-name" onChange={(e) => set({ name: e.target.value })} />
+        </label>
+        <label className={LABEL}>
+          Zip code
+          <input {...ATTRS('zip')} className={FIELD.replace('mt-6', 'mt-2')} value={a.zip} inputMode="numeric" name="postal-code" autoComplete="postal-code" maxLength={5} pattern="[0-9]*" onChange={(e) => set({ zip: e.target.value.replace(/\D/g, '').slice(0, 5) })} />
+        </label>
+        <label className={LABEL}>
+          Email
+          <input {...ATTRS('email')} className={FIELD.replace('mt-6', 'mt-2')} value={a.email} type="email" name="email" autoComplete="email" maxLength={254} onChange={(e) => set({ email: e.target.value })} />
+        </label>
+        <label className={LABEL}>
+          Mobile number
+          <input {...ATTRS('phone')} aria-describedby={[bad('phone') ? 'journey-error' : '', 'phone-why'].filter(Boolean).join(' ')} className={FIELD.replace('mt-6', 'mt-2')} value={a.phone} type="tel" name="tel" autoComplete="tel" maxLength={20} onChange={(e) => set({ phone: e.target.value })} />
+        </label>
+        <p id="phone-why" className="mt-3 text-body-sm text-[var(--color-ink-muted)]">{PHONE_WHY}</p>
         <p className="mt-6 text-body text-[var(--color-ink)]">
           {SAFETY.line}{' '}
-          <button type="button" aria-expanded={why} aria-label="More about this" onClick={() => setWhy(!why)} className="inline-flex min-h-12 min-w-12 items-center justify-center align-middle text-title-1">
+          <button type="button" aria-expanded={why} aria-controls="safety-more" aria-label="More about this" onClick={() => setWhy(!why)} className="inline-flex min-h-12 min-w-12 items-center justify-center align-middle text-title-1">
             ⓘ
           </button>
         </p>
-        {why && <p className="text-body-sm text-[var(--color-ink-muted)]">{SAFETY.more}</p>}
+        {why && <p id="safety-more" className="text-body-sm text-[var(--color-ink-muted)]">{SAFETY.more}</p>}
       </>
     )
   } else if (step === 'done') {
@@ -174,15 +185,16 @@ export function JourneyScreen({ step }: { step: Step }) {
         <Link href={back} className="inline-flex min-h-12 min-w-12 items-center text-body font-semibold text-[var(--color-ink)]" aria-label="Back">
           ← Back
         </Link>
-        <div role="progressbar" aria-label="Progress" aria-valuemin={0} aria-valuemax={SEGMENTS} aria-valuenow={step === 'done' ? SEGMENTS : filled(step, a.plans)} className="flex flex-1 gap-1">
+        <div role="progressbar" aria-label="Progress" aria-valuemin={0} aria-valuemax={SEGMENTS} aria-valuenow={step === 'done' ? SEGMENTS : filled(step)} className="flex flex-1 gap-1">
           {Array.from({ length: SEGMENTS }, (_, i) => (
-            <span key={i} className={`h-1.5 flex-1 rounded-full ${i < (step === 'done' ? SEGMENTS : filled(step, a.plans)) ? 'bg-[var(--color-clay)]' : 'bg-[var(--color-rule)]'}`} />
+            <span key={i} className={`h-1.5 flex-1 rounded-full ${i < (step === 'done' ? SEGMENTS : filled(step)) ? 'bg-[var(--color-clay)]' : 'bg-[var(--color-rule)]'}`} />
           ))}
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-read flex-1 px-4 pb-40 pt-6">
         <ImageSlot note={screen.image} />
+        {screen.explainer && <p className="mt-6 text-body text-[var(--color-ink)]">{screen.explainer}</p>}
         <h1 ref={heading} tabIndex={-1} className="mt-6 text-title-1 outline-none font-normal tracking-tight text-[var(--color-ink)]">{screen.title}</h1>
         {screen.body && <p className="mt-3 text-lede text-[var(--color-ink-muted)]">{screen.body}</p>}
         {body}
