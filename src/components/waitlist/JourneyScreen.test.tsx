@@ -90,6 +90,21 @@ describe('JourneyScreen (#1320)', () => {
     expect(join.mock.calls[0][0]).toMatchObject({ plans: ['find-events'], kinds: [], offerName: '', name: 'Sam', zip: '95814', email: 'a@b.co', phone: '(916) 555-0142' })
   })
 
+  it('contact: every field has a visible label, the reason is tied to the mobile field, and an error focuses its field', async () => {
+    renderStep('contact', ['find-events'])
+    const phone = await screen.findByLabelText('Mobile number')
+    expect(phone.closest('label')).toHaveTextContent('Mobile number')
+    expect(phone.getAttribute('aria-describedby')).toContain('phone-why')
+    fireEvent.click(screen.getByRole('button', { name: 'Join the waitlist' }))
+    await screen.findByText('Tell us what to call you.')
+    await waitFor(() => expect(screen.getByLabelText('Your name')).toHaveFocus())
+  })
+
+  it('contact opened with no plans (an old link in a fresh tab) goes to the plans first', async () => {
+    renderStep('contact', [])
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/join/plans'))
+  })
+
   it('business page opened by a discover-only person goes back to the plans', async () => {
     renderStep('business', ['find-events'])
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/join/plans'))
