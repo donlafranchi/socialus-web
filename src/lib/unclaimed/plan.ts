@@ -197,6 +197,7 @@ export function interestsFor(pool: string, what: string): string[] {
   if (/^toy shop/i.test(what)) return ['Kids & family']
   if (/^makers' shop/i.test(what)) return ['Crafts & makers']
   if (/^gift shop/i.test(what)) return ['Local business']
+  if (/^skate shop/i.test(what)) return ['Local business']
   if (/band|music|choir|chorale|chorus|orchestra|symphony/i.test(what)) return ['Live music', 'Arts & culture']
   if (/fitness|zumba|rebound|trampoline|aerobic/i.test(what)) return ['Fitness & outdoors', 'Neighborhood life']
   if (/garden|nursery|plant/i.test(what)) return ['Gardening', 'Sustainability']

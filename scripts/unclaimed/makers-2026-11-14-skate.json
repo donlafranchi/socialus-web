@@ -1,0 +1,189 @@
+[
+  {
+    "name": "PLA Skateboarding",
+    "category": "Skate shop",
+    "makes": "Locally run specialty skate shop open since 2006, with skateboards, parts, shoes and skate apparel at two stores, downtown Sacramento and Historic Folsom; open daily 11am to 7pm.",
+    "area": "Sacramento (Sacramento)",
+    "address": "1006 J St., Sacramento, CA 95814",
+    "site": "https://www.plaskateboarding.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/plaskate/",
+      "facebook": "https://www.facebook.com/plaskate/"
+    },
+    "products": [
+      {
+        "name": "Skateboard decks",
+        "url": "https://www.plaskateboarding.com/collections/decks"
+      },
+      {
+        "name": "Complete skateboards",
+        "url": "https://www.plaskateboarding.com/collections/completes"
+      },
+      {
+        "name": "Trucks",
+        "url": "https://www.plaskateboarding.com/collections/trucks"
+      },
+      {
+        "name": "Wheels",
+        "url": "https://www.plaskateboarding.com/collections/wheels"
+      },
+      {
+        "name": "Footwear",
+        "url": "https://www.plaskateboarding.com/collections/footwear"
+      },
+      {
+        "name": "Apparel",
+        "url": "https://www.plaskateboarding.com/collections/apparel"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-14: footer lists both stores, hours open daily 11am-7pm, current 2026 inventory and a 2026 Go Skateboarding Day post; Instagram and Facebook linked from the site. Lead: search, then own site.",
+    "carries": [
+      "Apparel",
+      "Socks & Footwear",
+      "Hats & Scarves",
+      "Accessories"
+    ]
+  },
+  {
+    "name": "RailYard Skate Shop",
+    "category": "Skate shop",
+    "makes": "Skate shop founded by Roseville native Jordan Bunnell, selling complete boards, decks, trucks and parts for custom builds, plus hats, beanies and merch, with skate lessons; open Wednesday to Sunday, noon to 5pm.",
+    "area": "Roseville (Placer)",
+    "site": "https://railyardskateshop.com/",
+    "products": [
+      {
+        "name": "Decks",
+        "url": "https://railyardskateshop.com/collections/decks"
+      },
+      {
+        "name": "Trucks",
+        "url": "https://railyardskateshop.com/collections/trucks"
+      },
+      {
+        "name": "Genuine Parts",
+        "url": "https://railyardskateshop.com/collections/genuine-parts"
+      },
+      {
+        "name": "Hats & Beanies",
+        "url": "https://railyardskateshop.com/collections/hats-beanies"
+      },
+      {
+        "name": "Merch",
+        "url": "https://railyardskateshop.com/collections/merch"
+      },
+      {
+        "name": "Skate lessons",
+        "url": "https://railyardskateshop.com/pages/lessons",
+        "kind": "service"
+      }
+    ],
+    "confidence": "Medium-high; own site checked 2026-11-14: live store with current inventory, shop hours and a Lessons page; founder and Roseville home from a CBS Sacramento Good Day segment and the state business record. No street address or social links on its site, so none given. Lead: search, then own site.",
+    "carries": [
+      "Apparel",
+      "Hats & Scarves"
+    ]
+  },
+  {
+    "name": "SorD Boardshop",
+    "category": "Skate shop",
+    "makes": "Woodland skate shop open since 2007 with one of Northern California's largest hardgoods selections (400 decks, 300 wheels, 100 truck sets), plus custom screen printing, embroidery and laser engraving.",
+    "area": "Woodland (Yolo)",
+    "address": "607 Main St, Woodland, CA 95695",
+    "site": "https://www.sordboards.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/sordboardshop",
+      "facebook": "https://www.facebook.com/sordboardshop"
+    },
+    "products": [
+      {
+        "name": "Skateboard hardgoods",
+        "url": "https://www.sordboards.com/skate"
+      },
+      {
+        "name": "Online store",
+        "url": "https://www.sordboards.com/online-store"
+      },
+      {
+        "name": "Custom printing, embroidery & engraving",
+        "url": "https://www.sordboards.com/services",
+        "kind": "service"
+      }
+    ],
+    "confidence": "Medium-high; own site checked 2026-11-14: live, lists address, phone, hours and current services; page footer says 2023; Instagram and Facebook linked from the site. Lead: search, then own site.",
+    "carries": [
+      "Apparel",
+      "Stickers, Magnets & Pins"
+    ]
+  },
+  {
+    "name": "Surf and Skate",
+    "category": "Skate shop",
+    "makes": "Local Sacramento-area shop for skateboards, longboards, pro scooters and swimwear, with a skate parks guide on its site; store in Citrus Heights.",
+    "area": "Citrus Heights (Sacramento)",
+    "address": "7598 Greenback Lane #B, Citrus Heights, CA 95610",
+    "site": "https://surfandskate.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/surfskatebikinis/",
+      "facebook": "https://www.facebook.com/Surf-Skate-Bikinis-116840611660848/"
+    },
+    "products": [
+      {
+        "name": "Skateboards",
+        "url": "https://surfandskate.com/sacramento-skateboards/skateboards/"
+      },
+      {
+        "name": "Longboards",
+        "url": "https://surfandskate.com/sacramento-skateboards/longboards/"
+      },
+      {
+        "name": "Swag",
+        "url": "https://surfandskate.com/swag"
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-11-14: live with store address; Instagram and Facebook linked from the site. Lead: search, then own site.",
+    "carries": [
+      "Apparel"
+    ]
+  },
+  {
+    "name": "Milo Snow and Skate",
+    "category": "Skate shop",
+    "makes": "Rider-owned and operated since 2000 in Auburn: snowboards and skateboards plus footwear, outerwear, hats and beanies, with local events like the A-Town Classic skate race.",
+    "area": "Auburn (Placer)",
+    "address": "905 Lincoln Way #300, Auburn, CA 95603",
+    "site": "https://www.milosnowandskate.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/milo_auburn/",
+      "facebook": "https://www.facebook.com/MiloAuburn/"
+    },
+    "products": [
+      {
+        "name": "Skate",
+        "url": "https://www.milosnowandskate.com/collections/skate"
+      },
+      {
+        "name": "Shoes",
+        "url": "https://www.milosnowandskate.com/collections/shoes-1"
+      },
+      {
+        "name": "Hats",
+        "url": "https://www.milosnowandskate.com/collections/hats"
+      },
+      {
+        "name": "Beanies",
+        "url": "https://www.milosnowandskate.com/collections/beanies"
+      },
+      {
+        "name": "Snowboards",
+        "url": "https://www.milosnowandskate.com/collections/snowboards-1"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-14: live store, 'rider owned & operated since 2000', 2026 A-Town Classic event (20 June 2026); Instagram and Facebook linked from the site. Lead: search, then own site.",
+    "carries": [
+      "Apparel",
+      "Socks & Footwear",
+      "Hats & Scarves",
+      "Accessories"
+    ]
+  }
+]
