@@ -137,6 +137,7 @@ describe('a2 — interest tags', () => {
     expect(one('Goods & crafts')).toContain('Crafts & makers')
     expect(one('Toy shop')).toEqual(['Kids & family'])
     expect(one('Gift shop')).toEqual(['Local business'])
+    expect(one('Skate shop')).toEqual(['Local business'])
     expect(one("Makers' shop")).toEqual(['Crafts & makers'])
     expect(one('Dance fitness studio')).toContain('Fitness & outdoors')
     expect(one('Rebounder fitness studio')).toEqual(['Fitness & outdoors', 'Neighborhood life'])

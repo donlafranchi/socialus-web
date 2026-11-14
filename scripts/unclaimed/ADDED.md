@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-11-13** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-14** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -422,3 +422,8 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-13 | Mystic Forge Toys | Toy shop | Placerville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
 | 2026-11-13 | Not Too Shabby | Gift shop | Folsom | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
 | 2026-11-13 | The Rabbit Hole Trading Co | Gift shop | Lodi | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-14 | PLA Skateboarding | Skate shop | Sacramento | Local business | Independent skate shops (Local business › Shops & boutiques); stock photos only; lead: search, then own site |
+| 2026-11-14 | RailYard Skate Shop | Skate shop | Roseville | Local business | Independent skate shops (Local business › Shops & boutiques); lead: search, then own site |
+| 2026-11-14 | SorD Boardshop | Skate shop | Woodland | Local business | Independent skate shops (Local business › Shops & boutiques); stock photos only; lead: search, then own site |
+| 2026-11-14 | Surf and Skate | Skate shop | Citrus Heights | Local business | Independent skate shops (Local business › Shops & boutiques); stock photos only; lead: search, then own site |
+| 2026-11-14 | Milo Snow and Skate | Skate shop | Auburn | Local business | Independent skate shops (Local business › Shops & boutiques); lead: search, then own site |
