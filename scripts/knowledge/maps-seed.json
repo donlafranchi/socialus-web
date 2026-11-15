@@ -107,6 +107,74 @@
           ]
         }
       ]
+    },
+    {
+      "id": "JY-BRING",
+      "answer": "Members bring something to life together that wasn't here before",
+      "why": "The PM, 2026-11-15: \"I like that name and theme bring it to life. And it's crucial that the search [will] bring this about.\" Patrons and producers connect to make something exist that didn't. It is the second half of the soul line two-halves (PRINCIPLES.md, 2026-11-15): discovery is the way in; bringing things to life together is where SocialUs is headed. Hyper-specific search (F136, CO-0063) is the main way it happens. It draws on social capital (CO-0016), reciprocity (CO-0013) and rising tide (CO-0015).",
+      "activities": [
+        {
+          "answer": "Ask for it",
+          "tasks": [
+            {
+              "answer": "Search for something and find it isn't here yet",
+              "details": [
+                "Nothing found says so and offers ways forward",
+                "You're not the only one looking, once ten have searched",
+                "Remind me when one joins",
+                "Ask in plain words (the Ask bar)"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Bring it here",
+          "tasks": [
+            {
+              "answer": "Bring a place you love here, and welcome it",
+              "details": [
+                "Add a place you love; the owner claims it",
+                "The market welcomes its first of a kind",
+                "Brought in by, if you opted in"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Make it together",
+          "tasks": [
+            {
+              "answer": "Partner with a local maker to make one thing",
+              "details": [
+                "Post the idea",
+                "A local maker takes it on",
+                "Work it out together",
+                "It gets made, with no shop or business"
+              ]
+            },
+            {
+              "answer": "An artist makes original art for a Page",
+              "details": [
+                "The owner invites a local artist",
+                "Credited and linked"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Grow it into something shared",
+          "tasks": [
+            {
+              "answer": "Members pool effort and share what comes of it",
+              "details": [
+                "Many say I'm in (Wonders)",
+                "Pooled buying",
+                "Recognition for taking part"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "features": {
@@ -168,7 +236,8 @@
     "F129": null,
     "F130": null,
     "F131": null,
-    "F132": null
+    "F132": null,
+    "F136": "JY-BRING.A1.T1"
   },
   "ideas": {
     "CO-0003": {
@@ -224,11 +293,11 @@
     },
     "CO-0015": {
       "name": "Rising tide",
-      "on": null
+      "on": "JY-BRING.A4.T1"
     },
     "CO-0016": {
       "name": "Social capital",
-      "on": null
+      "on": "JY-BRING.A4.T1.D3"
     },
     "CO-0017": {
       "name": "A scored community-health rubric",
@@ -236,7 +305,10 @@
     },
     "CO-0018": {
       "name": "The cooperative engine",
-      "on": null
+      "on": "JY-BRING.A4.T1",
+      "stands_on": [
+        "F117"
+      ]
     },
     "CO-0019": {
       "name": "Short video and photos on Pages",
@@ -244,7 +316,7 @@
     },
     "CO-0020": {
       "name": "Artist collaborations on Pages",
-      "on": null
+      "on": "JY-BRING.A3.T2"
     },
     "CO-0021": {
       "name": "Follow an artist across venues",
@@ -339,7 +411,11 @@
     },
     "CO-0041": {
       "name": "Chat-first SocialUs",
-      "on": null
+      "on": "JY-BRING.A1.T1.D4",
+      "stands_on": [
+        "F119",
+        "F136"
+      ]
     },
     "CO-0042": {
       "name": "Vouching",
@@ -347,9 +423,21 @@
     },
     "CO-0043": {
       "name": "Asked for, not here yet",
-      "on": "JY-WEEKEND.A1.T1",
+      "on": "JY-BRING.A1.T1",
       "stands_on": [
+        "F136",
         "F119"
+      ]
+    },
+    "CO-0064": {
+      "name": "One-off creations",
+      "on": "JY-BRING.A3.T1",
+      "stands_on": [
+        "CO-0020",
+        "CO-0043",
+        "CO-0018",
+        "F117",
+        "F060"
       ]
     }
   }
