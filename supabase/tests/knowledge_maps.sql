@@ -280,6 +280,13 @@ begin
   perform knowledge.record_shipped('JW', 7, 7, 'build-log/reports/rollup.json', '2026-11-01');
   assert knowledge.built('JW') = 'built' and knowledge.built('JW.A1.T1') = 'built',
     format('a shipped walk-through does not read built: %s, %s', knowledge.built('JW'), knowledge.built('JW.A1.T1'));
+  -- A journey's evidence never overrides its own tasks: nothing shipped
+  -- overall, but a built feature on one line, reads part built.
+  perform knowledge.map_item('{"id":"JW.A1.T2","kind":"task","parent":"JW.A1","answer":"Send stays off","status":"live"}', 't');
+  perform knowledge.record_shipped('JW', 0, 7, 'build-log/reports/rollup.json', '2026-11-02');
+  perform knowledge.place('F993', 'JW.A1.T2', 'F132 test: this line is the feature');
+  assert knowledge.built('JW.A1.T2') = 'built' and knowledge.built('JW.A1.T1') = 'not' and knowledge.built('JW') = 'partly',
+    format('a journey''s evidence overrode its tasks: %s, %s, %s', knowledge.built('JW'), knowledge.built('JW.A1.T1'), knowledge.built('JW.A1.T2'));
   -- Only an operator records it.
   perform pg_temp.act('build');
   assert pg_temp.refused($q$select knowledge.record_shipped('F993', 0, 6, 'x', '2026-11-03')$q$) like 'Only an operator%',
@@ -289,6 +296,7 @@ end $$;
 -- test: placements and proposals are append-only, and a key that cannot see a record sees none of its map
 do $$
 begin
+  perform knowledge.record_shipped('F990', 1, 1, 'build-log/reports/rollup.json', '2026-11-01');
   reset role;
   assert pg_temp.refused('delete from knowledge.placements') is not null, 'a placement was deleted';
   assert pg_temp.refused('truncate knowledge.map_proposals') is not null, 'proposals were truncated';
@@ -298,4 +306,6 @@ begin
   perform set_config('knowledge.key', '', true);
   assert (select count(*) from knowledge.placements) = 0, 'no key reads placements';
   assert knowledge.map_of('JT') is null, 'no key reads the map';
+  assert (select count(*) from knowledge.shipped) = 0, 'no key reads what has shipped';
+  assert knowledge.feature_built('F990') is null, 'no key reads a feature''s built state';
 end $$;

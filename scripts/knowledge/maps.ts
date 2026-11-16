@@ -42,7 +42,7 @@ export interface RollupFeature {
   as_of?: string
   n: number
   totals: { shipped: { yes: number } }
-  criteria: { id: string; text: string; shipped?: string }[]
+  criteria: { id: string; text: string; shipped?: string; status?: string }[]
 }
 
 export const SEED_FILE = 'scripts/knowledge/maps-seed.json'
@@ -63,10 +63,11 @@ export function readRollup(path = resolve(__dirname, '../../build-log/reports/ro
   return existsSync(path) ? ((JSON.parse(readFileSync(path, 'utf8')) as { features: RollupFeature[] }).features ?? []) : []
 }
 
-/** A built feature's state: every criterion shipped is shipped, some is building, retired is dropped. */
 /**
- * How much of a walk-through has shipped: of the criteria it names that the
- * roll-up holds, how many are shipped. Null when the roll-up holds none.
+ * How much of a walk-through has shipped, of the criteria it names. A retired
+ * criterion is left out, as the roll-up's own totals leave it out; one the
+ * roll-up does not hold counts as not shipped, so a walk-through never reads
+ * built on part of its evidence. Null when it names none.
  */
 export function walkthroughShipped(w: Walkthrough, rollup: Map<string, RollupFeature>): { shipped: number; total: number } | null {
   let shipped = 0
@@ -74,13 +75,14 @@ export function walkthroughShipped(w: Walkthrough, rollup: Map<string, RollupFea
   for (const c of w.criteria) {
     const [fid, ...rest] = c.split('.')
     const crit = rollup.get(fid)?.criteria.find((x) => x.id === rest.join('.'))
-    if (!crit) continue
+    if (crit?.status === 'retired') continue
     total++
-    if (crit.shipped === 'yes') shipped++
+    if (crit?.shipped === 'yes') shipped++
   }
   return total ? { shipped, total } : null
 }
 
+/** A built feature's state: every criterion shipped is shipped, some is building, retired is dropped. */
 export function rollupStatus(f: RollupFeature): 'shipped' | 'building' | 'approved' | 'dropped' {
   if (f.retired) return 'dropped'
   const shipped = f.totals?.shipped?.yes ?? 0

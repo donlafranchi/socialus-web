@@ -6,7 +6,7 @@ import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { enterStore } from '../scripts/knowledge/import'
 import {
-  readMapSeed, readRollup, readWalkthroughs, rollupStatus, walkthroughJourney, inferPlace, loadMaps,
+  readMapSeed, readRollup, readWalkthroughs, rollupStatus, walkthroughShipped, walkthroughJourney, inferPlace, loadMaps,
   type Walkthrough, type MapSummary, type RollupFeature,
 } from '../scripts/knowledge/maps'
 import { runTool } from '@/lib/knowledge/tools'
@@ -52,6 +52,15 @@ describe('reading the sources', () => {
     expect(rollupStatus(f(5, 2))).toBe('building')
     expect(rollupStatus(f(5, 0))).toBe('approved')
     expect(rollupStatus(f(5, 5, true))).toBe('dropped')
+  })
+
+  it('counts a walk-through shipped by the criteria it names: retired ones out, missing ones as not shipped (bug #1340)', () => {
+    const f = { feature: 'F072', title: 't', retired: false, n: 2, totals: { shipped: { yes: 1 } },
+                criteria: [{ id: '1', text: '', shipped: 'yes', status: 'active' }, { id: '2b', text: '', shipped: 'no', status: 'retired' },
+                           { id: '3', text: '', shipped: 'yes', status: 'active' }] } as RollupFeature
+    const walk = { id: 'J99', title: 't', role: 'r', look: ['x'], criteria: ['F072.1', 'F072.2b', 'F072.3', 'F134.1'] }
+    expect(walkthroughShipped(walk, new Map([['F072', f]]))).toEqual({ shipped: 2, total: 3 })
+    expect(walkthroughShipped({ ...walk, criteria: [] }, new Map())).toBeNull()
   })
 
   it('places a walk-through feature on the line that shares most words with its criteria', () => {

@@ -15,7 +15,8 @@
 -- item is what has shipped now. It sits beside the status the PM rules on
 -- and never changes it. built() reads it: all shipped is built, some is
 -- part built. A walk-through's tasks take their journey's evidence when
--- nothing sits on them.
+-- nothing sits on them; a journey or activity is still built when every task
+-- under it is, as F132 ruled.
 
 create table knowledge.shipped (
   id          bigint generated always as identity primary key,
@@ -131,6 +132,8 @@ begin
       return 'partly';
     end if;
     -- Nothing sits on it: a walk-through's line takes its journey's evidence.
+    -- Coarse on purpose: a walk-through part shipped marks each empty line
+    -- part built, since no line names its own criteria.
     if cardinality(states) = 0 and cardinality(kids) = 0 then
       ev := (select knowledge._shipped_state(a.parent) from knowledge.records a where a.id = r.parent);
       return coalesce(ev, 'not');
@@ -138,10 +141,8 @@ begin
     return 'not';
   end if;
   if r.kind in ('activity', 'journey') then
-    ev := knowledge._shipped_state(p_id);
-    if ev is not null then
-      return ev;
-    end if;
+    -- F132's rule stands: built when every task under it is. A journey's own
+    -- evidence reaches it through the lines that have nothing on them.
     kids := array(select knowledge.built(t.id)
                     from knowledge.records t
                    where t.status <> 'retired' and t.kind = 'task'
