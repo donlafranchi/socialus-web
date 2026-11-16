@@ -77,6 +77,7 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
       'California privacy rights (CCPA/CPRA): the notice, and how a request is made and answered',
       'The full list of services that process data for SocialUs, and what each receives',
       'Cookies and analytics disclosures',
+      'REVIEW BEFORE LAUNCH: decide whether Sentry (error tracking: page address, error type, device and browser, no name, email or request contents) must be stated in the Privacy text at all; if so, write the disclosure and the data-processing agreement',
       'Disclosure of the automated review of reported posts, and the data-processing agreement with Anthropic as the processor that receives reported content',
       'Children’s data: the statement that SocialUs is for adults, and what happens if a child’s data is found',
       'Deletion of an account and its data',

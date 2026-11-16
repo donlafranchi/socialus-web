@@ -72,7 +72,7 @@ import { originRecord } from './origin'
 import { problemReport } from './problem'
 import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge, reportNcmecRecord } from './report'
 export { originRecord, originRecordInput, type OriginRecordInput } from './origin'
-import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
+import { metroWaitlistJoin, metroWaitlistJoinAnonymous, metroWaitlistJourneyJoin } from './metro'
 import { townMakerAdd, townCreditSet } from './town'
 import { builderContentSetVisible, builderContentDeleteAll } from './builder'
 import type { NamedActionHandler } from './_lib/handler'
@@ -170,6 +170,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // T167 — F076 c13-15: the same step for someone with no account. Separate
   // handler because this one has no acting member to guard on at all.
   'metro.waitlist_join_anonymous': metroWaitlistJoinAnonymous as unknown as NamedActionHandler<unknown, unknown>,
+  // #1299 — F076.3: the end of the one-question-per-screen waitlist journey. No account.
+  'metro.waitlist_journey_join': metroWaitlistJourneyJoin as unknown as NamedActionHandler<unknown, unknown>,
   // #388 — builder content, all at once. Operator-only, checked in the handlers.
   'builder.content_set_visible': builderContentSetVisible as unknown as NamedActionHandler<unknown, unknown>,
   'builder.content_delete_all': builderContentDeleteAll as unknown as NamedActionHandler<unknown, unknown>,
@@ -281,6 +283,12 @@ export {
   metroWaitlistJoinAnonymousInput,
   type MetroWaitlistJoinAnonymousInput,
   type MetroWaitlistJoinAnonymousResult,
+} from './metro'
+export {
+  metroWaitlistJourneyJoin,
+  metroWaitlistJourneyJoinInput,
+  type MetroWaitlistJourneyJoinInput,
+  type MetroWaitlistJourneyJoinResult,
 } from './metro'
 export {
   ActionError,

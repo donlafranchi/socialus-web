@@ -120,7 +120,8 @@ export const metroWaitlistJoin = defineHandler(
           } else {
             await client.query(
               `update public.metro_waitlist
-                  set member_id = $2, email = null, updated_at = $3
+                  set member_id = $2, email = null, name = null, phone = null, zip = null, plans = '{}', offers = '{}',
+                      offer_name = null, offer_link = null, updated_at = $3
                 where id = $1`,
               [pending.id, memberId, ctx.now()],
             )

@@ -1,6 +1,6 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-10-31** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-12** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. **Meet-ups first** (Don, 2026-10-31, builds on #1102): the seeder looks for groups and events where people need to show up in person, not for businesses. Rules on sources, photos and links stay in #353, #517, #542 and #556. Don, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
 
@@ -40,6 +40,7 @@ Each rule serves a capability of the pitch; the check that holds it is named.
     - Append the rows to the **end** of `ADDED.md` yourself with a bash `>>`, never leave them in the PR body, and set its `As of` line to today. Add every stock-photo Page to `stockOnly` in `photo-overrides.json` (no duplicates).
     - Write the PR body to a file starting `**Kind:** change`, `**Scenario:** none`, `**Path:** well-worn: <precedent>` and `Closes #<seed Issue>`.
     - Run `npm run seed:check -- YYYY-MM-DD --body-file <body file>`, then `npx tsx scripts/unclaimed/check-links.ts`, then `npx vitest run src/lib/unclaimed`. Fix every `FIX` line and failure. A link that fails on certificate or address: try the bare name without `www`, or drop the Page.
+    - **Merge the PR, then load the same day** (2026-11-12): the loader writes nothing while *any* planned link is broken, so one dead link (or an unmerged seed PR) holds every Page already merged. After `-f write=false`, fix each BROKEN line (network-level reset: `link-allow.json`; 404 or bad cert: `link-fixes.json`) before `-f write=true`; never leave a seed merged and unloaded.
     - Open the PR only when all pass. After it merges, run `gh workflow run unclaimed-load.yml -f write=false`, read the result, then `-f write=true`.
 
 ## Rotation (meet-ups)

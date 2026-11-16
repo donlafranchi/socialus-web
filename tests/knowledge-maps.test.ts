@@ -64,7 +64,9 @@ describe('reading the sources', () => {
   // [guards F132.6 partial: the seed's coverage; that each lands in the store is the database test below]
   it('the seed places every built feature in the roll-up that no walk-through names, and every IMAGINE idea', () => {
     const ids = Object.keys(seed.ideas)
-    expect(ids).toEqual(Array.from({ length: 41 }, (_, i) => `CO-${String(i + 3).padStart(4, '0')}`))
+    expect(ids.slice(0, 41)).toEqual(Array.from({ length: 41 }, (_, i) => `CO-${String(i + 3).padStart(4, '0')}`))
+    // Ideas added after the first load keep their minted ids.
+    for (const id of ids.slice(41)) expect(id).toMatch(/^CO-\d{4}$/)
     for (const [id, idea] of Object.entries(seed.ideas)) expect(idea.name, id).toBeTruthy()
     for (const f of ['F063', 'F064', 'F104', 'F105', 'F114', 'F119']) expect(f in seed.features, f).toBe(true)
   })
@@ -170,7 +172,7 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 },
       `select count(*)::int as n, count(*) filter (where p.on_id is null)::int as none
          from knowledge.current_placements p join knowledge.records c on c.id = p.item_id where c.kind = 'concept'`,
     )
-    expect(ideas[0].n).toBe(41)
+    expect(ideas[0].n).toBe(Object.keys(seed.ideas).length)
     expect(ideas[0].none).toBeGreaterThan(0)
     // A planned feature no map holds is listed, not guessed.
     expect(first.unplaced).toContain('F995')

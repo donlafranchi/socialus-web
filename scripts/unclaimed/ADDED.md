@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-11-06** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-14** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -370,3 +370,60 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-06 | Foothill Conservancy | Creek conservancy (nonprofit) | Sutter Creek | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-11-06 | California Native Plant Society, Redbud Chapter | Native plant society (nonprofit) | Auburn | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-11-06 | Downtown Vacaville Farmers' Market | Farm | Vacaville | Farmers markets, Sustainability | Green and outdoors (market with dated events); stock photos only; lead: search, then own site |
+| 2026-11-10 | Boarding On The Lake | Ranch | Granite Bay | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | PT Ranch | Farm stay & agritourism | Ione | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | Long Dream Farm | Farm stay & agritourism | Lincoln | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | Pine Valley Ranch | Farm | Auburn | Farmers markets, Sustainability | Volunteer and mutual aid (farms; holiday (Christmas trees)); stock photos only; lead: search, then own site |
+| 2026-11-10 | Twin Lakes Food Bank | Food bank (nonprofit) | Folsom | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Seniors First (Meals on Wheels Placer County) | Meal program (nonprofit) | Rocklin | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Sierra Senior Services (Meals on Wheels Tahoe-Truckee) | Meal program (nonprofit) | Truckee | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Sustainable Solano | Community garden (nonprofit) | Benicia | Gardening, Sustainability | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Solano-Napa Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | The Salvation Army Lodi Corps | Meal program (nonprofit) | Lodi | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-12 | Step I Dance & Fitness | Dance fitness studio | Sacramento | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own adult photo and 3 fillers; Zumba + hip hop; lead: search, then own site |
+| 2026-11-12 | Premier Fitness Elk Grove | Gym with dance and step classes | Elk Grove | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; Zumba + hip hop; lead: search, then own site |
+| 2026-11-12 | Applegate Dance Studio | Dance fitness studio | Davis | Fitness & outdoors, Neighborhood life | Fitness and dance classes; stock photos only; adult Zumba; lead: search, then own site |
+| 2026-11-12 | InstaPhysique Roseville | Rebounder fitness studio | Roseville | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; rebounder; lead: search, then own site |
+| 2026-11-12 | Thrive FitClub Rocklin | Rebounder fitness studio | Rocklin | Fitness & outdoors, Neighborhood life | Fitness and dance classes; stock photos only; rebounder; lead: search, then own site |
+| 2026-11-12 | Maximum Fitness Vacaville | Gym with dance and step classes | Vacaville | Fitness & outdoors, Neighborhood life | Fitness and dance classes; own photos; step aerobics + Zumba; lead: search, then own site |
+| 2026-11-13 | The Constellation Marketplace | Makers' shop | Sacramento | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Strapping Store | Gift shop | Sacramento | Local business | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Filling Station Goods & Gifts | Gift shop | Benicia | Local business | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Wild Grove Collective | Makers' shop | Woodland | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Little Art Shop | Makers' shop | Benicia | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Artery | Makers' shop | Davis | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Rill | Gift shop | Benicia | Local business | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Winters Collective | Gift shop | Winters | Local business | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Mozart Earhart & Me | Toy shop | Benicia | Kids & family | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Uptown Collective | Makers' shop | Dixon | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Make Local Habit | Makers' shop | Grass Valley | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | KITKITDIZZI | Makers' shop | Nevada City | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Kiya's Naturals | Toy shop | Nevada City | Kids & family | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Earth Store | Toy shop | Nevada City | Kids & family | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Midnight Kin | Makers' shop | Placerville | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | Nava & Co. | Makers' shop | Lodi | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | The Little Shop on The Mile | Makers' shop | Stockton | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | BrainyZoo Toys | Toy shop | Folsom | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Wit & Whimsy Toys | Toy shop | Granite Bay | Kids & family | Toy and gift shops (toy and gift shops); stock photos only; lead: search, then own site |
+| 2026-11-13 | Old City Kites | Toy shop | Sacramento | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Terra Cottage | Gift shop | Folsom | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Jam Baby | Gift shop | Sacramento | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Fast Track Hobbies | Toy shop | Rocklin | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Five Star Bricks | Toy shop | Orangevale | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Avid & Co. | Toy shop | Davis | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Creme de la Creme Gifts | Gift shop | Davis | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Haven a Boutique | Gift shop | Woodland | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Mad Alpaca Games | Toy shop | Fairfield | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Forgotten Path Games | Toy shop | Vacaville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Ace Hobby Shop | Toy shop | Vacaville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Mountain Pastimes | Toy shop | Nevada City | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Two Little Birds Boutique | Gift shop | Nevada City | Local business | Toy and gift shops (toy and gift shops); stock photos only; lead: search, then own site |
+| 2026-11-13 | T.W. Bonkers Toy & Candy Emporium | Toy shop | Placerville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Mystic Forge Toys | Toy shop | Placerville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Not Too Shabby | Gift shop | Folsom | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | The Rabbit Hole Trading Co | Gift shop | Lodi | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-14 | PLA Skateboarding | Skate shop | Sacramento | Local business | Independent skate shops (Local business › Shops & boutiques); stock photos only; lead: search, then own site |
+| 2026-11-14 | RailYard Skate Shop | Skate shop | Roseville | Local business | Independent skate shops (Local business › Shops & boutiques); lead: search, then own site |
+| 2026-11-14 | SorD Boardshop | Skate shop | Woodland | Local business | Independent skate shops (Local business › Shops & boutiques); stock photos only; lead: search, then own site |
+| 2026-11-14 | Surf and Skate | Skate shop | Citrus Heights | Local business | Independent skate shops (Local business › Shops & boutiques); stock photos only; lead: search, then own site |
+| 2026-11-14 | Milo Snow and Skate | Skate shop | Auburn | Local business | Independent skate shops (Local business › Shops & boutiques); lead: search, then own site |
