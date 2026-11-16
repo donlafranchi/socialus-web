@@ -1,13 +1,13 @@
-// #490 — error tracking, server side. Off until SENTRY_DSN is set; errors only;
-// every event scrubbed (src/lib/observability). See docs/error-tracking.md.
-
 import * as Sentry from '@sentry/nextjs'
-import { sentryOptions } from '@/lib/observability/options'
 
 export async function register() {
-  const options = sentryOptions()
-  if (!options) return
-  Sentry.init(options)
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    await import('../sentry.server.config')
+  }
+
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    await import('../sentry.edge.config')
+  }
 }
 
 export const onRequestError = Sentry.captureRequestError
