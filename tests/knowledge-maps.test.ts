@@ -124,6 +124,9 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 },
     }
     // A planned feature from today's scenarios, which no map holds yet.
     await db.query(`select knowledge.record('{"id":"F995","kind":"feature","answer":"Something planned","status":"approved","audience":"department","departments":["building"]}', 't')`)
+    // As the plan import leaves it: a feature whose scenario is still open is
+    // ruled approved, whatever has shipped (bug #1340).
+    await db.query(`select knowledge.record('{"id":"F072","kind":"feature","answer":"A Page owner announces something, with a time on it","status":"approved","audience":"department","departments":["building"]}', 't')`)
     first = await loadMaps(db, { seed, walkthroughs: WALKS, rollup })
     second = await loadMaps(db, { seed, walkthroughs: WALKS, rollup })
     if (HAVE_WALKS) real = await loadMaps(db, { seed, walkthroughs: walks, rollup })
@@ -179,7 +182,7 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 },
   })
 
   it('records nothing the second time', () => {
-    expect(second.items + second.slices + second.features + second.placed).toBe(0)
+    expect(second.items + second.slices + second.features + second.shipped + second.placed).toBe(0)
   })
 
   // [guards F132.2]
@@ -216,7 +219,8 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 },
     const t = await tool('fits', { idea: 'holiday specials' })
     const lines = t.split('\n')
     expect(lines[0]).toBe('"Holiday specials up front" fits under "Find out" in the journey "A neighbour finds something happening this weekend and goes", next to "Open the app and see this weekend nearby".')
-    expect(lines[1]).toMatch(/^Stands on: a Page owner announces something, with a time on it \(/)
+    // F072 is ruled approved here; it reads part built by what has shipped (bug #1340).
+    expect(lines[1]).toMatch(/^Stands on: A Page owner announces something, with a time on it \(part built\)/)
     expect(lines[2]).toBe('Must be built first: A "special" kind of post')
     expect(lines[3]).toBe('Clashes with: nothing, as judged when it was placed')
     const none = await tool('fits', { idea: 'a chess ladder for retirees' })
