@@ -244,15 +244,45 @@ end $$;
 -- test: every internal department reads the maps, and nothing on them is public
 do $$
 begin
-  assert (select audience = 'department' and departments @> array['building', 'communications', 'finance', 'legal', 'trust-and-safety']
-            from knowledge.records where id = 'JT.A1.T1'), 'a map item is not visible to every department';
-  assert (select departments from knowledge.records where id = 'JT-S1') = (select departments from knowledge.records where id = 'JT'),
+  -- Members, not department: a department named on the record is a snapshot,
+  -- and one added later would read nothing (the PM, 2026-11-16).
+  assert not exists (select 1 from knowledge.records
+                      where kind in ('journey', 'activity', 'task', 'detail') and audience <> 'members'),
+    format('a map item is not for every member key: %s', (select array_agg(id || ' ' || audience) from knowledge.records
+                                                          where kind in ('journey', 'activity', 'task', 'detail') and audience <> 'members'));
+  assert (select audience from knowledge.records where id = 'JT-S1') = (select audience from knowledge.records where id = 'JT'),
     'a journey''s slice is not seen by the journey''s readers';
+  assert not exists (select 1 from knowledge.records r
+                      where (r.kind in ('journey', 'activity', 'task', 'detail')
+                             or exists (select 1 from knowledge.links l join knowledge.records j on j.id = l.to_id and j.kind = 'journey'
+                                         where l.from_id = r.id and l.type = 'slice_of'))
+                        and r.audience = 'public'), 'something on a map is public';
   reset role;
   perform set_config('t.ts', knowledge.add_agent('t-ts', 'a moderator', '{trust-and-safety}', false), true);
   set local role knowledge_store;
   perform pg_temp.act('ts');
   assert knowledge.map_of('JT') is not null, 'a trust and safety key cannot read the map';
+end $$;
+
+-- test: a department added after the maps were loaded reads every map, its places and where a new idea fits
+do $$
+declare
+  m jsonb;
+begin
+  reset role;
+  insert into knowledge.departments (slug, name) values ('events', 'Events');
+  perform set_config('t.ev', knowledge.add_agent('t-ev', 'an events lead', '{events}', false), true);
+  set local role knowledge_store;
+  perform pg_temp.act('ev');
+  m := knowledge.map_of('JT');
+  assert m is not null, 'a department added later cannot read the map';
+  assert jsonb_array_length(m->'activities') = 2, format('a department added later misses activities: %s', m->'activities');
+  assert jsonb_array_length(m->'slices') = 2, format('a department added later misses the journey''s slices: %s', m->'slices');
+  assert knowledge.map_place('JT.A1.T1')->'place'->'journey'->>'id' = 'JT', 'a department added later cannot read a task''s place';
+  assert (select array_agg(d->>'id') from jsonb_array_elements(knowledge.map_place('JT.A1.T1')->'made_of') d)
+         = array['JT.A1.T1.D1', 'JT.A1.T1.D2'], 'a department added later misses a task''s details';
+  assert exists (select 1 from knowledge.fit('events near me this weekend') f where f.on_id in ('JT.A1.T1', 'JT.A1.T1.D1')),
+    'a department added later finds nowhere for a new idea to fit';
 end $$;
 
 -- test: placements and proposals are append-only, and a key that cannot see a record sees none of its map
