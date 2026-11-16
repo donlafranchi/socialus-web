@@ -34,7 +34,7 @@ const SACRAMENTO: [number, number] = [-121.4944, 38.5816]
 
 const ANSWERS: { answer: Answer; title: string; body: string }[] = [
   { answer: 'address', title: 'Street address', body: 'A shop, a studio, an office: people come to the door.' },
-  { answer: 'area', title: 'Neighbourhood only', body: 'People come to you, but visitors see only the neighbourhood.' },
+  { answer: 'area', title: 'Neighborhood only', body: 'People come to you, but visitors see only the neighborhood.' },
   { answer: 'landmark', title: 'Cross streets or a landmark', body: 'A corner, a trailhead, a spot in the park.' },
   { answer: 'multi', title: 'More than one location', body: 'Each with its own address.' },
   { answer: 'roaming', title: 'It moves', body: 'Markets, pop-ups, a truck. Add where and when, if you like.' },
@@ -258,7 +258,7 @@ function Visit({
       {variant === 'area' && (
         <Typeahead<NeighborhoodMatch>
           key={`area-${picks.address}`}
-          label="Neighbourhood"
+          label="Neighborhood"
           placeholder="Curtis Park, Midtown…"
           minChars={2}
           search={async (q) => {
@@ -350,7 +350,7 @@ function Visit({
       </label>
       {variant === 'area' && (
         <p className="text-caption text-[var(--color-fg-muted)]">
-          {value.area ? `Visitors see ${value.area.name}, with its pin at the centre, not your address.` : 'Pick your neighbourhood, or drop a pin and we’ll work it out.'}
+          {value.area ? `Visitors see ${value.area.name}, with its pin at the center, not your address.` : 'Pick your neighborhood, or drop a pin and we’ll work it out.'}
         </p>
       )}
     </div>

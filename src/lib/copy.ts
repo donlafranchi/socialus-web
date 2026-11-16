@@ -24,7 +24,7 @@ export const COPY = {
   reportSentCourtesy: 'The Page owner gets a courtesy notice first. Thanks for looking out.',
   reportSentPerson: "It's being sent to a person from our team. Thanks for looking out.",
   // F134.7 — a member's name, signed out: names stay between members, the person still counts.
-  aNeighbour: 'A neighbour',
+  aNeighbor: 'A neighbor',
   // #260 — downloads an .ics. Placeholder ([public-is-draft]).
   addToCalendar: 'Add to calendar',
   // F081 criterion 5 — what the app is for, on the signup screen. Don's words, ruled 2026-10-01.
@@ -97,7 +97,7 @@ export const COPY = {
   // #1127 — who is in, by name, under the bar. Draft copy ([public-is-draft]).
   wonderInNames: (names: string[], total: number) => {
     // F134.7 — signed out the names don't come back; the count still does.
-    if (names.length === 0) return `${total.toLocaleString('en-US')} ${total === 1 ? 'neighbour is' : 'neighbours are'} in`
+    if (names.length === 0) return `${total.toLocaleString('en-US')} ${total === 1 ? 'neighbor is' : 'neighbors are'} in`
     const shown = names.slice(0, 3)
     const more = Math.max(0, total - shown.length)
     const people = more > 0 ? [...shown, `${more.toLocaleString('en-US')} more`] : shown

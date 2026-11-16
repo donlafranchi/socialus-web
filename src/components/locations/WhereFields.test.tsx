@@ -65,7 +65,7 @@ describe('#896 — one question, seven answers', () => {
   it('asks one question with seven answers, and nothing else until one is chosen', async () => {
     render(<Harness />)
     expect(screen.getByRole('group', { name: /how do people find you/i })).toBeInTheDocument()
-    const names = [/^street address/i, /^neighbourhood only/i, /^cross streets or a landmark/i, /^more than one location/i, /^it moves/i, /^i go to them/i, /^online only, or by appointment/i]
+    const names = [/^street address/i, /^neighborhood only/i, /^cross streets or a landmark/i, /^more than one location/i, /^it moves/i, /^i go to them/i, /^online only, or by appointment/i]
     expect(screen.getAllByRole('radio')).toHaveLength(7)
     for (const name of names) expect(screen.getByRole('radio', { name })).toBeInTheDocument()
     expect(screen.queryByRole('textbox')).toBeNull()
@@ -74,7 +74,7 @@ describe('#896 — one question, seven answers', () => {
   // Don, 2026-10-18 [always]: no chip or pill UI — a plain radio list, no switches.
   it('a plain radio list: no chips, pills or switches', async () => {
     const { container } = render(<Harness />)
-    for (const name of [/^street address/i, /^neighbourhood only/i, /^i go to them/i]) {
+    for (const name of [/^street address/i, /^neighborhood only/i, /^i go to them/i]) {
       fireEvent.click(screen.getByRole('radio', { name }))
       expect(screen.queryByRole('switch')).toBeNull()
     }
@@ -130,7 +130,7 @@ describe('#896 — the answers with no street address', () => {
 
 describe('Street address, or the neighbourhood only', () => {
   const choose = () => fireEvent.click(screen.getByRole('radio', { name: /^street address/i }))
-  const chooseArea = () => fireEvent.click(screen.getByRole('radio', { name: /^neighbourhood only/i }))
+  const chooseArea = () => fireEvent.click(screen.getByRole('radio', { name: /^neighborhood only/i }))
 
   const address = () => screen.getByRole('combobox', { name: /^address/i })
   const FOUND = [
@@ -198,7 +198,7 @@ describe('Street address, or the neighbourhood only', () => {
     searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
     render(<Harness />)
     chooseArea()
-    fireEvent.change(screen.getByRole('combobox', { name: /neighbourhood/i }), { target: { value: 'Curt' } })
+    fireEvent.change(screen.getByRole('combobox', { name: /neighborhood/i }), { target: { value: 'Curt' } })
     fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
     expect(searchNeighborhoods).toHaveBeenCalledWith('Curt')
     expect(latest.visit.pin).toEqual([-121.49, 38.55])
@@ -216,10 +216,10 @@ describe('Street address, or the neighbourhood only', () => {
     searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
     render(<Harness />)
     chooseArea()
-    fireEvent.change(screen.getByRole('combobox', { name: /neighbourhood/i }), { target: { value: 'Curt' } })
+    fireEvent.change(screen.getByRole('combobox', { name: /neighborhood/i }), { target: { value: 'Curt' } })
     fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
     expect(latest.visit.areaOnly).toBe(true)
-    expect(screen.getByRole('radio', { name: /^neighbourhood only/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /^neighborhood only/i })).toBeChecked()
     await new Promise((r) => setTimeout(r, 0))
     expect(latest.visit.area).toEqual({ id: 'pl-curtis', name: 'Curtis Park' })
     const createLocation = vi.fn().mockResolvedValue({ ok: true, data: { id: 'loc-1' } })
@@ -233,7 +233,7 @@ describe('Street address, or the neighbourhood only', () => {
   it('a street address offers no neighbourhood, and the neighbourhood no street address', async () => {
     render(<Harness />)
     choose()
-    expect(screen.queryByRole('combobox', { name: /neighbourhood/i })).toBeNull()
+    expect(screen.queryByRole('combobox', { name: /neighborhood/i })).toBeNull()
     chooseArea()
     expect(screen.queryByRole('combobox', { name: /^address/i })).toBeNull()
   })
@@ -279,7 +279,7 @@ describe('Street address, or the neighbourhood only', () => {
     render(<Harness />)
     choose()
     expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
-    expect(screen.queryByRole('combobox', { name: /neighbourhood/i })).toBeNull()
+    expect(screen.queryByRole('combobox', { name: /neighborhood/i })).toBeNull()
     const field = screen.getByRole('textbox', { name: /^address/i })
     fireEvent.change(field, { target: { value: '915 I St, Sacramento' } })
     await new Promise((r) => setTimeout(r, 400))
