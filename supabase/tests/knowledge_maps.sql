@@ -285,6 +285,52 @@ begin
     'a department added later finds nowhere for a new idea to fit';
 end $$;
 
+-- test: the move to members takes items written the old way, after a department was added, and leaves narrowed ones and their slices
+do $$
+declare
+  old_way text[] := array(select d.slug from knowledge.departments d order by d.slug);
+  moved integer;
+begin
+  reset role;
+  -- Items as the first map_item wrote them: department, naming every department then.
+  perform pg_temp.act('ops');
+  perform knowledge._context(knowledge._writer(), 'old way', null, null);
+  insert into knowledge.records (id, kind, answer, status, audience, departments, place)
+  values ('JX', 'journey', 'Old journey', 'live', 'department', old_way, 1);
+  perform knowledge._context(knowledge._writer(), 'old way', null, null);
+  insert into knowledge.records (id, kind, answer, status, audience, departments, parent, place)
+  values ('JX.A1', 'activity', 'Old activity', 'live', 'department', old_way, 'JX', 1);
+  perform knowledge._context(knowledge._writer(), 'old way', null, null);
+  insert into knowledge.records (id, kind, answer, status, audience, departments, place)
+  values ('JN', 'journey', 'Narrowed journey', 'live', 'department', old_way, 2);
+  perform knowledge._context(knowledge._writer(), 'old way', null, null);
+  perform set_config('knowledge.via', 'map_slice', true);
+  insert into knowledge.records (id, kind, answer, status, audience, departments, horizon, rank, takes)
+  values ('JX-S1', 'slice', 'Old line', 'planned', 'department', old_way, 'next', 1, '{}');
+  perform knowledge._context(knowledge._writer(), 'old way', null, null);
+  insert into knowledge.records (id, kind, answer, status, audience, departments, horizon, rank, takes)
+  values ('JN-S1', 'slice', 'Line over a narrowed journey', 'planned', 'department', old_way, 'next', 1, '{}');
+  perform set_config('knowledge.via', '', true);
+  insert into knowledge.links (from_id, to_id, type, reason, person, agent) values
+    ('JX-S1', 'JX', 'slice_of', 'old way', 'the PM', 't-ops'),
+    ('JN-S1', 'JN', 'slice_of', 'old way', 'the PM', 't-ops');
+  -- An operator narrowed one journey on purpose.
+  perform knowledge.revise('JN', '{"departments":["building"]}', 'building only');
+  -- A department added since the maps were loaded.
+  insert into knowledge.departments (slug, name) values ('events', 'Events');
+  moved := knowledge._maps_to_members();
+  assert (select array_agg(id order by id) from knowledge.records where id in ('JX', 'JX.A1', 'JX-S1', 'JN', 'JN-S1') and audience = 'members')
+         = array['JX', 'JX-S1', 'JX.A1'], 'the old-way items did not move, or narrowed ones did';
+  assert moved >= 3, format('the move reports %s moved', moved);
+  assert (select (version, audience, departments) = (2, 'department', array['building']) from knowledge.records where id = 'JN'),
+    'a narrowed journey was moved';
+  assert (select audience from knowledge.records where id = 'JN-S1') = 'department', 'a slice over a narrowed journey was moved';
+  assert (select h.person = 'the PM' and h.agent like 'f132-maps-for-members-%' and h.reason like 'Every department reads the maps%'
+            from knowledge.history h where h.record_id = 'JX.A1' and h.version = 2), 'the move did not keep its who and why';
+  assert not exists (select 1 from knowledge.agents where name like 'f132-maps-for-members-%' and revoked_at is null),
+    'the move''s key was left live';
+end $$;
+
 -- test: placements and proposals are append-only, and a key that cannot see a record sees none of its map
 do $$
 begin

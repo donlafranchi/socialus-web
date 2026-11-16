@@ -21,15 +21,15 @@
 --   · knowledge.map_item writes audience members with no departments.
 --     knowledge.map_slice is unchanged: it copies the journey's audience, so a
 --     slice drawn across a members journey is members too.
---   · Every existing map item and journey slice whose audience still names
---     every department (what map_item wrote) moves to members, one record at a
---     time, each a new version with this reason in its history. One an
---     operator narrowed on purpose (to operators, or to fewer departments) is
---     left as it is.
+--   · Every existing map item and journey slice still as map_item wrote it
+--     moves to members, one record at a time, each a new version with this
+--     reason in its history (rule and why: knowledge._maps_to_members below).
+--     One an operator narrowed or widened is left as it is. The apply log
+--     says how many moved.
 --
 -- Who writes the move. History names a person and an agent for every change,
--- so the move is made under a one-off operator key for the PM, minted here and
--- revoked at the end of this file; its key is never stored or shown.
+-- so the move is made under a one-off operator key for the PM, minted and
+-- revoked inside knowledge._maps_to_members; its key is never stored or shown.
 --
 -- No app table changes. Nothing in the app reads the schema.
 
@@ -77,31 +77,65 @@ comment on function knowledge.map_item(jsonb, text, jsonb, timestamptz) is
 
 -- ---------------------------------------------------------------------------
 -- The items already recorded, and the slices across their journeys.
+--
+-- Which ones move: a map item still as map_item wrote it, audience department
+-- in every version and its departments never changed, whatever departments
+-- exist now (one added since the maps were loaded is the case this is for).
+-- One an operator narrowed or widened, in any version, is left as it is. A
+-- journey slice moves on the same rule, and only once its journey reads as
+-- members, so a slice is never seen by keys its journey is hidden from.
+--
+-- A function rather than a bare block so supabase/tests/knowledge_maps.sql
+-- can run the move against items written the old way. Owner only.
 
-do $$
+create function knowledge._maps_to_members() returns integer
+language plpgsql security definer set search_path = '' as $$
 declare
-  key text := knowledge.add_agent('f132-maps-for-members', 'the PM', '{}', true);
-  everyone text[] := array(select d.slug from knowledge.departments d);
+  -- A name of its own per run: a revoked key's name stays taken.
+  who text := 'f132-maps-for-members-' || to_char(clock_timestamp(), 'YYYYMMDD-HH24MISS-US');
+  key text := knowledge.add_agent(who, 'the PM', '{}', true);
   r record;
+  n integer := 0;
 begin
   perform set_config('knowledge.key', key, true);
   for r in
-    select x.id
+    select x.id, x.kind
       from knowledge.records x
-     where x.audience = 'department' and x.departments @> everyone
+     where x.audience = 'department'
+       and not exists (select 1 from knowledge.history h
+                        where h.record_id = x.id
+                          and (h.snapshot->>'audience' is distinct from 'department'
+                               or array(select jsonb_array_elements_text(h.snapshot->'departments') order by 1)
+                                  is distinct from array(select unnest(x.departments) order by 1)))
        and (knowledge._is_map_kind(x.kind)
             or (x.kind = 'slice' and exists (select 1 from knowledge.links l
                                                join knowledge.records j on j.id = l.to_id and j.kind = 'journey'
                                               where l.from_id = x.id and l.type = 'slice_of')))
-     order by x.id
+     -- Map items first: a slice is checked against its journey after the journey's move.
+     order by (x.kind = 'slice'), x.id
   loop
+    if r.kind = 'slice' and not exists (select 1 from knowledge.links l
+                                          join knowledge.records j on j.id = l.to_id and j.kind = 'journey'
+                                         where l.from_id = r.id and l.type = 'slice_of' and j.audience = 'members') then
+      continue;
+    end if;
     -- One reason per change: the history trigger clears it after each row.
     perform knowledge._context(knowledge._writer(),
       'Every department reads the maps, including ones added later: audience members instead of a list of today''s departments.',
       '{"decided_by": "the PM", "decided_on": "2026-11-16", "scenario": "socialus-plan planning/scenario-F132.md"}'::jsonb,
       null);
     update knowledge.records set audience = 'members', departments = '{}' where id = r.id;
+    n := n + 1;
   end loop;
   perform set_config('knowledge.key', '', true);
-  perform knowledge.revoke_agent('f132-maps-for-members');
+  perform knowledge.revoke_agent(who);
+  return n;
+end $$;
+comment on function knowledge._maps_to_members() is
+  'F132, 2026-11-16: moves map items and journey slices still as the first map_item wrote them to audience members, each a new version with its reason. Returns how many moved. Owner only.';
+revoke all on function knowledge._maps_to_members() from public, anon, authenticated, service_role, knowledge_store;
+
+do $$
+begin
+  raise notice 'F132: % map items and journey slices moved to members.', knowledge._maps_to_members();
 end $$;
