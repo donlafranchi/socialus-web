@@ -8,5 +8,5 @@ Sentry (`@sentry/nextjs`) is always on, using the project's DSN in `sentry.serve
 Errors and traces (100% sampling for now). User info and request bodies are off; headers, cookies and query params deny IP and user-identifying names. The old `scrub.ts` email/phone scrubber no longer runs on Sentry events.
 
 ## Open
-- Privacy text lists Sentry (draft; counsel to confirm).
+- Whether the Privacy text must mention Sentry is a counsel item flagged "review before launch" in `src/lib/text-pages.ts`; nothing is stated to members yet.
 - Source-map upload, release tagging, alerts and a sampling rate below 100% are not set up.
