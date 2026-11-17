@@ -4,7 +4,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
-import { decide } from '../scripts/vercel-ignore.mjs'
+import { decide, PROJECT_IGNORE_COMMAND } from '../scripts/vercel-ignore.mjs'
 
 const SCRIPT = resolve('scripts/vercel-ignore.mjs')
 type In = { env: Record<string, string>; changed: string[] | null; labels: string[] | null; asked: boolean }
@@ -76,5 +76,26 @@ describe('the script itself, run on a throwaway repo', () => {
   })
   it('production always builds', () => {
     expect(pushOf(['docs/a.md'], { VERCEL_ENV: 'production' })).toBe('build')
+  })
+})
+
+describe('2026-11-16 — bot data branches never build (notify-history failed a preview: no app on it)', () => {
+  it('notify-history, perf-history, pr-assets-* and *-screenshots skip, whatever PREVIEWS_MODE says', () => {
+    for (const ref of ['notify-history', 'perf-history', 'pr-assets-1094', 'landing-signup-pass-screenshots'])
+      expect(v({ env: { VERCEL_ENV: 'preview', PREVIEWS_MODE: 'labelled', VERCEL_GIT_COMMIT_REF: ref }, changed: ['src/x.ts'], labels: ['human-review'], asked: true })).toBe('skip')
+  })
+  it('an ordinary branch is unaffected', () => {
+    expect(v({ env: { VERCEL_ENV: 'preview', PREVIEWS_MODE: 'labelled', VERCEL_GIT_COMMIT_REF: 'fix-history-page' }, changed: ['src/x.ts'], labels: ['human-review'], asked: true })).toBe('build')
+  })
+
+  // A data branch has no vercel.json, so Vercel runs the project's own Ignored Build Step setting there.
+  const sh = (cwd: string) => spawnSync('sh', ['-c', PROJECT_IGNORE_COMMAND], { cwd, env: { ...process.env, VERCEL_ENV: 'production' } }).status
+  it("the project's setting skips a branch with no app", () => {
+    const dir = mkdtempSync(join(tmpdir(), 'data-branch-'))
+    writeFileSync(join(dir, 'latest.json'), '{}')
+    expect(sh(dir)).toBe(0)
+  })
+  it("the project's setting hands an app branch to this script", () => {
+    expect(sh(resolve('.'))).toBe(1)
   })
 })
