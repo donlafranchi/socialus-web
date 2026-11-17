@@ -3,12 +3,12 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { sentryOptions } from "@/lib/observability/sentry-options";
 
 Sentry.init({
   dsn: "https://811834b36b11d184f31dcb0c4bf3c42f@o4512442541539328.ingest.us.sentry.io/4512442590363648",
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
+  ...sentryOptions(),
 
   // Turns off collection of data that could identify users. Adjust per category:
   // https://docs.sentry.io/platforms/javascript/configuration/options/#dataCollection
