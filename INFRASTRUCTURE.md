@@ -1,6 +1,6 @@
 # Infrastructure
 
-**As of 2026-10-11** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-16** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 *As of 2026-10-05 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
 
@@ -93,14 +93,68 @@ changes with no code. Item 9 is blocked on a scenario.
 **What it is.** Serves the Next.js app, terminates SSL, runs server actions and
 route handlers, caches static assets at the edge.
 
-**Who provides it.** Vercel. Free (Hobby) through Preview.
+**Who provides it.** Vercel **Pro**, team `socialus`, since 2026-11-16 (the PM
+upgraded ahead of the 2026-11-12 plan; see below). $20/month includes one
+deploying seat and $20 of usage credit; usage past that bills on demand.
 
-**When you outgrow it.** At Launch, not on capacity but on terms: Hobby
-prohibits commercial use, and a buy/sell/trade marketplace is not defensibly
-non-commercial once money moves. Pro is **$20/month per member**, so a second
-collaborator doubles the line. Pro also lifts cron limits (item 7) and log
-retention from about an hour to days, which matters the first morning someone
-reports a bug from the night before.
+**What Pro gives us, checked 2026-11-16** (API reads of the team and project;
+the dashboard was not signed in):
+
+| Feature | State | Cost beyond $20 |
+|---|---|---|
+| Observability Plus | **On** (default for Pro upgrades); runtime logs kept 30 days, not 1. Seen: logs back to 2026-11-14 | $1.20 per 1M events; pennies at our traffic |
+| Spend management | **Not set by us.** Vercel's default is an email at $200 per cycle; no pause. No API to set it: PM step below | Free |
+| Speed Insights | Off (no data; the `@vercel/speed-insights` script is not in the app) | 10K events/30 days free, then collection pauses, no charge |
+| Web Analytics | Off (§13 rules analytics are our own; a separate decision) | $0.03 per 1K events, none included |
+| Functions | Fluid compute, `pdx1`, default timeout 300 s, 2 GB / 1 vCPU | Usage: $0.0106 per active-CPU hour in pdx1 |
+| Builds | Elastic build machine (4 vCPU / 8 GB), on-demand concurrent builds on | From $0.0035 per CPU-minute; about $0.03 a build |
+| Deployment protection | Vercel Authentication on every deployment except socialus.org | Free (password protection would be $20/month; not needed) |
+| Firewall | No custom rules; system DDoS mitigation on; Attack Challenge Mode off | Rules free; rate limiting from $0.50 per 1M allowed requests |
+| Skew protection | On, 12 h | Free |
+
+Spend alert: set **$60** per cycle, notify only, **pause off**: a pause answers 503
+to every member until someone resumes it by hand, which costs more than any bill
+we could run up.
+
+[for now] Turned on nothing new: Speed Insights adds a client script (a privacy
+disclosure first), and Firewall rate limits on `/auth/*` and `/api/internal/*`
+wait for the first abuse or the launch push, whichever is first (§14).
+
+**Previews.** Pro removed the build cap that set `PREVIEWS_MODE=off`. Previews
+still have **no environment variables** (every variable is Production-only), so
+turning them back on also means choosing which database a preview talks to.
+
+**Load testing.** [for now] Load runs go against the local stack
+(`npm run load`, or Actions → Load simulation), never production. Why:
+Vercel's [load-testing policy](https://vercel.com/kb/guide/what-s-vercel-s-policy-regarding-load-testing-deployments)
+allows production load tests on Enterprise only, with approval, and blocks
+unannounced test IPs; its newer [guide](https://vercel.com/kb/guide/how-to-effectively-load-test-your-vercel-application)
+says coordinate first. And the production database is Supabase Free (Nano:
+shared CPU, 0.5 GB, 200 pooler clients) serving real members, which already hit
+statement timeouts on `/explore` on 2026-11-16 with no test running.
+
+The production plan, if one is ever needed (after Supabase Pro): signed-out
+cached pages first (`/`, `/about`), then `/explore`; 5 → 20 → 50 concurrent,
+2 minutes each; 03:00–06:00 Pacific; a Firewall system bypass for the runner's
+IP; stop at the first non-2xx, p95 over 2 s, or any `/api/health/db` failure;
+report after each level. Level 1 was run on 2026-11-16 (03:45 UTC): 5 at once
+on `/` and `/about` (CDN hits), 2 on `/auth/login`: 600 + 100 requests, no
+errors, p95 about 0.5 s, health check fine after. Nothing heavier was run.
+
+**Load re-run, 2026-11-16, vs 2026-11-12** (CI, one 4-core runner):
+
+| | 11-12 | 11-16 main | 11-16 with this PR |
+|---|---|---|---|
+| 50 signed out, p95 | 45 ms | 115 ms | 82 ms |
+| 200 signed out, p95 | 1.26 s | 3.72 s | 2.86 s |
+| 50 signed in, p95 (short run) | — | 770 ms | 181 ms (Sentry on, 10%) / 132 ms (off) |
+| 200 signed in, p95 (short run) | 3.77 s | 7.67 s | 3.78 s |
+| Full run | no crash | **out of memory** after 1,000 viewers | **still out of memory** (#1346) |
+
+What breaks first is still rendering at 200 viewers on one Node process. No
+result shows a Vercel or Supabase plan limit: the longest query stayed under
+35 ms and the pool never ran dry before the crash. Sentry's 100% tracing was a
+real cost (fixed here); the memory crash is an app regression, #1346.
 
 **Wire-up.** No code. Dashboard only.
 
@@ -113,11 +167,8 @@ reports a bug from the night before.
 | Install command | `npm install` |
 | Node version | 20.x |
 
-Upgrade path: Settings > General > Plan. After upgrading, set a spend alert
-under Settings > Billing at $60.
-
-**Verify.** A production deploy succeeds and the deployment log retains more
-than one hour of history.
+**Verify.** `vercel api /v2/teams/socialus` shows `billing.plan: "pro"`, and
+`vercel logs -e production --since 72h` returns records older than a day.
 
 ---
 
@@ -507,29 +558,40 @@ is a hypothesis.
 **What it is.** Notification that a server action threw, with a stack trace,
 before a user thinks to tell you.
 
-**Who provides it.** Sentry free tier, 5,000 errors/month.
+**Who provides it.** Sentry Developer (free): 5K errors and 5M spans a month;
+over quota, events are dropped, not billed. Org `lafranchi-et-al-llc`, project
+`socialus-web`.
 
-**Wire-up.** The one item here that is real code rather than a URL.
+**Built (2026-11-16, #1335).** The wizard setup: DSN written into
+`sentry.server.config.ts`, `sentry.edge.config.ts` and
+`src/instrumentation-client.ts` (a DSN is public; no env var needed),
+`src/instrumentation.ts` reports request errors, `global-error.tsx` and
+`error.tsx` report render errors. Since 2026-11-16 (this section's PR),
+`src/lib/observability/sentry-options.ts` turns it **on only for Vercel
+production builds** and samples **10% of traces**: at the wizard's 100%, the
+load simulation's signed-in page went from p95 132 ms to 770 ms at 50 viewers
+and the app ran out of memory under the full run, and every CI, local and test
+run was reporting to the production project. Errors are still sent at 100%.
 
-```bash
-npx @sentry/wizard@latest -i nextjs
-```
+**State, checked 2026-11-16:**
 
-The wizard creates the client, server and edge configs plus
-`instrumentation.ts`, and wraps `next.config.ts`. Two cautions:
+| Check | Result |
+|---|---|
+| Browser SDK live on socialus.org | **Yes.** A deliberate test error thrown in a production page; three envelopes accepted by Sentry's ingest (200) |
+| Server SDK | In the build (`instrumentation.ts`); no server event seen yet |
+| Source maps | **No.** Production build log: "No auth token provided. Will not upload source maps." |
+| Releases tagged by commit | **No**, same cause. With a token the plugin names each release by the Vercel commit SHA on its own |
+| Alert rules | Not visible from here (dashboard not signed in) |
+| Swallowed errors | Not reported. Explore logs a failed query and renders an empty page, so the 11-13 JWT outage and today's statement timeouts on `/explore` never reach Sentry |
 
-- This repo is on **Next.js 16**, and the wizard has historically lagged major
-  Next releases. If it fails or produces a config that does not build, fall back
-  to manual setup from Sentry's Next.js docs rather than downgrading Next.
-- The wizard offers to enable session replay. Decline it. It is a separate quota
-  and item 13 answers the questions you actually have.
+**To finish (PM):** install the Sentry integration on Vercel (it adds
+`SENTRY_AUTH_TOKEN` to the project), redeploy, and set the two alerts: a new
+issue, and a spike (more than 20 events in 5 minutes) both email the PM.
+`SENTRY_AUTH_TOKEN` is the only variable the build needs.
 
-Env vars it introduces: `NEXT_PUBLIC_SENTRY_DSN`, and `SENTRY_AUTH_TOKEN` for
-source map upload at build time. Add both to Vercel and to
-`.env.local.example`.
-
-**Verify.** Throw deliberately from a server action in a preview deploy and
-confirm the trace arrives with readable source maps, not minified frames.
+**Verify.** The next production build log shows source maps uploaded and a
+release named by the commit; a test error's stack shows file names, not
+minified frames.
 
 ---
 
@@ -538,34 +600,38 @@ confirm the trace arrives with readable source maps, not minified frames.
 **What it is.** A synthetic check from outside your infrastructure, confirming a
 real page loads.
 
-**Who provides it.** UptimeRobot free tier, 50 monitors at 5-minute intervals.
+**Who provides it.** UptimeRobot free tier, 50 monitors at 5-minute intervals,
+plus a free public status page.
 
 **Why Vercel and Supabase do not cover it.** Both report on themselves. Neither
 tells you the signup form throws on submit while both status pages stay green.
 
-**Built (2026-11-11, #1260): `.github/workflows/uptime.yml`, a backstop only.**
-It keyword-checks the home page, the login page and `/api/health/db`
-(`scripts/uptime-check.sh`) and opens one `bug · socialus.org is down` Issue on
-an outage. **It cannot be the alarm:** GitHub throttles this repo's schedules
-hard (notify.yml, set to every 15 minutes, ran at 06:09, 14:15 and 21:28 UTC on
-2026-11-11; uptime.yml's first hour produced no run). So the real monitor is
-UptimeRobot, below, which needs a free account only the PM can open.
+**Two layers.**
 
-**Wire-up (UptimeRobot, free).** Create a **keyword** monitor, not a plain HTTP one: point
-it at a page that renders database-backed content and have it check for a string
-that only appears when that query succeeded. An HTTP 200 monitor stays green
-while the page renders an error state.
+| Layer | Checks | Cadence | Alarm? |
+|---|---|---|---|
+| UptimeRobot (PM's account) | Two keyword monitors below | 5 min | **Yes, the alarm** |
+| `.github/workflows/uptime.yml` (#1260, #1332) | Home, login, `/api/health/db`, and a **signed-in read** as the builder member | Set to 10 min; GitHub ran it about every 6 h on 2026-11-16 | Backstop: opens one `bug · socialus.org is down` Issue |
 
-Add a second monitor on `/auth` or whichever route the login form lives at,
-since that is the path whose failure costs you the most.
+The signed-in read lives only in the workflow: it needs a sign-in, which
+UptimeRobot's free keyword monitors cannot do. It is what would have caught the
+2026-11-13 to 11-16 outage, so the workflow stays.
 
-Concretely, the same checks the workflow makes, every 5 minutes, alerting the
-PM's email:
+**Monitors (UptimeRobot, keyword type, every 5 minutes, alert the PM's email
+and phone):**
 
 | Monitor | URL | Keyword exists |
 |---|---|---|
-| Database, from the app | `https://socialus.org/api/health/db` | `"ok":true` |
-| Login page | `https://socialus.org/auth/login` | `name="email"` |
+| Database, from the app | `https://www.socialus.org/api/health/db` | `"ok":true` |
+| Login page | `https://www.socialus.org/auth/login` | `name="email"` |
+
+Use `www.`: the bare domain answers 308 first. Both answered with their keyword
+on 2026-11-16. Whether UptimeRobot is hitting them could not be seen from here:
+Vercel's CLI logs carry function output, not request user agents.
+
+**Status page.** UptimeRobot's free public status page, listing both monitors,
+is where members check when the site itself is down. Its address goes in the
+app's help text once it exists.
 
 **Note.** On the Supabase free tier this also served as the keep-alive against
 the 7-day pause. After item 2's Pro upgrade that purpose disappears, but the
