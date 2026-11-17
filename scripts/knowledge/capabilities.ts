@@ -207,7 +207,7 @@ export async function loadCapabilities(
         JSON.stringify({
           id: f.feature, kind: 'feature', answer: f.title,
           status: active.length && active.every((c) => c.shipped === 'yes') ? 'shipped' : 'building',
-          source: 'socialus-web:build-log/reports/rollup.json', audience: 'department', departments: ['building'],
+          source: 'socialus-web:build-log/reports/rollup.json', audience: 'members', departments: [],
         }),
         'Imported: a feature named by what SocialUs can do (F129), read from the criteria roll-up.',
         evidence,

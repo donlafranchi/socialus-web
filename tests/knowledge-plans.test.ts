@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
+import { importedFeatureReaders } from './support/imported-features'
 import { enterStore } from '../scripts/knowledge/import'
 import {
   readPlannedScenarios, parseDepends, parseHorizon, sliceStatus, loadPlans, type PlanSummary,
@@ -93,6 +94,10 @@ describe.skipIf(!RUNNABLE)('F127: plans in the store', () => {
   // [guards F127.7]
   it("brings each scenario in as a feature with one slice carrying its horizon and rank, and Now / Next / Later reads from the store", async () => {
     expect(first).toMatchObject({ features: 5, slices: 4, moved: 0 })
+    // Every department reads the features an import makes, later departments too (the PM, 2026-11-17).
+    const imported = await importedFeatureReaders(db)
+    expect(imported.n).toBeGreaterThan(0)
+    expect(imported.hidden, 'an imported feature is not readable by every department').toBe(0)
     expect(first.skipped).toEqual(['F914: no horizon in its frontmatter, so no place on Now / Next / Later'])
     expect(first.depends).toBe(3)
     // Re-running changes nothing.
