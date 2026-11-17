@@ -14,9 +14,9 @@
 // written for this exact failure on 2026-09-19 and fixed the OTHER script;
 // this one has the same parser and had no test at all.
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { resolve, join } from 'node:path'
 
@@ -57,13 +57,31 @@ function fakeCli(stdout: string) {
   )
 }
 
+/** What schema_migrations holds, as `psql -A -t -F '|'` prints it. */
+function fakePsql(rows: [version: string, name: string][] = []) {
+  writeFileSync(
+    join(bin, 'psql'),
+    `#!/usr/bin/env bash\ncat <<'ROWS'\n${rows.map((r) => r.join('|')).join('\n')}\nROWS\nexit 0\n`,
+    { mode: 0o755 },
+  )
+}
+
+let migrationsDir: string
+
+/** The files the branch carries. */
+function files(...names: string[]) {
+  rmSync(migrationsDir, { recursive: true, force: true })
+  mkdirSync(migrationsDir)
+  for (const n of names) writeFileSync(join(migrationsDir, n), '-- fixture\n')
+}
+
 function run(...args: string[]): { code: number; out: string } {
   try {
     const out = execFileSync('bash', ['scripts/check-migration-drift.sh', ...args], {
       cwd: ROOT,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, SUPABASE_DB_URL: 'postgresql://stub' },
+      env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, SUPABASE_DB_URL: 'postgresql://stub', MIGRATIONS_DIR: migrationsDir },
     })
     return { code: 0, out }
   } catch (e) {
@@ -82,9 +100,15 @@ const GHOST = { remote: '20260911999999' }
 // was that production carried one the branch did not.
 const PENDING_EXIT = 2
 const DRIFT_EXIT = 3
+const RENAMED_EXIT = 4
 
 beforeAll(() => {
   bin = mkdtempSync(join(tmpdir(), 'drift-'))
+  migrationsDir = join(bin, 'migrations')
+})
+beforeEach(() => {
+  fakePsql()
+  files()
 })
 afterAll(() => {
   rmSync(bin, { recursive: true, force: true })
@@ -159,5 +183,51 @@ describe('both at once under --strict', () => {
     expect(code).toBe(DRIFT_EXIT)
     expect(out).toContain('20260922204457')
     expect(out).toContain('20260911999999')
+  })
+})
+
+// 2026-11-16: two branches both used 20261116120000. Production recorded it as
+// knowledge_shipped; knowledge_maps_for_members then merged green, because
+// `migration list` — and so every check above — compares versions only.
+describe('a version production applied under a different name', () => {
+  const V = { local: '20261116120000', remote: '20261116120000' }
+
+  it('FAILS in either mode, naming both migrations', () => {
+    for (const args of [[], ['--strict']]) {
+      fakeCli(table([V]))
+      fakePsql([['20261116120000', 'knowledge_shipped']])
+      files('20261116120000_knowledge_maps_for_members.sql')
+      const { code, out } = run(...args)
+      expect(code, `args: ${JSON.stringify(args)}`).toBe(RENAMED_EXIT)
+      expect(out).toContain('20261116120000')
+      expect(out).toContain('knowledge_shipped')
+      expect(out).toContain('knowledge_maps_for_members')
+    }
+  })
+
+  it('passes when the recorded name matches the file', () => {
+    fakeCli(table([V]))
+    fakePsql([['20261116120000', 'knowledge_shipped']])
+    files('20261116120000_knowledge_shipped.sql')
+    const { code, out } = run('--strict')
+    expect(code).toBe(0)
+    expect(out).toMatch(/clean/i)
+  })
+
+  it('passes a row with no recorded name — it says nothing either way', () => {
+    fakeCli(table([V]))
+    fakePsql([['20261116120000', '']])
+    files('20261116120000_knowledge_shipped.sql')
+    expect(run('--strict').code).toBe(0)
+  })
+
+  it('reports a rename alongside drift, and exits as renamed', () => {
+    fakeCli(table([V, GHOST]))
+    fakePsql([['20261116120000', 'knowledge_shipped']])
+    files('20261116120000_knowledge_maps_for_members.sql')
+    const { code, out } = run()
+    expect(code).toBe(RENAMED_EXIT)
+    expect(out).toContain('20260911999999')
+    expect(out).toContain('knowledge_shipped')
   })
 })
