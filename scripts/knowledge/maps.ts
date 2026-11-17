@@ -39,9 +39,10 @@ export interface RollupFeature {
   feature: string
   title: string
   retired: boolean
+  as_of?: string
   n: number
   totals: { shipped: { yes: number } }
-  criteria: { id: string; text: string }[]
+  criteria: { id: string; text: string; shipped?: string; status?: string }[]
 }
 
 export const SEED_FILE = 'scripts/knowledge/maps-seed.json'
@@ -60,6 +61,25 @@ export function readWalkthroughs(planDir: string): Walkthrough[] {
 
 export function readRollup(path = resolve(__dirname, '../../build-log/reports/rollup.json')): RollupFeature[] {
   return existsSync(path) ? ((JSON.parse(readFileSync(path, 'utf8')) as { features: RollupFeature[] }).features ?? []) : []
+}
+
+/**
+ * How much of a walk-through has shipped, of the criteria it names. A retired
+ * criterion is left out, as the roll-up's own totals leave it out; one the
+ * roll-up does not hold counts as not shipped, so a walk-through never reads
+ * built on part of its evidence. Null when it names none.
+ */
+export function walkthroughShipped(w: Walkthrough, rollup: Map<string, RollupFeature>): { shipped: number; total: number } | null {
+  let shipped = 0
+  let total = 0
+  for (const c of w.criteria) {
+    const [fid, ...rest] = c.split('.')
+    const crit = rollup.get(fid)?.criteria.find((x) => x.id === rest.join('.'))
+    if (crit?.status === 'retired') continue
+    total++
+    if (crit?.shipped === 'yes') shipped++
+  }
+  return total ? { shipped, total } : null
 }
 
 /** A built feature's state: every criterion shipped is shipped, some is building, retired is dropped. */
@@ -115,6 +135,8 @@ export interface MapSummary {
   items: number
   slices: number
   features: number
+  /** bug #1340: rows of what has shipped, recorded this run. */
+  shipped: number
   placed: number
   noJourneyYet: number
   unplaced: string[]
@@ -182,7 +204,7 @@ export interface MapSources {
 
 /** As the store's login, holding an operator key: bring the story maps in. */
 export async function loadMaps(db: ClientBase, src: MapSources): Promise<MapSummary> {
-  const sum: MapSummary = { items: 0, slices: 0, features: 0, placed: 0, noJourneyYet: 0, unplaced: [], problems: [] }
+  const sum: MapSummary = { items: 0, slices: 0, features: 0, shipped: 0, placed: 0, noJourneyYet: 0, unplaced: [], problems: [] }
   // An empty source is a wrong path, not an empty plan: say so.
   if (!src.walkthroughs.length) sum.problems.push('no walk-throughs found (planning/uat-journeys.json): none became journeys')
   if (!src.rollup.length) sum.problems.push('no built features found (build-log/reports/rollup.json): none were recorded')
@@ -218,6 +240,25 @@ export async function loadMaps(db: ClientBase, src: MapSources): Promise<MapSumm
     await place(db, f.feature, on, 'Inferred: the walk-through line that shares most words with its criteria.', sum, { basis: 'inferred' })
   }
 
+  // What has shipped (bug #1340): each feature's criteria, and each
+  // walk-through's, from the roll-up, beside the status the PM rules on.
+  // Dated by the roll-up, not the run, so an unchanged roll-up records nothing.
+  const rollupAsOf = src.rollup.map((f) => f.as_of ?? '').sort().pop() || '1970-01-01'
+  const shippedRow = async (item: string, shipped: number, total: number, asOf: string) => {
+    const { rows } = await db.query<{ r: { shipped?: number } }>(
+      'select knowledge.record_shipped($1, $2, $3, $4, $5::date) as r',
+      [item, shipped, total, ROLLUP_SOURCE, asOf],
+    )
+    if (rows[0].r.shipped) sum.shipped++
+  }
+  for (const f of src.rollup) {
+    if (f.n > 0 && (await have(db, f.feature))) await shippedRow(f.feature, Math.min(f.totals?.shipped?.yes ?? 0, f.n), f.n, f.as_of ?? rollupAsOf)
+  }
+  for (const w of src.walkthroughs) {
+    const got = walkthroughShipped(w, rollup)
+    if (got && (await have(db, `JY-${w.id}`))) await shippedRow(`JY-${w.id}`, got.shipped, got.total, rollupAsOf)
+  }
+
   // Each IMAGINE idea where it would fit, by id, checked against its name.
   for (const [cid, idea] of Object.entries(src.seed.ideas)) {
     const { rows } = await db.query<{ id: string; answer: string }>(
@@ -246,7 +287,7 @@ export async function loadMaps(db: ClientBase, src: MapSources): Promise<MapSumm
 
 export function mapReport(s: MapSummary): string[] {
   return [
-    `Story maps: ${s.items} item(s) and ${s.slices} slice(s) recorded, ${s.features} built feature(s) recorded, ` +
+    `Story maps: ${s.items} item(s) and ${s.slices} slice(s) recorded, ${s.features} built feature(s) recorded, ${s.shipped} shipped-state row(s), ` +
       `${s.placed} placement(s) (${s.noJourneyYet} "no journey yet").`,
     ...(s.unplaced.length ? [`Not placed yet (${s.unplaced.length}): ${s.unplaced.join(', ')}`] : []),
     ...s.problems.map((p) => `- ${p}`),
