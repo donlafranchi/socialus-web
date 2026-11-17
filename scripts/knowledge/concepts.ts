@@ -276,6 +276,9 @@ export interface ConceptSummary {
 }
 
 const AUDIENCE = { audience: 'department', departments: ['building'] }
+// Features are read by every department, later ones too (the PM, 2026-11-17): a
+// feature sits on the story maps, which every department plans against.
+const FEATURE_AUDIENCE = { audience: 'members', departments: [] as string[] }
 const SEED_SOURCE = 'socialus-web:scripts/knowledge/concepts-seed.json'
 
 async function q<T>(db: ClientBase, sql: string, params: unknown[]): Promise<T> {
@@ -309,7 +312,7 @@ async function ensureFeature(db: ClientBase, s: Scenario | { id: string }, sum: 
       answer: full ? full.title : `Scenario ${s.id}`,
       status: featureStatus(full?.status ?? null),
       source: full ? full.file : `planning/scenario-${s.id}.md`,
-      ...AUDIENCE,
+      ...FEATURE_AUDIENCE,
     }),
     full ? 'Imported: a scenario that names its concept.' : "Imported: a scenario named in a concept's lineage.",
     JSON.stringify({ repo: 'socialus-plan', commit: commit ?? null, file: full?.file ?? null }),

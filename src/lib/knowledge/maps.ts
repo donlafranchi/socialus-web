@@ -47,7 +47,7 @@ const builtWords = (b: Built) => (b === 'built' ? 'built' : b === 'partly' ? 'pa
 const q = (s: string) => `"${s}"`
 
 interface Line { id: string; kind: string; answer: string; status: string; built: Built }
-interface Placed { id: string; answer: string; status: string; on: string; basis?: string }
+interface Placed { id: string; answer: string; status: string; on: string; basis?: string; built?: Built }
 interface SliceView { id: string; outcome: string; status: string; horizon: string; rank: number; takes_it?: boolean; takes?: string[] }
 interface PlaceView {
   item: Line & { why: string | null }
@@ -68,9 +68,15 @@ interface MapView {
 const list = (xs: string[], none = 'none') => (xs.length ? xs.join('; ') : none)
 /** The first few of a list, and how many more. */
 const few = (xs: string[], n: number) => (xs.length > n ? [...xs.slice(0, n), `${xs.length - n} more`] : xs)
-const RANK: Record<string, number> = { shipped: 0, building: 1, approved: 2, draft: 3, dropped: 4 }
-const byBuilt = (a: Placed, b: Placed) => (RANK[a.status] ?? 5) - (RANK[b.status] ?? 5) || a.id.localeCompare(b.id)
-const featureWords = (f: Placed) => `${f.answer} (${f.status === 'shipped' ? 'built' : f.status === 'building' ? 'part built' : f.status === 'dropped' ? 'retired' : 'not built'})`
+/** A feature's built state: what has shipped (bug #1340), else its ruled status. */
+const featureBuilt = (f: Placed): Built | 'retired' =>
+  f.status === 'dropped' ? 'retired' : (f.built ?? (f.status === 'shipped' ? 'built' : f.status === 'building' ? 'partly' : 'not'))
+const RANK: Record<string, number> = { built: 0, partly: 1, not: 2, retired: 3 }
+const byBuilt = (a: Placed, b: Placed) => (RANK[featureBuilt(a) ?? 'not'] - RANK[featureBuilt(b) ?? 'not']) || a.id.localeCompare(b.id)
+const featureWords = (f: Placed) => {
+  const b = featureBuilt(f)
+  return `${f.answer} (${b === 'retired' ? 'retired' : builtWords(b)})`
+}
 
 /** An item by id, or a journey, activity, task or detail by its words. */
 async function findItem(db: ClientBase, s: string): Promise<{ id: string; kind: string }[]> {
@@ -132,8 +138,8 @@ interface Placement { item_id: string; on_id: string | null; stands_on: string[]
 
 async function wordsOf(db: ClientBase, ids: string[]): Promise<string[]> {
   if (!ids.length) return []
-  const { rows } = await db.query<{ id: string; answer: string; status: string; kind: string }>(
-    'select id, answer, status, kind from knowledge.records where id = any($1::text[])',
+  const { rows } = await db.query<{ id: string; answer: string; status: string; kind: string; built: Built }>(
+    'select id, answer, status, kind, knowledge.feature_built(id) as built from knowledge.records where id = any($1::text[])',
     [ids],
   )
   const byId = new Map(rows.map((r) => [r.id, r]))
@@ -142,7 +148,7 @@ async function wordsOf(db: ClientBase, ids: string[]): Promise<string[]> {
   return ids.flatMap((i) => {
     const r = byId.get(i)
     if (!r) return looksLikeId(i) ? [] : [i]
-    return [r.kind === 'feature' ? featureWords({ id: r.id, answer: r.answer, status: r.status, on: '' }) : r.answer]
+    return [r.kind === 'feature' ? featureWords({ id: r.id, answer: r.answer, status: r.status, on: '', built: r.built }) : r.answer]
   })
 }
 
@@ -198,7 +204,7 @@ export async function fitText(db: ClientBase, idea: string): Promise<string> {
   const task = p.place.task ?? { id: on, answer: p.item.answer }
   const taskView = p.item.kind === 'task' ? p : await placeView(db, task.id)
   const builtHere = (taskView?.made_of ?? []).filter((d) => d.built !== 'not').map((d) => d.answer)
-  const featuresHere = (taskView?.features ?? []).filter((f) => f.status === 'shipped' || f.status === 'building').map(featureWords)
+  const featuresHere = (taskView?.features ?? []).filter((f) => featureBuilt(f) === 'built' || featureBuilt(f) === 'partly').map(featureWords)
   const notBuilt = (taskView?.made_of ?? []).filter((d) => d.built === 'not').map((d) => d.answer)
   const standsOn = placement?.stands_on.length ? await wordsOf(db, placement.stands_on) : [...featuresHere, ...builtHere]
   const needs = placement?.needs_first.length ? await wordsOf(db, placement.needs_first) : []

@@ -88,7 +88,9 @@ export interface PlanSummary {
   problems: string[]
 }
 
-const AUDIENCE = { audience: 'department', departments: ['building'] }
+// Features are read by every department, later ones too (the PM, 2026-11-17): a
+// feature sits on the story maps, which every department plans against.
+const AUDIENCE = { audience: 'members', departments: [] as string[] }
 
 async function one<T>(db: ClientBase, sql: string, params: unknown[]): Promise<T> {
   const { rows } = await db.query(sql, params)

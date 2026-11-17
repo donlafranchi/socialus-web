@@ -264,6 +264,44 @@ begin
   assert knowledge.map_of('JT') is not null, 'a trust and safety key cannot read the map';
 end $$;
 
+-- test: a feature still ruled approved reads built by what has shipped, and a walk-through's lines by its own evidence (bug #1340)
+-- [guards F132.3]
+do $$
+begin
+  perform knowledge.record('{"id":"F993","kind":"feature","answer":"Posts with a time","status":"approved","audience":"department","departments":["building"]}', 't');
+  perform knowledge.place('F993', 'JT.A1.T2', 'F132 test: narrowing is this feature');
+  assert knowledge.built('JT.A1.T2') = 'not', 'an approved feature with nothing shipped reads as built';
+  perform knowledge.record_shipped('F993', 3, 6, 'build-log/reports/rollup.json', '2026-11-01');
+  assert knowledge.feature_built('F993') = 'partly' and knowledge.built('JT.A1.T2') = 'partly',
+    format('half shipped does not read part built: %s', knowledge.built('JT.A1.T2'));
+  perform knowledge.record_shipped('F993', 6, 6, 'build-log/reports/rollup.json', '2026-11-02');
+  assert knowledge.built('JT.A1.T2') = 'built', 'all shipped does not read built';
+  assert (select status from knowledge.records where id = 'F993') = 'approved', 'what has shipped changed the ruled status';
+  assert (select array_agg(f->>'built') from jsonb_array_elements(knowledge.map_place('JT.A1.T2')->'features') f) = array['built'],
+    'the picture does not name the feature built';
+  -- The same numbers again are no new row.
+  assert knowledge.record_shipped('F993', 6, 6, 'build-log/reports/rollup.json', '2026-11-02') ? 'unchanged', 'the same numbers made a row';
+  -- A walk-through: its lines carry no feature, so they take the journey's evidence.
+  perform knowledge.map_item('{"id":"JW","kind":"journey","answer":"Walk it","status":"live"}', 't');
+  perform knowledge.map_item('{"id":"JW.A1","kind":"activity","parent":"JW","answer":"Walk it through","status":"live"}', 't');
+  perform knowledge.map_item('{"id":"JW.A1.T1","kind":"task","parent":"JW.A1","answer":"Report is on the menu","status":"live"}', 't');
+  assert knowledge.built('JW') = 'not' and knowledge.built('JW.A1.T1') = 'not', 'a walk-through with no evidence reads built';
+  perform knowledge.record_shipped('JW', 7, 7, 'build-log/reports/rollup.json', '2026-11-01');
+  assert knowledge.built('JW') = 'built' and knowledge.built('JW.A1.T1') = 'built',
+    format('a shipped walk-through does not read built: %s, %s', knowledge.built('JW'), knowledge.built('JW.A1.T1'));
+  -- A journey's evidence never overrides its own tasks: nothing shipped
+  -- overall, but a built feature on one line, reads part built.
+  perform knowledge.map_item('{"id":"JW.A1.T2","kind":"task","parent":"JW.A1","answer":"Send stays off","status":"live"}', 't');
+  perform knowledge.record_shipped('JW', 0, 7, 'build-log/reports/rollup.json', '2026-11-02');
+  perform knowledge.place('F993', 'JW.A1.T2', 'F132 test: this line is the feature');
+  assert knowledge.built('JW.A1.T2') = 'built' and knowledge.built('JW.A1.T1') = 'not' and knowledge.built('JW') = 'partly',
+    format('a journey''s evidence overrode its tasks: %s, %s, %s', knowledge.built('JW'), knowledge.built('JW.A1.T1'), knowledge.built('JW.A1.T2'));
+  -- Only an operator records it.
+  perform pg_temp.act('build');
+  assert pg_temp.refused($q$select knowledge.record_shipped('F993', 0, 6, 'x', '2026-11-03')$q$) like 'Only an operator%',
+    'a builder recorded what has shipped';
+end $$;
+
 -- test: a department added after the maps were loaded reads every map, its places and where a new idea fits
 do $$
 declare
@@ -331,15 +369,50 @@ begin
     'the move''s key was left live';
 end $$;
 
+-- test: every department reads the features on a map, and the move takes features written the old way, leaving narrowed ones
+do $$
+declare
+  feats jsonb;
+begin
+  reset role;
+  insert into knowledge.departments (slug, name) values ('events', 'Events');
+  perform set_config('t.ev', knowledge.add_agent('t-ev', 'an events lead', '{events}', false), true);
+  -- F990 and F991 are as the imports wrote features until 2026-11-17: building only.
+  perform pg_temp.act('ops');
+  perform knowledge.record('{"id":"F981","kind":"feature","answer":"Ops-only feature","status":"shipped","audience":"operators"}', 't');
+  perform knowledge.record('{"id":"F982","kind":"feature","answer":"Narrowed feature","status":"shipped","audience":"department","departments":["building"]}', 't');
+  perform knowledge.revise('F982', '{"departments":["building","finance"]}', 'an operator chose its readers');
+  perform knowledge.record('{"id":"F983","kind":"feature","answer":"Finance feature","status":"shipped","audience":"department","departments":["finance"]}', 't');
+  perform knowledge.add_slice('F990', 'First cut', 'now', 1, 't');
+  perform knowledge.add_slice('F982', 'First cut', 'now', 1, 't');
+  perform knowledge._features_to_members();
+  set local role knowledge_store;
+  perform pg_temp.act('ev');
+  feats := knowledge.map_place('JT.A1.T1')->'features';
+  assert feats @> '[{"id":"F990"}]', format('a department added later does not see the feature on a task: %s', feats);
+  assert exists (select 1 from knowledge.current_placements where item_id = 'F991'), 'a department added later does not see a placement';
+  assert (select audience from knowledge.records where id = 'F990-S1') = 'members', 'a moved feature''s slice is not read by its readers';
+  assert not exists (select 1 from knowledge.records where id in ('F981', 'F982', 'F982-S1', 'F983')), 'a feature an operator gave its readers was moved';
+  reset role;
+  assert (select h.person = 'the PM' and h.agent like 'f132-features-for-members-%' and h.reason like 'Every department reads the features%'
+            from knowledge.history h where h.record_id = 'F990' and h.version = 2), 'the move did not keep its who and why';
+  assert not exists (select 1 from knowledge.agents where name like 'f132-features-for-members-%' and revoked_at is null),
+    'the move''s key was left live';
+end $$;
+
 -- test: placements and proposals are append-only, and a key that cannot see a record sees none of its map
 do $$
 begin
+  perform knowledge.record_shipped('F990', 1, 1, 'build-log/reports/rollup.json', '2026-11-01');
   reset role;
   assert pg_temp.refused('delete from knowledge.placements') is not null, 'a placement was deleted';
   assert pg_temp.refused('truncate knowledge.map_proposals') is not null, 'proposals were truncated';
+  assert pg_temp.refused('truncate knowledge.shipped') is not null, 'what has shipped was truncated';
   assert pg_temp.refused('update knowledge.placements set reason = ''x''') is not null, 'a placement was rewritten';
   set local role knowledge_store;
   perform set_config('knowledge.key', '', true);
   assert (select count(*) from knowledge.placements) = 0, 'no key reads placements';
   assert knowledge.map_of('JT') is null, 'no key reads the map';
+  assert (select count(*) from knowledge.shipped) = 0, 'no key reads what has shipped';
+  assert knowledge.feature_built('F990') is null, 'no key reads a feature''s built state';
 end $$;

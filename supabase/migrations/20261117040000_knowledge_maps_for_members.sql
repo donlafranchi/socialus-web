@@ -3,6 +3,10 @@
 -- fixed in code rather than granting access each time a department is added).
 --
 -- Scenario: socialus-plan planning/scenario-F132.md.
+--
+-- Renamed from 20261116120000 (bug #1340): bug #1340's knowledge_shipped took
+-- that version in production first, so under its old name this file would
+-- never have applied. Its body is unchanged.
 -- Tests: supabase/tests/knowledge_maps.sql, run by tests/knowledge-maps-db.test.ts.
 --
 -- Who reads them, now. Every key: a map item's audience is members, which

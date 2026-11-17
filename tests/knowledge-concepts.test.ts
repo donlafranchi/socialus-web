@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
+import { importedFeatureReaders } from './support/imported-features'
 import { enterStore } from '../scripts/knowledge/import'
 import {
   readSeed, readImagine, readScenarios, frontmatter, loadConcepts, currentName, ideaSource, IDEAS_DISTILLED_ON,
@@ -245,6 +246,10 @@ describe.skipIf(!RUNNABLE)('F130: concepts loaded into the store', () => {
     expect((await db.query(`select 1 from knowledge.records where id = 'F132'`)).rowCount).toBe(0)
     const f130 = await db.query(`select 1 from knowledge.records where id = 'F130'`)
     expect(f130.rowCount).toBe(0)
+    // Every department reads the features an import makes, later departments too (the PM, 2026-11-17).
+    const imported = await importedFeatureReaders(db)
+    expect(imported.n).toBeGreaterThan(0)
+    expect(imported.hidden, 'an imported feature is not readable by every department').toBe(0)
   })
 
   // #1250: a scenario written before it has a concept starts its own.
