@@ -28,7 +28,17 @@
 #   1  could not run (no connection string, CLI error)
 #   2  pending: a file here the database has not applied (--strict only)
 #   3  drift: the database has a migration with no file here
+#   4  renamed: a version here was applied under a different name — the file
+#      carrying it never ran (2026-11-16: two branches both used
+#      20261116120000; production recorded knowledge_shipped, and
+#      knowledge_maps_for_members merged green and was skipped)
+#
+# The name check reads supabase_migrations.schema_migrations with psql, because
+# `migration list` prints versions only. MIGRATIONS_DIR overrides where the
+# files are read from (tests only).
 set -uo pipefail
+
+MIGRATIONS_DIR="${MIGRATIONS_DIR:-supabase/migrations}"
 
 STRICT=0
 [ "${1:-}" = "--strict" ] && STRICT=1
@@ -113,10 +123,50 @@ if [ ${#local_only[@]} -gt 0 ]; then
   fi
 fi
 
+# Same version, different name: the file here is not what ran. The CLI keys
+# history on version alone, so `db push` treats this file as applied and never
+# runs it — and the version-only comparison above calls it matched.
+renamed=()
+if ! command -v psql >/dev/null 2>&1; then
+  echo "check-migration-drift: psql is not installed; cannot compare migration names." >&2
+  exit 1
+fi
+NAMES="$(psql "$SUPABASE_DB_URL" -X -A -t -F '|' -v ON_ERROR_STOP=1 \
+  -c 'select version, coalesce(name, $$$$) from supabase_migrations.schema_migrations' 2>&1)"
+if [ $? -ne 0 ]; then
+  echo "$NAMES" >&2
+  echo "check-migration-drift: could not read migration names from the database." >&2
+  exit 1
+fi
+declare -A remote_name=()
+while IFS='|' read -r v n; do
+  [ -n "$v" ] && remote_name["$v"]="$n"
+done <<< "$NAMES"
+for f in "$MIGRATIONS_DIR"/*.sql; do
+  [ -e "$f" ] || continue
+  base="$(basename "$f" .sql)"
+  v="${base%%_*}"
+  n="${base#*_}"
+  [ "$n" = "$base" ] && n=""
+  # An empty recorded name says nothing either way; only a different one fails.
+  if [ -n "${remote_name[$v]+x}" ] && [ -n "${remote_name[$v]}" ] && [ "${remote_name[$v]}" != "$n" ]; then
+    renamed+=("$v: production applied '${remote_name[$v]}', this file is '$n'")
+  fi
+done
+
+if [ ${#renamed[@]} -gt 0 ]; then
+  echo "check-migration-drift: FAILED — production applied a different migration under this version." >&2
+  printf '  %s\n' "${renamed[@]}" >&2
+  echo "  → the file here never ran, and 'db push' will keep skipping it." >&2
+  echo "    Renumber this file to a version later than anything production has applied." >&2
+  echo "    Do NOT repair the history row: the migration production ran under that version is real." >&2
+fi
+
 # Remote-only IS drift, always. It means something wrote to the database
 # without going through the files, so the repo is no longer the source of
 # truth for the schema.
 if [ ${#remote_only[@]} -eq 0 ]; then
+  [ ${#renamed[@]} -gt 0 ] && exit 4
   [ "$pending" -eq 1 ] && exit 2
   echo "check-migration-drift: clean — nothing applied that is missing a file here."
   exit 0
@@ -131,4 +181,5 @@ if [ ${#remote_only[@]} -gt 0 ]; then
   echo "    If main already has the file, update this branch from main." >&2
   echo "    If main lacks it too, add the matching file, named for the version above." >&2
 fi
+[ ${#renamed[@]} -gt 0 ] && exit 4
 exit 3

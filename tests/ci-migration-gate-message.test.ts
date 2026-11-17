@@ -74,6 +74,14 @@ describe('the merge gate says which way production and the branch disagree', () 
     expect(out).toMatch(/main/)
   })
 
+  it('production applied a different migration under this version: renumber, never apply', () => {
+    const { code, out } = runStep(4)
+    expect(code).toBe(1)
+    expect(out).toMatch(/production applied a different migration under a version this branch uses/i)
+    expect(out).toMatch(/renumber/i)
+    expect(out).not.toMatch(/apply it first/i)
+  })
+
   it('a failure that is neither claims neither', () => {
     const { code, out } = runStep(1)
     expect(code).toBe(1)
