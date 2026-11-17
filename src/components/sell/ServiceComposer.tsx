@@ -458,7 +458,7 @@ function CenterLocationStep({
             if (s.label.trim().length === 0) errors.label = 'Name is required'
             if (!isLocationPlaceFieldsComplete(s.place)) {
               errors.place =
-                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighbourhood'
+                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighborhood'
             }
             return Object.keys(errors).length === 0 ? { ok: true } : { ok: false, errors }
           }}

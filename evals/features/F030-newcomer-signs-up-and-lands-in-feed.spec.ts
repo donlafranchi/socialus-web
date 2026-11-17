@@ -41,8 +41,7 @@ test.describe('F030 — A newcomer signs up and lands in the feed', () => {
 
       // The locality feed renders, anon.
       await expect(page.getByTestId('locality-feed')).toBeVisible()
-      // "Make this yours" signup CTA above the feed (anon only).
-      await expect(page.getByTestId('signup-cta')).toBeVisible()
+      // The "Make this yours" CTA was removed (the PM, 2026-11-12, #1301); F030 AC1 is to be restated in socialus-plan.
       // Inline scope picker to change locality before signing up.
       await expect(page.getByTestId('scope-picker')).toBeVisible()
       // Nearby Items appear.
@@ -94,8 +93,6 @@ test.describe('F030 — A newcomer signs up and lands in the feed', () => {
       // Lands on / — the feed renders against the defaulted primary_home.
       await page.waitForURL((url) => url.pathname === '/')
       await expect(page.getByTestId('locality-feed')).toBeVisible()
-      // The signup CTA is gone now they're authenticated.
-      await expect(page.getByTestId('signup-cta')).toHaveCount(0)
 
       // Idempotent re-entry: now onboarded, revisiting /onboarding → /.
       await page.goto('/onboarding')

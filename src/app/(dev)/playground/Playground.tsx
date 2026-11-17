@@ -76,7 +76,7 @@ export function Playground() {
           onClose={() => setSheet(false)}
           footer={<Button className="w-full" onClick={() => setSheet(false)}>Done</Button>}
         >
-          <p className="text-body-sm">A bottom sheet on a phone, a centred dialog from 744.</p>
+          <p className="text-body-sm">A bottom sheet on a phone, a centered dialog from 744.</p>
         </Sheet>
       </Section>
 
