@@ -331,6 +331,36 @@ begin
     'the move''s key was left live';
 end $$;
 
+-- test: every department reads the features on a map, and the move takes features written the old way, leaving narrowed ones
+do $$
+declare
+  feats jsonb;
+begin
+  reset role;
+  insert into knowledge.departments (slug, name) values ('events', 'Events');
+  perform set_config('t.ev', knowledge.add_agent('t-ev', 'an events lead', '{events}', false), true);
+  -- F990 and F991 are as the imports wrote features until 2026-11-17: building only.
+  perform pg_temp.act('ops');
+  perform knowledge.record('{"id":"F981","kind":"feature","answer":"Ops-only feature","status":"shipped","audience":"operators"}', 't');
+  perform knowledge.record('{"id":"F982","kind":"feature","answer":"Narrowed feature","status":"shipped","audience":"department","departments":["building"]}', 't');
+  perform knowledge.revise('F982', '{"departments":["building","finance"]}', 'an operator chose its readers');
+  perform knowledge.add_slice('F990', 'First cut', 'now', 1, 't');
+  perform knowledge.add_slice('F982', 'First cut', 'now', 1, 't');
+  perform knowledge._features_to_members();
+  set local role knowledge_store;
+  perform pg_temp.act('ev');
+  feats := knowledge.map_place('JT.A1.T1')->'features';
+  assert feats @> '[{"id":"F990"}]', format('a department added later does not see the feature on a task: %s', feats);
+  assert exists (select 1 from knowledge.current_placements where item_id = 'F991'), 'a department added later does not see a placement';
+  assert (select audience from knowledge.records where id = 'F990-S1') = 'members', 'a moved feature''s slice is not read by its readers';
+  assert not exists (select 1 from knowledge.records where id in ('F981', 'F982', 'F982-S1')), 'a feature an operator narrowed was moved';
+  reset role;
+  assert (select h.person = 'the PM' and h.agent like 'f132-features-for-members-%' and h.reason like 'Every department reads the features%'
+            from knowledge.history h where h.record_id = 'F990' and h.version = 2), 'the move did not keep its who and why';
+  assert not exists (select 1 from knowledge.agents where name like 'f132-features-for-members-%' and revoked_at is null),
+    'the move''s key was left live';
+end $$;
+
 -- test: placements and proposals are append-only, and a key that cannot see a record sees none of its map
 do $$
 begin

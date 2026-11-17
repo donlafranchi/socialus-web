@@ -176,6 +176,14 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 },
     expect(ideas[0].none).toBeGreaterThan(0)
     // A planned feature no map holds is listed, not guessed.
     expect(first.unplaced).toContain('F995')
+    // Every department reads the features an import makes, later departments too (the PM, 2026-11-17).
+    const { rows: [imported] } = await db.query<{ n: number; hidden: number }>(
+      `select count(*)::int as n, count(*) filter (where r.audience <> 'members')::int as hidden
+         from knowledge.records r join knowledge.history h on h.record_id = r.id and h.version = 1
+        where r.kind = 'feature' and h.reason like 'Imported:%'`,
+    )
+    expect(imported.n).toBeGreaterThan(0)
+    expect(imported.hidden, 'an imported feature is not readable by every department').toBe(0)
   })
 
   it('records nothing the second time', () => {

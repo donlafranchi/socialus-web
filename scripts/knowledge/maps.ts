@@ -197,7 +197,7 @@ export async function loadMaps(db: ClientBase, src: MapSources): Promise<MapSumm
     if (await have(db, f.feature)) continue
     await db.query('select knowledge.record($1::jsonb, $2)', [
       JSON.stringify({ id: f.feature, kind: 'feature', answer: f.title, status: rollupStatus(f), source: ROLLUP_SOURCE,
-                       audience: 'department', departments: ['building'] }),
+                       audience: 'members', departments: [] }),
       'Imported: a built feature, its state from the roll-up, so it can be placed on its story map.',
     ])
     sum.features++

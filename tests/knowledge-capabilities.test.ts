@@ -185,6 +185,14 @@ describe.skipIf(!RUNNABLE)('F129: what SocialUs can do, in the store', () => {
   it('answers in one call, by who is asking, with each line linked to its feature', async () => {
     const first = await loadCapabilities(db, { words: WORDS, rollup: ROLLUP, failing: new Set() })
     expect(first).toMatchObject({ lines: 5, featuresMade: 2, withdrawn: 0, problems: [] })
+    // Every department reads the features an import makes, later departments too (the PM, 2026-11-17).
+    const { rows: [imported] } = await db.query<{ n: number; hidden: number }>(
+      `select count(*)::int as n, count(*) filter (where r.audience <> 'members')::int as hidden
+         from knowledge.records r join knowledge.history h on h.record_id = r.id and h.version = 1
+        where r.kind = 'feature' and h.reason like 'Imported:%'`,
+    )
+    expect(imported.n).toBeGreaterThan(0)
+    expect(imported.hidden, 'an imported feature is not readable by every department').toBe(0)
     expect(first.changed).toHaveLength(5)
     const again = await loadCapabilities(db, { words: WORDS, rollup: ROLLUP, failing: new Set() })
     expect(again.changed).toEqual([])
