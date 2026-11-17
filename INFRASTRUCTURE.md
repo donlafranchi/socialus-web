@@ -587,6 +587,9 @@ run was reporting to the production project. Errors are still sent at 100%.
 **To finish (PM):** install the Sentry integration on Vercel (it adds
 `SENTRY_AUTH_TOKEN` to the project), redeploy, and set the two alerts: a new
 issue, and a spike (more than 20 events in 5 minutes) both email the PM.
+Each alert's action is "Send a notification to Member: the PM" (the account's
+only member), and his Sentry account email is the one he reads; check
+Settings → Account → Notifications → Issue alerts is on.
 `SENTRY_AUTH_TOKEN` is the only variable the build needs.
 
 **Verify.** The next production build log shows source maps uploaded and a
@@ -617,8 +620,7 @@ The signed-in read lives only in the workflow: it needs a sign-in, which
 UptimeRobot's free keyword monitors cannot do. It is what would have caught the
 2026-11-13 to 11-16 outage, so the workflow stays.
 
-**Monitors (UptimeRobot, keyword type, every 5 minutes, alert the PM's email
-and phone):**
+**Monitors (UptimeRobot, keyword type, every 5 minutes, alert the PM's email):**
 
 | Monitor | URL | Keyword exists |
 |---|---|---|
@@ -628,6 +630,15 @@ and phone):**
 Use `www.`: the bare domain answers 308 first. Both answered with their keyword
 on 2026-11-16. Whether UptimeRobot is hitting them could not be seen from here:
 Vercel's CLI logs carry function output, not request user agents.
+
+**How the alarm reaches the PM.** [for now] UptimeRobot's free plan alerts by
+**email**; SMS and voice are paid, and paid tools wait for go-live (F128,
+2026-11-10). The PM, 2026-11-16: "I get emails and that's it for now." His phone
+alert is his mail app's VIP / priority notification for UptimeRobot's sender
+(his step). Free alternative worth a try: UptimeRobot's own mobile app, which
+its [app page](https://uptimerobot.com/mobile-app/) says works on every plan
+"including the free plan" and offers push alerts; the page does not separate
+free from paid push, so it is unconfirmed until his phone shows one.
 
 **Status page.** UptimeRobot's free public status page, listing both monitors,
 is where members check when the site itself is down. Its address goes in the
