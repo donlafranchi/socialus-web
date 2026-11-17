@@ -21,7 +21,7 @@
 --     The four imports that make features (scripts/knowledge/maps.ts,
 --     plans.ts, concepts.ts, capabilities.ts) now record them as members.
 --   · Existing features still as an import wrote them (audience department,
---     departments unchanged in every version) move to members, one record at a
+--     building only, unchanged in every version) move to members, one record at a
 --     time, each a new version with this reason in its history. Then the
 --     roadmap slices of a feature that is now members, on the same rule:
 --     add_slice gives a slice its feature's audience, so a slice is read by
@@ -46,7 +46,8 @@ begin
   for r in
     select x.id, x.kind
       from knowledge.records x
-     where x.audience = 'department'
+     -- Building only, as every import wrote them; a feature given other readers stays.
+     where x.audience = 'department' and x.departments = '{building}'
        and not exists (select 1 from knowledge.history h
                         where h.record_id = x.id
                           and (h.snapshot->>'audience' is distinct from 'department'

@@ -344,6 +344,7 @@ begin
   perform knowledge.record('{"id":"F981","kind":"feature","answer":"Ops-only feature","status":"shipped","audience":"operators"}', 't');
   perform knowledge.record('{"id":"F982","kind":"feature","answer":"Narrowed feature","status":"shipped","audience":"department","departments":["building"]}', 't');
   perform knowledge.revise('F982', '{"departments":["building","finance"]}', 'an operator chose its readers');
+  perform knowledge.record('{"id":"F983","kind":"feature","answer":"Finance feature","status":"shipped","audience":"department","departments":["finance"]}', 't');
   perform knowledge.add_slice('F990', 'First cut', 'now', 1, 't');
   perform knowledge.add_slice('F982', 'First cut', 'now', 1, 't');
   perform knowledge._features_to_members();
@@ -353,7 +354,7 @@ begin
   assert feats @> '[{"id":"F990"}]', format('a department added later does not see the feature on a task: %s', feats);
   assert exists (select 1 from knowledge.current_placements where item_id = 'F991'), 'a department added later does not see a placement';
   assert (select audience from knowledge.records where id = 'F990-S1') = 'members', 'a moved feature''s slice is not read by its readers';
-  assert not exists (select 1 from knowledge.records where id in ('F981', 'F982', 'F982-S1')), 'a feature an operator narrowed was moved';
+  assert not exists (select 1 from knowledge.records where id in ('F981', 'F982', 'F982-S1', 'F983')), 'a feature an operator gave its readers was moved';
   reset role;
   assert (select h.person = 'the PM' and h.agent like 'f132-features-for-members-%' and h.reason like 'Every department reads the features%'
             from knowledge.history h where h.record_id = 'F990' and h.version = 2), 'the move did not keep its who and why';

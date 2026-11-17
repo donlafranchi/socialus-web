@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
+import { importedFeatureReaders } from './support/imported-features'
 import { enterStore } from '../scripts/knowledge/import'
 import {
   readWords, readRollup, decide, failingRoutes, routeNames, loadCapabilities, renderPack, packBody, sourceOf, tonightsFailures,
@@ -186,11 +187,7 @@ describe.skipIf(!RUNNABLE)('F129: what SocialUs can do, in the store', () => {
     const first = await loadCapabilities(db, { words: WORDS, rollup: ROLLUP, failing: new Set() })
     expect(first).toMatchObject({ lines: 5, featuresMade: 2, withdrawn: 0, problems: [] })
     // Every department reads the features an import makes, later departments too (the PM, 2026-11-17).
-    const { rows: [imported] } = await db.query<{ n: number; hidden: number }>(
-      `select count(*)::int as n, count(*) filter (where r.audience <> 'members')::int as hidden
-         from knowledge.records r join knowledge.history h on h.record_id = r.id and h.version = 1
-        where r.kind = 'feature' and h.reason like 'Imported:%'`,
-    )
+    const imported = await importedFeatureReaders(db)
     expect(imported.n).toBeGreaterThan(0)
     expect(imported.hidden, 'an imported feature is not readable by every department').toBe(0)
     expect(first.changed).toHaveLength(5)
