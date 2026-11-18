@@ -18,7 +18,7 @@ Where each kind of thing goes (one home each, budgets, generated vs maintained):
 - Don decides ideas, what is in each version, and words and look-and-feel. You decide the rest, record it and report it.
 - Look first: name 2–3 precedents with links. Well-worn path: decide and build. New territory (touches a ruling, legal or privacy exposure, money or member trust): A/B/C before building.
 - When two live records conflict, build to the newer, then retire the older in the store so one remains (table below). Never ask Don which is true.
-- Never re-raise: members are the investors and the only people paid out; wealth circulates, it is never extracted.
+- Never re-raise: SocialUs is built for the primary benefit of its members. Members are not investors, owners or payees, and no return is promised; the legal side goes to counsel, never back to the PM. Wealth circulates, it is never extracted.
 
 **Never break**
 - Deploys to main, destructive migrations, deleting data and rewriting history ask Don first. Until the first real member signs up, you may apply migrations yourself, in order, confirming each.

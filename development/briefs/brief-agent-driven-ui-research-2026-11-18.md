@@ -17,7 +17,7 @@ For Claude Desktop Projects doing research. No code access is assumed; this is w
 - **Theme: "Bring it to life."** Search is the main way it happens: an unmet search becomes an ask, a welcome, a maker partnership (`socialus-plan` `planning/briefs/hyper-specific-search-2026-11-15.md`).
 - In practice today: a map and search over local people, Pages and posts; buy, sell, trade, teach, gather, hire, give; one metro first. Nobody uses production yet.
 - Money and help stay with local people; businesses are one kind of local among many.
-- Members are the investors and the only people paid out; SocialUs takes transaction income. Treat that as settled, do not research it.
+- SocialUs is built for the primary benefit of its members: they are not investors, owners or payees, and no return is promised (ruled 2026-11-18). SocialUs takes transaction income. Treat that as settled, do not research it.
 - **Why this matters for your research:** an agent that only finds things is half the product. The other half is an agent that helps people organize and start things together.
 
 ## What is built (verified in code)
