@@ -10,7 +10,7 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 
 | Rule | Serves | Held by |
 |---|---|---|
-| **Dates** (Don, 2026-10-16): each Page's 3 samples fall on one weekday in weeks 1, 2 and 3 from now; every weekday has Pages, more on Fri–Sun; the kinds and hours vary, and a deal runs 2–3 days. Every Monday they roll forward. | `cap-1` timely announcements, `cap-5` current without following many | `sampleSchedule` (`src/lib/unclaimed/samples.ts`) and its tests; `unclaimed-roll.yml` rolls finished samples on and re-dates any off the pattern |
+| **Dates** (Don, 2026-10-16): each Page's 3 samples fall on one weekday in weeks 1, 2 and 3 from now; every weekday has Pages, more on Fri–Sun; the kinds and hours vary, and a deal runs 2–3 days. They roll forward daily as each one finishes (#1357; was every Monday). | `cap-1` timely announcements, `cap-5` current without following many | `sampleSchedule` (`src/lib/unclaimed/samples.ts`) and its tests; `unclaimed-roll.yml` rolls finished samples on and re-dates any off the pattern |
 | **Interests:** every Page and its samples carry 1–2 of the 12 interest tags, from what the Page is. | `cap-3` the member's own signals, `cap-4` member control | `interestsFor` (`src/lib/unclaimed/plan.ts`); the loader adds missing tags on every run, so older Pages are backfilled |
 | **Coverage:** each batch of 8 or more Pages spans at least 5 towns and at least 4 interest tags (a smaller batch loads what qualifies); `ADDED.md` logs each row's interests. | `cap-2` discovery without searching | `batchCoverage`; a test fails any such `makers-YYYY-MM-DD.json` from 2026-10-17 that misses it |
 
