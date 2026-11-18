@@ -161,10 +161,7 @@ product docs. Read it before building;
 it is the only rulings file this repo points at. Never edit it — change the tag on
 the decision in socialus-plan. It lists only live rulings; superseded ones are gone.
 
-**If two rulings seem to conflict, the newer wins and work continues** — never stop
-to ask Don which is true (socialus-ops `[newer-decision-wins]`). Only two live
-rulings in conflict with neither superseding the other are raised, as an
-open-question marker where it bites. Never split the difference.
+**If two live rulings conflict, build to the newer, then retire the older in the knowledge store** so one remains (see § When to ask the store). Never stop to ask Don which is true, and never split the difference.
 
 ## Which check discharges which criterion
 
