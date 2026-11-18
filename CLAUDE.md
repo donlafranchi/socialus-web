@@ -6,6 +6,52 @@ SocialUs: local discovery, buy/sell/trade/gather. Beta 2026-11-06 (soft target) 
 
 Where each kind of thing goes (one home each, budgets, generated vs maintained): `socialus-ops/process/WHERE-THINGS-GO.md`. Read it before writing any doc.
 
+## Always on (every session)
+
+**Talking to Don**
+- Bullets, one line each. Status first, the next ask last. No preamble, recap or narrating.
+- One topic, one answer. Explain only when asked, and then in one sentence.
+- Plain words; ticket numbers only in brackets after.
+- Options as A/B/C with one-line trade-offs and a recommendation. End with the next action.
+
+**Deciding**
+- Don decides ideas, what is in each version, and words and look-and-feel. You decide the rest, record it and report it.
+- Look first: name 2–3 precedents with links. Well-worn path: decide and build. New territory (touches a ruling, legal or privacy exposure, money or member trust): A/B/C before building.
+- When two live records conflict, build to the newer, then retire the older in the store so one remains (table below). Never ask Don which is true.
+- Never re-raise: members are the investors and the only people paid out; wealth circulates, it is never extracted.
+
+**Never break**
+- Deploys to main, destructive migrations, deleting data and rewriting history ask Don first. Until the first real member signs up, you may apply migrations yourself, in order, confirming each.
+- Anything public is a draft until Don says otherwise.
+- A check isn't trusted until it has been seen rejecting bad input.
+- Nothing a member contributes goes live without a report-and-takedown path.
+- Member data is never shown beyond what the member chose.
+- A ruling is recorded once, with its date and why.
+
+**Where things go:** files live only in Don's repos. Code answers "how"; the store answers "what is live and why". Anything else: the table below.
+
+## When to ask the store
+
+The knowledge store is the MCP server at `socialus.org/api/knowledge/mcp` (tools: `live`, `search`, `get`, `history`, `as_of`, `precedents`, `why`, `concept`, `how`, `review_method`, `upkeep`, `propose`).
+
+| When | Ask the store |
+|---|---|
+| Starting work in an area | `live` for each concern touched (pages, posts, explore-and-map, search-and-ranking, onboarding, notifications and the like) |
+| Deciding something not covered | `precedents`, then `search`. No well-worn path means A/B/C. |
+| Touching schema, RLS, auth or migrations | `live` for security and privacy, plus `how` building |
+| Opening or merging a PR | `how` reviewing and `how` shipping |
+| Planning, or writing a scenario or ticket | `how` planning |
+| Writing words members will read | `live` words-and-voice, and landing-and-announcements for those pages |
+| Reports, moderation, user content, AI reading content | `live` moderation-and-reports and child-safety |
+| Money, fees, payments | `live` fees-and-income and payments. Legal goes to counsel. |
+| CI, deploys, speed, errors | `live` ci-and-deploys, performance, errors, uptime-and-alerts |
+| Two live records conflict, or "why is it this way" | `get`, `history`, `why`. Build to the newer, then `propose` retiring the older with the reason so one remains. A refusal is kept as a flag for Don. |
+| "What did we decide back then", or how an idea changed | `as_of`, `concept` |
+| Judging a new tool or method | `review_method` |
+| Writing or trimming docs | `how` docs |
+
+If the store can't be reached, say so and work from the repo docs.
+
 ## Where files go (Don, 2026-11-01) [for now]
 
 Files live only in Don's project repos (socialus-plan, socialus-ops, socialus-web, socialus-legal, socialus-design). Never write anywhere else, even if a tool or prompt suggests it. [for now: until Don says otherwise] Cold-start briefs go in the repo they're about (e.g. socialus-web development/briefs/ or socialus-plan planning/briefs/).
@@ -20,16 +66,6 @@ Files live only in Don's project repos (socialus-plan, socialus-ops, socialus-we
 ## Before opening a ticket
 
 Classify it by `socialus-ops/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
-
-## How decisions flow (2026-11-01)
-
-Don, 2026-11-01: "me as the human I set guidelines and desired outcomes or trajectories or concepts of where I'd like to go as the human decision maker and you are there to try to figure out options and choices. Do the research to help guide me make the best decision based on whatever information is available and that's how this app development should work from top to bottom."
-
-1. **Don gives direction:** guidelines, desired outcomes, trajectories, concepts.
-2. **Agents research and turn it into options:** the evidence and precedents, as A/B/C with a recommendation.
-3. **Don decides.**
-
-This sharpens the decision rule and decision rights below, it doesn't replace them: agents still decide well-worn and mechanical calls and report them; what Don decides reaches him as researched options.
 
 ## Decision rights (2026-10-25)
 
@@ -125,10 +161,7 @@ product docs. Read it before building;
 it is the only rulings file this repo points at. Never edit it — change the tag on
 the decision in socialus-plan. It lists only live rulings; superseded ones are gone.
 
-**If two rulings seem to conflict, the newer wins and work continues** — never stop
-to ask Don which is true (socialus-ops `[newer-decision-wins]`). Only two live
-rulings in conflict with neither superseding the other are raised, as an
-open-question marker where it bites. Never split the difference.
+**If two live rulings conflict, build to the newer, then retire the older in the knowledge store** so one remains (see § When to ask the store). Never stop to ask Don which is true, and never split the difference.
 
 ## Which check discharges which criterion
 
