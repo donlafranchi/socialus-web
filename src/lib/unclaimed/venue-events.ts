@@ -205,7 +205,9 @@ const rhp = (room: string) => (html: string, base: string, now = new Date()): Ve
     const raw = tag(p, /rhp-event__title--grid[^>]*>\s*([^<]*?)\s*</)
     if (!startsAt || !raw) return []
     const ticket = /rhp-event-cta[^>]*>\s*<a\b[^>]*\bhref="([^"]+)"/.exec(p)?.[1] ?? /class="url" href="([^"]+)"/.exec(p)?.[1]
-    return [{ title: raw.replace(CANCELLED, ''), startsAt, doorsAt: show && doors && doors < show ? doors : undefined, ticketUrl: abs(ticket, base), cancelled: CANCELLED.test(raw) || /rhp-event-cta Cancel/i.test(p) }]
+    // #1358 — the listing's own image (#1045), else the show falls back to stock.
+    const imageUrl = abs(/rhp-events-event-image[^>]*>\s*<img\b[^>]*\ssrc="([^"]+)"/.exec(p)?.[1], base)
+    return [{ title: raw.replace(CANCELLED, ''), startsAt, doorsAt: show && doors && doors < show ? doors : undefined, ticketUrl: abs(ticket, base), imageUrl, cancelled: CANCELLED.test(raw) || /rhp-event-cta Cancel/i.test(p) }]
   })
 
 const withSupport = (title: string, support?: string) => (support ? `${title} with ${support}` : title)
@@ -454,7 +456,9 @@ export async function syncVenueShows(db: Db, groupId: string, venue: string, sou
     const old = byKey.get(key)
     byKey.delete(key)
     // A show still wearing the Page's cover (or none) gets a picture that fits it; one that already has its own keeps it and its credit.
-    const fresh = opts.photoFor && (!old || !old.photo_url || old.photo_url === photoUrl) ? await opts.photoFor(s, key, type) : null
+    // #1358 — one on stock whose listing now has an image of its own tries for it again.
+    const ownable = !!old && !!s.imageUrl && type !== 'sports' && !/\n\nPhoto: .+\(from their website\)$/.test(old.body)
+    const fresh = opts.photoFor && (!old || !old.photo_url || old.photo_url === photoUrl || ownable) ? await opts.photoFor(s, key, type) : null
     const photo = fresh?.url ?? old?.photo_url ?? photoUrl
     const body = showBody(venue, s, source, fresh?.credit ?? (old && old.photo_url !== photoUrl ? /\n\nPhoto: (.+)$/.exec(old.body)?.[1] : undefined))
     if (!old) {

@@ -41,6 +41,17 @@ describe('Harlow\'s and the Starlet Room (rhp list, year from the weekday)', () 
     expect(iso(w.startsAt)).toBe('2026-10-26T02:30:00.000Z')
     expect(shows.find((s) => s.title.startsWith('Blitzkid'))).toBeUndefined()
   })
+  it('#1358 — each show keeps its own listing image', () => {
+    const card = (img: string) => `<div class="eventMainWrapper"><div class="rhp-events-event-image rhp-event__image--grid">
+      ${img}</div><div id="eventDate" class="mb-0 eventMonth singleEventDate text-uppercase">Fri, Nov 20</div>
+      <a id="eventTitle" class="url" href="/event/agriculture/"><h2 class="mb-1 rhp-event__title--grid">Agriculture</h2></a>
+      <span class="font0by75 fontWeight500 lineHeight15">Doors: 7 pm // Show: 8 pm</span>
+      <a class="venueLink" href="https://www.harlows.com/venue/harlows/">Harlow's</a></div>`
+    const [a] = HTML_PARSERS['harlows-rhp']!(card(`<img src="https://www.harlows.com/wp-content/uploads/2026/08/agriculture.jpeg" title="Agriculture" alt='Agriculture' />`), base, NOW, {})
+    expect(a!.imageUrl).toBe('https://www.harlows.com/wp-content/uploads/2026/08/agriculture.jpeg')
+    const [b] = HTML_PARSERS['harlows-rhp']!(card(''), base, NOW, {})
+    expect(b!.imageUrl).toBeUndefined()
+  })
   it('a page that changed shape reads as nothing', () => {
     expect(HTML_PARSERS['harlows-rhp']!('<html>nothing</html>', base, NOW, {})).toEqual([])
   })
