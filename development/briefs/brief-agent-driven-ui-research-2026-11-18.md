@@ -13,9 +13,12 @@ For Claude Desktop Projects doing research. No code access is assumed; this is w
 - He is **not sure "Generative UI" means that.** Part of your job is to say what the term covers (CopilotKit's "generative UI spectrum": https://www.copilotkit.ai/generative-ui-spectrum *(not yet read by us)*) and what it does not.
 
 ## What SocialUs is
-- Local discovery plus buy / sell / trade / teach / gather / hire / give, on a map, in one metro first. Beta soft target 2026-11-06 (already past), nobody uses production yet.
+- **Two things:** local discovery, and an engine for cooperation, collaboration and community development. Discovery is the way in; bringing things to life together is where it is headed (Don, ruled 2026-11-15, `socialus-plan` `PRINCIPLES.md` § two-halves, also `product/charter.md`).
+- **Theme: "Bring it to life."** Search is the main way it happens: an unmet search becomes an ask, a welcome, a maker partnership (`socialus-plan` `planning/briefs/hyper-specific-search-2026-11-15.md`).
+- In practice today: a map and search over local people, Pages and posts; buy, sell, trade, teach, gather, hire, give; one metro first. Nobody uses production yet.
 - Money and help stay with local people; businesses are one kind of local among many.
 - Members are the investors and the only people paid out; SocialUs takes transaction income. Treat that as settled, do not research it.
+- **Why this matters for your research:** an agent that only finds things is half the product. The other half is an agent that helps people organize and start things together.
 
 ## What is built (verified in code)
 - **Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind v4, Supabase (Postgres, Auth, Realtime, RLS), Mapbox GL JS, Vercel, Sentry, Zod, web-push. Already installed: `@modelcontextprotocol/sdk` and Vercel's `mcp-handler`. No AI-UI library (CopilotKit, Vercel AI SDK, assistant-ui, etc.) is installed.
