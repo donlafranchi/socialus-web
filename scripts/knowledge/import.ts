@@ -40,7 +40,7 @@ import { placeOf, ABSOLUTE_CONCERN, CONCERN_DEPARTMENT } from './concerns'
 import { inferApplies } from './infer'
 import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
-import { loadPractices, readPracticeSeed, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
+import { loadPractices, readPracticeSeed, practiceSeedPath, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
 import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
 import { loadRuns, runsReport, type RunsSummary } from './runs'
 
@@ -55,7 +55,7 @@ export interface Sources {
   commits?: { plan?: string; ops?: string; web?: string }
   /** F130: the traced concept timelines; scripts/knowledge/concepts-seed.json unless given. */
   seed?: Seed
-  /** F128: how we work; scripts/knowledge/practices-seed.json unless given (null: skip). */
+  /** F128: how we work; socialus-ops packs/practices-seed.json unless given (null: skip). */
   practices?: PracticeSeed | null
   /** F132: the story maps. Left out, no map is loaded (the fixtures' imports). */
   maps?: MapSources
@@ -448,7 +448,7 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
 
   // F128: how we work. The practices and experiments seed, and the
   // review-a-method steps from socialus-ops.
-  const practices = src.practices === undefined ? readPracticeSeed() : src.practices
+  const practices = src.practices === undefined ? readPracticeSeed(practiceSeedPath(src.opsDir)) : src.practices
   if (practices) {
     summary.practices = await loadPractices(db, {
       seed: practices,

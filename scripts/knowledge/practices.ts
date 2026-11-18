@@ -1,5 +1,5 @@
 // F128 (#1237): how we work into the knowledge store: every practice and
-// experiment in practices-seed.json (extracted from socialus-ops process/ and
+// experiment in socialus-ops packs/practices-seed.json (extracted from process/ and
 // the three repos' CLAUDE.md files), and the review-a-method steps from
 // socialus-ops, which the lookup tool and the pack hand to a reviewer.
 //
@@ -67,7 +67,11 @@ export interface PracticeSeed {
   experiments: SeedExperiment[]
 }
 
-export const PRACTICE_SEED_PATH = join(__dirname, 'practices-seed.json')
+/** The seed lives in socialus-ops with the practices it describes; the import reads it from the ops checkout. */
+export const PRACTICE_SEED_FILE = 'packs/practices-seed.json'
+export const practiceSeedPath = (opsDir: string) => join(opsDir, PRACTICE_SEED_FILE)
+/** The ops checkout CI sets (KNOWLEDGE_OPS_DIR), else the sibling one, for tests and local runs. */
+export const PRACTICE_SEED_PATH = practiceSeedPath(process.env.KNOWLEDGE_OPS_DIR ?? join(__dirname, '..', '..', '..', 'socialus-ops'))
 export const REVIEW_METHOD_FILE = 'process/research/2026-11-10-review-a-method.md'
 export const REVIEW_METHOD_ID = 'practice.review-a-method'
 
@@ -283,9 +287,9 @@ export async function loadPractices(db: ClientBase, src: PracticeSources): Promi
     return sum
   }
   const seedFile = {
-    repo: 'socialus-web',
-    commit: src.commits?.web ?? null,
-    file: 'scripts/knowledge/practices-seed.json',
+    repo: 'socialus-ops',
+    commit: src.commits?.ops ?? null,
+    file: PRACTICE_SEED_FILE,
   }
 
   for (const p of src.seed.practices) {
