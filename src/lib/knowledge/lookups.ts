@@ -504,6 +504,20 @@ export async function decide(db: ClientBase, id: string, reason: string): Promis
   return rows[0].out
 }
 
+/** Retires a record and links it to the newer one that replaces it. The record is kept, never deleted. */
+export async function retire(
+  db: ClientBase,
+  id: string,
+  replacedBy: string | null,
+  reason: string,
+): Promise<{ id: string; version?: number; replaced_by?: string | null; refused?: string }> {
+  const { rows } = await db.query<{ out: { id: string; version?: number; replaced_by?: string | null; refused?: string } }>(
+    'select knowledge.retire($1, $2, $3) as out',
+    [id, replacedBy, reason],
+  )
+  return rows[0].out
+}
+
 // ---------------------------------------------------------------------------
 // F130 (#1232): a concept's timeline, by its id or any name it ever had.
 
