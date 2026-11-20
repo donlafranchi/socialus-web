@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -23,7 +23,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and writes one `creator_rules_agreements` row per Page (member, Page, version, time); `members.maker_mode_enabled` is gone (#908) [V]. Since #1135 (10-31) the agreement is the one line 'By posting you agree to the Terms' with no tick; the publish action still sends the version. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx`, updated in #1135: a second Page is refused without a fresh agreement, no checkbox, and a standing scan that `members` and `groups` carry no role, type, mode or badge column [V]. Reviewed: #326, #493, #908 carry `Reviewed by:`, but #1135 (which rewrote the step and the guard) says 'second session pending' and carries `needs-fix`, so no. Shipped: Deploy health green on f89b294 and 3df9260. Smoked: no route for the publish card."
+   "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and writes one `creator_rules_agreements` row per Page (member, Page, version, time); `members.maker_mode_enabled` is gone (#908) [V]. Since #1135 (10-31) the agreement is the one line 'By posting you agree to the Terms' with no tick; the publish action still sends the version. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx`, updated in #1135: a second Page is refused without a fresh agreement, no checkbox, and a standing scan that `members` and `groups` carry no role, type, mode or badge column [V]. Reviewed: #326, #493, #908 carry `Reviewed by:`, but #1135 (which rewrote the step and the guard) says 'second session pending' and carries `needs-fix`, so no. Shipped: Deploy health green on f89b294 and 3df9260. Smoked: no route for the publish card. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "2a",
@@ -41,7 +41,7 @@
    "issues": [
     1203
    ],
-   "note": "Publish has no input, upload or tick, only Publish and the Terms line; the agreements table has no free-text column; `group.activate` calls no lookup, approval or queue [V BeforeYouPublish.tsx, migration 20261007190000]. Reviewed: rewritten in #1135 ('second session pending'), so no. Checked: the old `[guards F082.2]` sat on the removed rules block; no marker names this half now (#1203). Shipped: green on 3df9260. Smoked: no route for the publish card."
+   "note": "Publish has no input, upload or tick, only Publish and the Terms line; the agreements table has no free-text column; `group.activate` calls no lookup, approval or queue [V BeforeYouPublish.tsx, migration 20261007190000]. Reviewed: rewritten in #1135 ('second session pending'), so no. Checked: the old `[guards F082.2]` sat on the removed rules block; no marker names this half now (#1203). Shipped: green on 3df9260. Smoked: no route for the publish card. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "2b",
@@ -57,7 +57,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Spec conflict. There is no rules list with a reason each any more: Don, 2026-10-31 (#1135): 'drop the Rules page; one line at publish', 'By posting you agree to the Terms' [V BeforeYouPublish.tsx, creator-rules.ts, next.config.ts]. The scenario has no dated `## Rulings` line for it (the PR says 'Scenario F082 ... needs updating'), so this cannot be marked retired here. Routed to `scope-scenario`: record the ruling and retire or restate criteria 2b and 6's 'rules'."
+   "note": "Spec conflict. There is no rules list with a reason each any more: Don, 2026-10-31 (#1135): 'drop the Rules page; one line at publish', 'By posting you agree to the Terms' [V BeforeYouPublish.tsx, creator-rules.ts, next.config.ts]. The scenario has no dated `## Rulings` line for it (the PR says 'Scenario F082 ... needs updating'), so this cannot be marked retired here. Routed to `scope-scenario`: record the ruling and retire or restate criteria 2b and 6's 'rules'. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "3",
@@ -73,7 +73,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`creator_rules_agreements` is named only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated [V migration 20261007190000, grep src]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` (RLS, no policy or grant, both roles refused, no view or function reads it, only `group.activate` names it, no peer surface reads a version) [V]. Reviewed: #326, #493, #908. Shipped: green on f89b294. Unchanged since 10-23 [V git log]."
+   "note": "`creator_rules_agreements` is named only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated [V migration 20261007190000, grep src]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` (RLS, no policy or grant, both roles refused, no view or function reads it, only `group.activate` names it, no peer surface reads a version) [V]. Reviewed: #326, #493, #908. Shipped: green on f89b294. Unchanged since 10-23 [V git log]. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "4",
@@ -89,7 +89,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`group.activate` is the only gate; `group.create` and `update_draft` never ask [V]. Checked: `[guards F082.4]` in `activate.test.ts` [V]. Reviewed: #326 and #493. Shipped: green on 96b0ea6. Unchanged since 10-23 [V]. Smoked: no route for the publish card."
+   "note": "`group.activate` is the only gate; `group.create` and `update_draft` never ask [V]. Checked: `[guards F082.4]` in `activate.test.ts` [V]. Reviewed: #326 and #493. Shipped: green on 96b0ea6. Unchanged since 10-23 [V]. Smoked: no route for the publish card. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "5",
@@ -107,7 +107,7 @@
    "issues": [
     1202
    ],
-   "note": "The only step strings are the checklist labels, the missing-parts line and 'By posting you agree to the Terms'; none classifies the member, uses legal or tax language, or asks for entity information [V BeforeYouPublish.tsx]. #1135 deleted the old `[guards F082.5]` scan with the rules block, so no guard stands (#1202; #581 is the F060 sibling). Reviewed: #493 did; #1135 rewrote the step and is 'pending', so no. Shipped: green on 3df9260."
+   "note": "The only step strings are the checklist labels, the missing-parts line and 'By posting you agree to the Terms'; none classifies the member, uses legal or tax language, or asks for entity information [V BeforeYouPublish.tsx]. #1135 deleted the old `[guards F082.5]` scan with the rules block, so no guard stands (#1202; #581 is the F060 sibling). Reviewed: #493 did; #1135 rewrote the step and is 'pending', so no. Shipped: green on 3df9260. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "6",
@@ -123,7 +123,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`RULES_VERSION` (still 1; #1135 changed the surface, not the version) is compared on every publish and the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` `[guards F082.6]` x2 (earlier version refused, row recorded) and `create/actions.test.ts` `[guards F082.6]`; 'only operators read it' is F082.3's guard [V]. Reviewed: #493. Shipped: green on 96b0ea6. Note the word 'rules' now means the Terms (see 2b)."
+   "note": "`RULES_VERSION` (still 1; #1135 changed the surface, not the version) is compared on every publish and the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` `[guards F082.6]` x2 (earlier version refused, row recorded) and `create/actions.test.ts` `[guards F082.6]`; 'only operators read it' is F082.3's guard [V]. Reviewed: #493. Shipped: green on 96b0ea6. Note the word 'rules' now means the Terms (see 2b). Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "7",
@@ -141,7 +141,7 @@
    "issues": [
     1204
    ],
-   "note": "Since #1135 the rules live in the Terms: `/rules` answers 301 to `/terms` (`next.config.ts`), and `/terms` is one click from the Publish card, signup, onboarding, the desktop footer and the landing page [V grep]; the You > Rules row (#772) is gone. Treating the Terms as 'the rules' follows Don's 10-31 change (see 2b). Checked: `BeforeYouPublish.test.tsx` and `shell.test.tsx` assert the link and the redirect, unmarked; the old `[guards F082.7]` checks were deleted (#1204). Reviewed: #772 was review-skipped and #1135 is pending. Shipped: green on 3df9260. Smoked: `/terms` has no LIVE_PATHS entry."
+   "note": "Since #1135 the rules live in the Terms: `/rules` answers 301 to `/terms` (`next.config.ts`), and `/terms` is one click from the Publish card, signup, onboarding, the desktop footer and the landing page [V grep]; the You > Rules row (#772) is gone. Treating the Terms as 'the rules' follows Don's 10-31 change (see 2b). Checked: `BeforeYouPublish.test.tsx` and `shell.test.tsx` assert the link and the redirect, unmarked; the old `[guards F082.7]` checks were deleted (#1204). Reviewed: #772 was review-skipped and #1135 is pending. Shipped: green on 3df9260. Smoked: `/terms` has no LIVE_PATHS entry. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "8",
@@ -157,7 +157,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`group.activate` requires name (or business display name), anchor location and description for every kind; a tag is no longer asked of the member but 'Listed under' is filled from the Page's words, else Neighborhood life, so a Page is never published unlisted (#1181, plan #273 B, `Reviewed by:` second session); the checklist marks the photo optional; `DefaultArt` stands in without one [V activate.ts, BeforeYouPublish.tsx]. Checked: `[guards F082.8]` in `tests/f082-rules-before-publish-db.test.tsx`, which now also asserts the suggested listing [V]. Reviewed: #326, #493, #908, #1181. Shipped: green on f89b294 and 591ab70."
+   "note": "`group.activate` requires name (or business display name), anchor location and description for every kind; a tag is no longer asked of the member but 'Listed under' is filled from the Page's words, else Neighborhood life, so a Page is never published unlisted (#1181, plan #273 B, `Reviewed by:` second session); the checklist marks the photo optional; `DefaultArt` stands in without one [V activate.ts, BeforeYouPublish.tsx]. Checked: `[guards F082.8]` in `tests/f082-rules-before-publish-db.test.tsx`, which now also asserts the suggested listing [V]. Reviewed: #326, #493, #908, #1181. Shipped: green on f89b294 and 591ab70. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   },
   {
    "id": "9",
@@ -173,7 +173,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "The photo rule is in the Terms: 'No photos of kids, ever. Nothing involving kids, pets or anyone who can't speak up for themselves.' (`src/lib/text-pages.ts`), agreed with the Terms line at publish [V]. Draft wording ([public-is-draft]); the scenario's draft sentence and 'with its reason' form are gone. Checked: `[guards F082.9]` in `tests/f082-rules-before-publish-db.test.tsx` (rewritten in #1135 to match the Terms) and `text-pages.test.ts` [V]. Reviewed: the text moved with #1135 ('second session pending'), so no. Shipped: green on 3df9260."
+   "note": "The photo rule is in the Terms: 'No photos of kids, ever. Nothing involving kids, pets or anyone who can't speak up for themselves.' (`src/lib/text-pages.ts`), agreed with the Terms line at publish [V]. Draft wording ([public-is-draft]); the scenario's draft sentence and 'with its reason' form are gone. Checked: `[guards F082.9]` in `tests/f082-rules-before-publish-db.test.tsx` (rewritten in #1135 to match the Terms) and `text-pages.test.ts` [V]. Reviewed: the text moved with #1135 ('second session pending'), so no. Shipped: green on 3df9260. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open."
   }
  ]
 }

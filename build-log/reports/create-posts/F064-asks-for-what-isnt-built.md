@@ -1,6 +1,6 @@
 # F064: someone asks for something that isn't built
 
-category: create-posts (no Issue carries an `area:` label; closest fit, guess) · as-of: 2026-11-06 · scenario approved 2026-09-07, horizon next (criterion 1 amended 2026-09-15) · gates: none (no line) · tickets: #33 (open, no area label, no milestone) · PRs: none
+category: create-posts (no Issue carries an `area:` label; closest fit, guess) · as-of: 2026-11-20 · scenario approved 2026-09-07, horizon next (criterion 1 amended 2026-09-15) · gates: none (no line) · tickets: #33 (open, no area label, no milestone) · PRs: none
 
 Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: **behavior** (something works), **invariant** ("never / no / nothing": needs a standing guard, absence of code proves nothing).
 
@@ -18,11 +18,11 @@ Not built: 1, 2, 3, 4, 5. Built unknown: none. Spec conflict: none.
 
 | # | In plain words | Kind | Status | Built | Checked | Reviewed | Shipped | Smoked | PM looked | Issues | What exists / what is missing |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | One signal table, two sources (unmapped label, Other description), each row says which | behavior | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | No signal table in `supabase/migrations` and no code for an unmapped-label or Other-description source [V grep]. Open #33 covers it; its 2026-09-15 comment says build the table and the ranked query only, because both sources sit behind unruled drafts (the label layer, F088 which is still `draft`, horizon later). |
-| 2 | Tap on a not-built option is acknowledged; second tap by the same person is a no-op via a constraint | behavior | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | No 'not built yet' option and no tap handler exist [V grep]. Covered by #33. |
-| 3 | No copy in this flow implies a date, plan or queue position | invariant | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | Nothing built, so nothing to guard. A guard ships with #33. |
-| 4 | The person who signaled sees no count | invariant | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | Nothing built. Covered by #33. |
-| 5 | Operator can group the raw table by subject, ranked list, no screen | behavior | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | Nothing built; no operator query or table. Covered by #33. |
+| 1 | One signal table, two sources (unmapped label, Other description), each row says which | behavior | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | No signal table in `supabase/migrations` and no code for an unmapped-label or Other-description source [V grep]. Open #33 covers it; its 2026-09-15 comment says build the table and the ranked query only, because both sources sit behind unruled drafts (the label layer, F088 which is still `draft`, horizon later). Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open. |
+| 2 | Tap on a not-built option is acknowledged; second tap by the same person is a no-op via a constraint | behavior | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | No 'not built yet' option and no tap handler exist [V grep]. Covered by #33. Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open. |
+| 3 | No copy in this flow implies a date, plan or queue position | invariant | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | Nothing built, so nothing to guard. A guard ships with #33. Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open. |
+| 4 | The person who signaled sees no count | invariant | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | Nothing built. Covered by #33. Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open. |
+| 5 | Operator can group the raw table by subject, ranked list, no screen | behavior | active | **no** | **no** | **no** | **no** | **no** | **no** | #33 | Nothing built; no operator query or table. Covered by #33. Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open. |
 
 ## Routing
 
@@ -33,6 +33,8 @@ Not built: 1, 2, 3, 4, 5. Built unknown: none. Spec conflict: none.
 <!-- criteria:end -->
 
 ## Notes
+
+**Update 2026-11-20:** Nothing built; #33 still open. No change since 11-06.
 
 Not built: **all five**, covered by open #33. No PR cites F064 and no signal table exists in `supabase/migrations` [V grep, `gh pr list`]. Reviewed, Shipped and Smoked read no only because nothing exists. #33's body is partly stale (it still says three sources); its 2026-09-15 comment narrows to two and says to build the table and the ranked query, then stop, until the label layer and F088 (still a `draft`, horizon later) are ruled on [V].
 
