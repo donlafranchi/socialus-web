@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     778
    ],
-   "note": "[V] Builder accounts exist (`scripts/builders.ts`, one per eval persona, #281; no commit since 2026-10-23) but no Settled or Newcomer persona anywhere in scripts, src, evals, supabase or the workflows (grep). No PR cites F114 except #1004, the doc inventory, which only lists this report"
+   "note": "[V] Builder accounts exist (`scripts/builders.ts`, one per eval persona, #281; no commit since 2026-10-23) but no Settled or Newcomer persona anywhere in scripts, src, evals, supabase or the workflows (grep). No PR cites F114 except #1004, the doc inventory, which only lists this report [V reread 2026-11-20] unchanged: no Settled or Newcomer persona in `scripts`, `src`, `evals`, `supabase` or `.github` on `main` (grep `Settled`, `Newcomer`, `test-profile`); nothing in `scripts/builders.ts`, `src/lib/builders` or the builder workflows changed since 2026-10-30."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     778
    ],
-   "note": "[V] Not built; members.home_town exists (F103.5, migration 20261012060000) and the daily unclaimed seeds keep adding Pages per town (#1022 to #1111 this week), so the inputs are there"
+   "note": "[V] Not built; members.home_town exists (F103.5, migration 20261012060000) and the daily unclaimed seeds keep adding Pages per town (#1022 to #1111 this week), so the inputs are there [V reread 2026-11-20] unchanged; inputs still there: `members.home_town` (F103.5) and the daily and curated seeds keep adding Pages per town (#1211 to #1324 this month)."
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     778
    ],
-   "note": "[V] `scripts/test-profile.ts` does not exist (ls). The signals it would write exist: interests (010_member_interests_follows, #911 My interests), follows (#966 Following), RSVPs and saves"
+   "note": "[V] `scripts/test-profile.ts` does not exist (ls). The signals it would write exist: interests (010_member_interests_follows, #911 My interests), follows (#966 Following), RSVPs and saves [V reread 2026-11-20] `scripts/test-profile.ts` still does not exist on `main`. Signals to seed grew: heart and save (#1172) and \"Get updates\" replaced Follow; saves and follows still exist, interests (#911) and RSVPs unchanged."
   },
   {
    "id": "4",
@@ -79,7 +79,7 @@
    "issues": [
     778
    ],
-   "note": "[V] `is_builder()` exclusion exists in waitlist-join.ts, report/create.ts, admin reports-queue.ts, the push audience (sender.ts) and, new this week, the town counts (open_your_town.sql 20261026160000: makers and supporters skip builders, #1093), but not for these accounts and not in search demand (20261018210000) or the Wonder in-count (wonders.sql 20261025120000, #1081). No test covers every count"
+   "note": "[V] `is_builder()` exclusion exists in waitlist-join.ts, report/create.ts, admin reports-queue.ts, the push audience (sender.ts) and, new this week, the town counts (open_your_town.sql 20261026160000: makers and supporters skip builders, #1093), but not for these accounts and not in search demand (20261018210000) or the Wonder in-count (wonders.sql 20261025120000, #1081). No test covers every count [V reread 2026-11-20] Since 2026-10-30 four more counts landed and each skips builders in code: Show on map and Directions taps (#1163, `src/actions/map/log.ts`), shelf counts (#1159, `src/actions/shelf/log.ts`), the usage counts (#1268, F133: `usage.log`, `not public.is_builder(m.id)`), and the town counts from 10-26 (migration 20261026160000). Still without a builder exclusion: search demand (20261018210000) and the Wonder in-count (20261025120000, 20261101140000). No test covers every count, and no account is flagged as a test account yet, so the invariant stays unbuilt."
   },
   {
    "id": "5",
@@ -97,7 +97,7 @@
    "issues": [
     778
    ],
-   "note": "[V] `delete_builder_content()` (migration 20261005160000, scripts/builder-content.ts) wipes every builder's content, so a wipe scoped to two accounts is new; #778 asks for an architecture note first and has no comments"
+   "note": "[V] `delete_builder_content()` (migration 20261005160000, scripts/builder-content.ts) wipes every builder's content, so a wipe scoped to two accounts is new; #778 asks for an architecture note first and has no comments [V reread 2026-11-20] unchanged: `delete_builder_content()` still wipes every builder's content; a wipe scoped to two accounts is new, and #778 still has no comments."
   },
   {
    "id": "6",
@@ -115,7 +115,7 @@
    "issues": [
     778
    ],
-   "note": "[V] #778 holds a one-line checklist item and no comments; the full checklist is written when the script lands"
+   "note": "[V] #778 holds a one-line checklist item and no comments; the full checklist is written when the script lands [V reread 2026-11-20] #778 unchanged since 2026-10-13 (no comments)."
   }
  ]
 }
