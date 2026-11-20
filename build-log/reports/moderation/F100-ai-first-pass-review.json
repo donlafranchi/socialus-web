@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -204,7 +204,7 @@
     640,
     836
    ],
-   "note": "AI readiness panel on `/admin/reports` and the light on `/admin/metrics`, green/amber/red per number (#754, ruled option C 2026-10-11); shadow days now count from the first person's decision in `report_ai_agreement`, per the ruling (#899 fix) [V] Checked: `AiReadiness.test.tsx:77` renders both pages through the real data layer, seen failing against four mutants (#899); its marker leaves out only 11b, so it claims 11a whole [V] Reviewed: #754, #756, #899 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
+   "note": "AI readiness panel on `/admin/reports` and the light on `/admin/metrics`, green/amber/red per number (#754, ruled option C 2026-10-11); shadow days now count from the first person's decision in `report_ai_agreement`, per the ruling (#899 fix) [V] Checked: `AiReadiness.test.tsx:77` renders both pages through the real data layer, seen failing against four mutants (#899); its marker leaves out only 11b, so it claims 11a whole [V] Reviewed: #754, #756, #899 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "11b",
@@ -240,9 +240,10 @@
    "pm_looked": "no",
    "issues": [
     641,
-    643
+    643,
+    1288
    ],
-   "note": "Built half: a `sensitive_content` report gets a skipped row, no model call and no image fetch (`run-assessment.ts`) [V], and photos can be served through the site for Cloudflare's scan, off until `NEXT_PUBLIC_MEDIA_VIA_SITE=1` (`served-url.ts`, #784) [V]. Missing: the zone on Cloudflare and the CSAM Scanning Tool, the PM's setup (#641 open, `needs the PM`) [V] Checked: `[guards F100.12]` in `run-assessment.test.ts:50` covers the skip half only [V] #641 is still open on the PM's Cloudflare steps (last comment 2026-10-13) and carries no `needs-pm` label [V]."
+   "note": "Built half: a `sensitive_content` report gets a skipped row, no model call and no image fetch (`run-assessment.ts`) [V], and photos can be served through the site for Cloudflare's scan, off until `NEXT_PUBLIC_MEDIA_VIA_SITE=1` (`served-url.ts`, #784) [V]. Missing: the zone on Cloudflare and the CSAM Scanning Tool, the PM's setup (#641 open, `needs the PM`) [V] Checked: `[guards F100.12]` in `run-assessment.test.ts:50` covers the skip half only [V] #641 is still open on the PM's Cloudflare steps (last comment 2026-10-13) and carries no `needs-pm` label [V]. #1288 (2026-11-12) also builds the hash check before publish for every post and photo, which would cover this half too [V]."
   }
  ]
 }

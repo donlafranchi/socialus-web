@@ -9,11 +9,11 @@
 | builders-seed | 6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0 |
 | create-posts | 59 | 44/59 | 26/59 | 16/59 | 41/59 (3?) | 3/59 (41?) | 0/59 | 2 |
 | explore-map | 117 | 71/117 | 38/117 | 31/117 | 60/117 (11?) | 39/117 (32?) | 0/117 | 2 |
-| moderation | 66 | 61/66 | 61/66 | 6/66 | 47/66 (14?) | 18/66 (43?) | 0/66 | 5 |
+| moderation | 75 | 62/75 | 62/75 | 6/75 | 47/75 (15?) | 5/75 (57?) | 0/75 | 13 |
 | ops | 91 | 78/91 (2?) | 61/91 | 75/91 | 78/91 | 0/91 (78?) | 0/91 | 0 |
 | page-editing | 21 | 11/21 | 3/21 | 4/21 | 10/21 (1?) | 0/21 (11?) | 0/21 | 0 |
 | sign-in-you | 42 | 22/42 | 13/42 | 2/42 | 19/42 (3?) | 5/42 (17?) | 0/42 | 14 |
-| **All** | 402 | 287/402 (2?) | 202/402 | 134/402 | 255/402 (32?) | 65/402 (222?) | 0/402 | 23 |
+| **All** | 411 | 288/411 (2?) | 203/411 | 134/411 | 255/411 (33?) | 52/411 (236?) | 0/411 | 31 |
 
 ## By feature
 
@@ -44,12 +44,12 @@
 | explore-map | [F119 A member asks a question, and the app opens the page that answers it](explore-map/F119-ask-bar-opens-the-page.md) | none | 9 | 0/9 | 0/9 | 0/9 | 0/9 | 0/9 | 0/9 | 0 |
 | explore-map | [F121 shelves are data, and we try several to learn which ones help](explore-map/F121-shelves-are-data.md) | none | 18 | 14/18 | 12/18 | 14/18 | 14/18 | 9/18 (5?) | 0/18 | 0 |
 | explore-map | [F134 visitors read everything; anything that writes asks them to sign in first](explore-map/F134-visitors-read-everything.md) | none | 11 | 10/11 | 6/11 | 10/11 | 10/11 | 4/11 (6?) | 0/11 | 0 |
-| moderation | [F058 a member reports something, and the operator can take a photo down](moderation/F058-report-and-remove-a-photo.md) | launch | 5 | 5/5 | 5/5 | 0/5 | 4/5 (1?) | 0/5 (5?) | 0/5 | 0 |
-| moderation | [F078 flagged content hides itself, and the poster is told why](moderation/F078-flagged-content-hides-itself.md) | launch | 12 | 12/12 | 12/12 | 0/12 | 12/12 | 4/12 (8?) | 0/12 | 0 |
-| moderation | [F080 no sensitive content in photos; the uploader confirms, a report hides](moderation/F080-no-sensitive-photos.md) | launch | 6 | 5/6 | 5/6 | 0/6 | 5/6 | 0/6 (5?) | 0/6 | 1 |
+| moderation | [F058 a member reports something, and the operator can take a photo down](moderation/F058-report-and-remove-a-photo.md) | launch | 5 | 5/5 | 5/5 | 0/5 | 4/5 (1?) | 2/5 (3?) | 0/5 | 0 |
+| moderation | [F078 flagged content hides itself, and the poster is told why](moderation/F078-flagged-content-hides-itself.md) | launch | 12 | 12/12 | 12/12 | 0/12 | 12/12 | 2/12 (10?) | 0/12 | 0 |
+| moderation | [F080 no sensitive content in photos; the uploader confirms, a report hides](moderation/F080-no-sensitive-photos.md) | launch | 8 | 5/8 | 5/8 | 0/8 | 5/8 | 0/8 (5?) | 0/8 | 3 |
 | moderation | [F100 an AI reads every reported item first, and a person makes the call](moderation/F100-ai-first-pass-review.md) | launch | 13 | 11/13 | 11/13 | 3/13 | 11/13 | 0/13 (11?) | 0/13 | 2 |
-| moderation | [F101 one scannable page of flagged and reviewed Posts, decided in one tap](moderation/F101-one-page-of-flagged-posts.md) | launch | 15 | 15/15 | 15/15 | 0/15 | 3/15 (12?) | 14/15 (1?) | 0/15 | 0 |
-| moderation | [F102 the poster answers first, report misuse is tracked, and the platform holds steady Tuesday to Thursday](moderation/F102-poster-answers-first.md) | launch | 15 | 13/15 | 13/15 | 3/15 | 12/15 (1?) | 0/15 (13?) | 0/15 | 2 |
+| moderation | [F101 one scannable page of flagged and reviewed Posts, decided in one tap](moderation/F101-one-page-of-flagged-posts.md) | launch | 15 | 15/15 | 15/15 | 0/15 | 3/15 (12?) | 0/15 (15?) | 0/15 | 0 |
+| moderation | [F102 the poster answers first, report misuse is tracked, and the platform holds steady Tuesday to Thursday](moderation/F102-poster-answers-first.md) | launch | 22 | 14/22 | 14/22 | 3/22 | 12/22 (2?) | 1/22 (13?) | 0/22 | 8 |
 | ops | [F125 every decision, pattern and why lives in one store every agent asks](ops/F125-one-store-for-decisions-and-whys.md) | none | 14 | 13/14 | 9/14 | 10/14 | 13/14 | 0/14 (13?) | 0/14 | 0 |
 | ops | [F126 decisions and features wait on exactly the conditions they need](ops/F126-things-wait-on-the-conditions-they-need.md) | none | 9 | 7/9 (1?) | 5/9 | 8/9 | 7/9 | 0/9 (7?) | 0/9 | 0 |
 | ops | [F127 versions are plans of feature slices that can change without breaking](ops/F127-versions-are-plans-of-feature-slices.md) | none | 8 | 7/8 | 7/8 | 7/8 | 7/8 | 0/8 (7?) | 0/8 | 0 |
@@ -75,13 +75,13 @@
 |---|---|---|---|
 | SPEC-CONFLICT | 10 | F060.4, F082.2b, F059.5a, F091.1b, F102.7, F056.1b, F056.3, F057.4b, F065.2b, F077.4 | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
 | UNKNOWN | 2 | F126.7, F133.8 | `regen-feature-report`: find the evidence |
-| NOT-BUILT | 105 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F076.10b, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3, … (65 more) | `write-tickets` then `build-ticket` |
+| NOT-BUILT | 113 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F076.10b, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3, … (73 more) | `write-tickets` then `build-ticket` |
 | INVARIANT-UNPROVEN | 24 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F082.5, F059.2c, F059.3, F059.4b, F059.5e, F070.2, F076.15, F092.1a, F118.11, F125.2, F125.8, F056.7a, F056.8, F057.1, F065.2a, F077.3 | `write-tickets` (guard) then `build-ticket` |
 | NO-CHECK | 59 | F061.1, F061.2, F072.3, F082.2a, F082.7, F099.2, F099.9, F099.11, F059.1, F059.2b, F059.5b, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F076.3, F076.7, F076.8, F091.1a, F091.5, F091.7, F118.8, F118.9, F121.1a, F121.3b, F134.2, F134.8, F134.9, F134.10, F125.1, F125.14, F126.5, F126.8, F128.1, F128.3, F128.4, F128.6, … (19 more) | `write-tickets` (check) then `build-ticket`, tests seen failing |
-| NOT-REVIEWED | 153 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.5, F082.7, F082.9, F099.8, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5e, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, … (113 more) | `review-pr-bundle` |
-| NOT-SHIPPED | 32 | F061.3, F072.1a, F072.2a, F059.10, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10a, F076.11, F076.12, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F069.3, F057.5, F065.1, F065.4 | CI: `deploy-health` green on the merge commit |
-| NOT-SMOKED | 220 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.10, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, … (180 more) | CI: a `smoke-live` run that covers the route |
-| NOT-LOOKED | 285 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (245 more) | `record-pm-review` (UAT Issue), after the rows above |
+| NOT-REVIEWED | 154 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.5, F082.7, F082.9, F099.8, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5e, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, … (114 more) | `review-pr-bundle` |
+| NOT-SHIPPED | 33 | F061.3, F072.1a, F072.2a, F059.10, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10a, F076.11, F076.12, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F102.18, F069.3, F057.5, F065.1, F065.4 | CI: `deploy-health` green on the merge commit |
+| NOT-SMOKED | 234 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.10, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, … (194 more) | CI: a `smoke-live` run that covers the route |
+| NOT-LOOKED | 286 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (246 more) | `record-pm-review` (UAT Issue), after the rows above |
 
 ## Data problems
 
@@ -116,12 +116,12 @@
 - F118: unknown cells: Smoked 3
 - F121: unknown cells: Smoked 5
 - F134: unknown cells: Smoked 6
-- F058: unknown cells: Shipped 1, Smoked 5
-- F078: unknown cells: Smoked 8
+- F058: unknown cells: Shipped 1, Smoked 3
+- F078: unknown cells: Smoked 10
 - F080: unknown cells: Smoked 5
 - F100: unknown cells: Smoked 11
-- F101: unknown cells: Shipped 12, Smoked 1
-- F102: unknown cells: Shipped 1, Smoked 13
+- F101: unknown cells: Shipped 12, Smoked 15
+- F102: unknown cells: Shipped 2, Smoked 13
 - F125: unknown cells: Smoked 13
 - F126: unknown cells: Built 1, Smoked 7
 - F127: unknown cells: Smoked 7
