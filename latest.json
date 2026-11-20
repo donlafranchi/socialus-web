@@ -1,45 +1,45 @@
 {
-  "at": "2026-11-19T19:27:27.099Z",
-  "sha": "05178eab832866bb41541389effc7be108937dbe",
+  "at": "2026-11-20T19:05:08.586Z",
+  "sha": "4e96e14c766bd579ed2970a2f150196730cf5a0f",
   "red": true,
-  "redCount": 11,
+  "redCount": 9,
   "amberCount": 1,
   "rebenchmarkDue": null,
   "slowest": [
     {
       "screen": "Header → Explore [settled]",
       "kind": "consumer",
-      "readyMs": 1620,
-      "feedbackMs": 50,
+      "readyMs": 1728,
+      "feedbackMs": 49,
       "status": "amber"
     },
     {
       "screen": "Creator: own Page → edit [settled]",
       "kind": "creator",
-      "readyMs": 1175,
+      "readyMs": 1330,
       "feedbackMs": 76,
       "status": "green"
     },
     {
       "screen": "Explore: ➕ → Show the map [settled]",
       "kind": "consumer",
-      "readyMs": 939,
-      "feedbackMs": 100,
+      "readyMs": 833,
+      "feedbackMs": 77,
       "status": "green"
     },
     {
       "screen": "You → Following list [settled]",
       "kind": "consumer",
-      "readyMs": 526,
+      "readyMs": 624,
       "feedbackMs": 50,
       "status": "green"
     },
     {
       "screen": "Header → You (signed out) [settled]",
       "kind": "consumer",
-      "readyMs": 481,
+      "readyMs": 310,
       "feedbackMs": 44,
-      "status": "red"
+      "status": "green"
     }
   ],
   "rows": [
@@ -70,38 +70,36 @@
     {
       "screen": "Explore: search pill opens [quick]",
       "kind": "consumer",
-      "feedbackMs": 80,
+      "feedbackMs": 72,
       "urlMs": null,
-      "readyMs": 130,
+      "readyMs": 110,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: search pill opens [settled]",
       "kind": "consumer",
-      "feedbackMs": 93,
+      "feedbackMs": 77,
       "urlMs": null,
-      "readyMs": 135,
+      "readyMs": 113,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: More filters opens sheet [settled]",
       "kind": "consumer",
-      "feedbackMs": 109,
+      "feedbackMs": 94,
       "urlMs": null,
-      "readyMs": 159,
-      "status": "red",
-      "flags": [
-        "slow-feedback"
-      ]
+      "readyMs": 130,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore: Where opens picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 124,
+      "feedbackMs": 101,
       "urlMs": null,
-      "readyMs": 173,
+      "readyMs": 137,
       "status": "red",
       "flags": [
         "slow-feedback"
@@ -111,17 +109,17 @@
       "screen": "Header → You (signed out) [settled]",
       "kind": "consumer",
       "feedbackMs": 44,
-      "urlMs": 447,
-      "readyMs": 481,
-      "status": "red",
+      "urlMs": 294,
+      "readyMs": 310,
+      "status": "green",
       "flags": []
     },
     {
       "screen": "Waitlist: open from the area picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 72,
+      "feedbackMs": 65,
       "urlMs": null,
-      "readyMs": 113,
+      "readyMs": 104,
       "status": "green",
       "flags": []
     },
@@ -177,26 +175,26 @@
       "screen": "You → Following list [settled]",
       "kind": "consumer",
       "feedbackMs": 50,
-      "urlMs": 483,
-      "readyMs": 526,
+      "urlMs": 595,
+      "readyMs": 624,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: ➕ → Show the map [settled]",
       "kind": "consumer",
-      "feedbackMs": 100,
-      "urlMs": 100,
-      "readyMs": 939,
+      "feedbackMs": 77,
+      "urlMs": 77,
+      "readyMs": 833,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Header → Explore [settled]",
       "kind": "consumer",
-      "feedbackMs": 50,
-      "urlMs": 118,
-      "readyMs": 1620,
+      "feedbackMs": 49,
+      "urlMs": 113,
+      "readyMs": 1728,
       "status": "amber",
       "flags": [
         "slow-content"
@@ -206,8 +204,8 @@
       "screen": "Creator: own Page → edit [settled]",
       "kind": "creator",
       "feedbackMs": 76,
-      "urlMs": 646,
-      "readyMs": 1175,
+      "urlMs": 852,
+      "readyMs": 1330,
       "status": "green",
       "flags": []
     },
@@ -238,9 +236,9 @@
     {
       "screen": "Creator: ➕ offers Propose something [settled]",
       "kind": "creator",
-      "feedbackMs": 53,
+      "feedbackMs": 51,
       "urlMs": null,
-      "readyMs": 98,
+      "readyMs": 89,
       "status": "green",
       "flags": []
     }
