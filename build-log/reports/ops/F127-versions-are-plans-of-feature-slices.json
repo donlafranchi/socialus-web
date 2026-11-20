@@ -1,0 +1,143 @@
+{
+ "schema": 1,
+ "feature": "F127",
+ "title": "versions are plans of feature slices that can change without breaking",
+ "area": "ops",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-20",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A feature has slices, each with its own horizon, rank and the conditions it waits on",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1241 [V]. Checked: `[guards F127.1]` in `supabase/tests/knowledge_plans.sql`."
+  },
+  {
+   "id": "2",
+   "text": "A version is a record: outcomes, appetite, slices in and out, each leave-out with a reason and the condition that brings it back",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1241 [V]. Checked: `[guards F127.2]` in `supabase/tests/knowledge_plans.sql`."
+  },
+  {
+   "id": "3",
+   "text": "No feature or slice carries a date; a version may",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1241 (due_on refused on kinds it does not belong to) [V]. Checked: `[guards F127.3]` in `supabase/tests/knowledge_plans.sql`."
+  },
+  {
+   "id": "4",
+   "text": "A change of plan is a new version with a why naming the outcome that changed; the earlier plan stays readable",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`replan` in #1241 [V]. Checked: `[guards F127.4]` in `supabase/tests/knowledge_plans.sql`."
+  },
+  {
+   "id": "5",
+   "text": "One call each: what a version held on any date, and what changed between two dates, with the whys",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`plan` and `plan_changes` verbs in #1241 [V]. Checked: `[guards F127.5]` in `supabase/tests/knowledge_plans.sql`."
+  },
+  {
+   "id": "6",
+   "text": "Left out is not forgotten: a left-out slice is listed again when its condition is met or its outcome changes",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1241 [V]. Checked: `[guards F127.6]` in `supabase/tests/knowledge_plans.sql`."
+  },
+  {
+   "id": "7",
+   "text": "Today's plan comes in: each scenario becomes a feature with one slice carrying horizon and rank",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Import in #1241 (slice `F###-S1`) [V]. Checked: `[guards F127.7]` in `tests/knowledge-plans.test.ts`."
+  },
+  {
+   "id": "8",
+   "text": "Nothing breaks: the dashboard and `STATUS.md` are generated from the store after a week side by side with today's generators",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1242
+   ],
+   "note": "Not built [V]: #1241 PR body 'F127.8 ... #1242'. #1242 (open) needs a nightly compare job, then seven clean days, then the switch."
+  }
+ ]
+}

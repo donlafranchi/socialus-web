@@ -1,0 +1,163 @@
+{
+ "schema": 1,
+ "feature": "F131",
+ "title": "three short answers: what we built, where we are, what's next",
+ "area": "ops",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-20",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Three calls: `built`, `where` and `next`, each in 10 lines or fewer, plain words, no ticket numbers",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`src/lib/knowledge/answers.ts` (#1252) [V]. Checked: `[guards F131.1]` in `tests/knowledge-answers.test.ts`."
+  },
+  {
+   "id": "2",
+   "text": "What we built: one line per area, only what is live, each with its point from the concept's why",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1252 [V]. Checked: `[guards F131.2]` in `tests/knowledge-answers.test.ts`."
+  },
+  {
+   "id": "3",
+   "text": "Where we are: live, broken, slow, in flight, launch blockers, waiting on the PM",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1252 [V]. Checked: `[guards F131.3]` in `tests/knowledge-answers.test.ts`."
+  },
+  {
+   "id": "4",
+   "text": "What's next: at most five things in order, each with who; broken first, then what unblocks others, then the top of Now",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1252 [V]. Checked: `[guards F131.4]` in `tests/knowledge-answers.test.ts`."
+  },
+  {
+   "id": "5",
+   "text": "Live state comes in: a job writes GitHub's state (deploys, failing checks, open bugs, smoke and speed results, items waiting on the PM) into the store",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1398
+   ],
+   "note": "Half built: `knowledge.live_state` and `knowledge-answers.yml` (nightly 12:07 UTC) cover alarms, deploy, failing checks, launch blockers and PM items in socialus-web. Missing: items waiting on the PM in socialus-plan and socialus-ops (the workflow token reaches only this repo), per #1252 PR body [V]. Checked: only `[guards F131.5 partial]`."
+  },
+  {
+   "id": "6",
+   "text": "Every line names its source; a line nothing backs is not shown",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1252 [V]. Checked: `[guards F131.6]` in `tests/knowledge-answers.test.ts`."
+  },
+  {
+   "id": "7",
+   "text": "One phone page shows the same three answers, generated from the same calls",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Same three texts written to socialus-plan `ANSWERS.md` by auto-merging PR (#1252) [V]. Checked: `[guards F131.7]` in `tests/knowledge-answers.test.ts`."
+  },
+  {
+   "id": "8",
+   "text": "Retired after a week side by side: the dashboard, DASHBOARD.md and its script, handoff files and the launch reports",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1254
+   ],
+   "note": "Not built [V]: #1252 PR body 'F131.8 ... #1254'. #1254 (open) starts a week after the first nightly run."
+  },
+  {
+   "id": "9",
+   "text": "Orientation shrinks: each repo's CLAUDE.md is about 40 lines and starts an agent with the three calls",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1255
+   ],
+   "note": "Not built [V]: #1252 PR body 'F131.9 ... #1255'. #1255 (open)."
+  }
+ ]
+}

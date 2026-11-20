@@ -1,0 +1,251 @@
+{
+ "schema": 1,
+ "feature": "F125",
+ "title": "every decision, pattern and why lives in one store every agent asks",
+ "area": "ops",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-20",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Every live ruling is a decision record with date, words, concern, departments and tags, and the store exports `constraints/code.md` identical to the hand-built one",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1379
+   ],
+   "note": "Import built (#1222, `scripts/knowledge/import.ts`, export in `export.ts`; PR body: export matches line for line, a second run changes nothing) [V]. Checked: only `[guards F125.1 partial]` in `tests/knowledge-import.test.ts`, so no. Reviewed: #1222 says 'Reviewed by: none' and #1283 (replaces-tag fix) the same, so no."
+  },
+  {
+   "id": "2",
+   "text": "Nothing is deleted: the store refuses to retire a decision without a link to the newer one, no change rewrites a record in place, every change writes a history row naming person and agent",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1380
+   ],
+   "note": "Retire-needs-link, history triggers and append-only versions built in #1221 (`20261110120000_knowledge_store.sql`) [V]. Checked: only `[guards F125.2 partial]` (3 blocks in `supabase/tests/knowledge_store.sql`); no whole marker, so no standing guard for the 'no change rewrites in place' half."
+  },
+  {
+   "id": "3",
+   "text": "The store refuses a philosophy, pattern, decision or correction without a why",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Why check at both layers built in #1221 [V]. Checked: `[guards F125.3]` in `supabase/tests/knowledge_store.sql`."
+  },
+  {
+   "id": "4",
+   "text": "History in one call: every version and the chain of older and newer decisions; what was live for a concern on a date",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built through the lookup tool (#1226, #1221) [V]. Checked: `[guards F125.4]` in `supabase/tests/knowledge_store.sql` and `tests/knowledge-lookup.test.ts`."
+  },
+  {
+   "id": "5",
+   "text": "Every record has a kind (philosophy, pattern, decision, correction, ...) and a strength (absolute, rule, guideline)",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Kinds and strengths are lookup tables in #1221 [V]. Checked: `[guards F125.5]` in `supabase/tests/knowledge_store.sql`."
+  },
+  {
+   "id": "6",
+   "text": "Model-neutral: no record names an agent or model as its audience; the model a correction was seen in is only evidence",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Corrections served alike to every agent; `sightings` keep the model as evidence (#1221; import #1222) [V]. Checked: `[guards F125.6]` in `supabase/tests/knowledge_store.sql`. Reviewed: #1222 (import) says 'Reviewed by: none', so no."
+  },
+  {
+   "id": "7",
+   "text": "Settled stays settled: a settled record cannot be proposed for change; the attempt is refused and logged",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`refusals` table and refusal in #1221 [V]. Checked: `[guards F125.7]` in `supabase/tests/knowledge_store.sql`."
+  },
+  {
+   "id": "8",
+   "text": "Departments wall off: a department key cannot read another department's internal records; the store login reaches nothing outside its schema and no more than the public key (stage 1)",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1381
+   ],
+   "note": "Wall built in #1221, proven for tables, views, sequences; functions no more than the public key (PM picked A, [for now]) [V]. Checked: six `[guards F125.8 partial]` blocks in `supabase/tests/knowledge_store.sql`; the 'no more than the public key' half cannot run without app tables and fails locally on main; no whole marker, so no."
+  },
+  {
+   "id": "9",
+   "text": "One concern, one call: moderation live decisions under 2,000 tokens",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1286
+   ],
+   "note": "`live('moderation-and-reports')` was 1,755 tokens in #1226; over budget once (#1284, fixed in #1285 to 1,736); #1286 (open) warns it will pass again as rulings grow [V]. Checked: `[guards F125.9]` in `tests/knowledge-lookup.test.ts`. Reviewed: #1285 says 'Reviewed by: none', so no."
+  },
+  {
+   "id": "10",
+   "text": "Precedent: one call lists every live decision applying a pattern, with departures; inferred links marked",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built through the lookup tool (#1226) [V]. Checked: `[guards F125.10]` in `tests/knowledge-lookup.test.ts`."
+  },
+  {
+   "id": "11",
+   "text": "The platform's why can be read as it stood on any past date, each change naming its evidence",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1221 [V]. Checked: `[guards F125.11]` in `supabase/tests/knowledge_store.sql`."
+  },
+  {
+   "id": "12",
+   "text": "Unanswered questions are kept: every search that finds nothing is logged",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`unanswered` log in #1226 [V]. Checked: `[guards F125.12]` in `tests/knowledge-lookup.test.ts`."
+  },
+  {
+   "id": "13",
+   "text": "Git keeps a copy: a nightly export writes the store to the plan repo by PR, and `constraints/code.md` is generated from it after a week side by side",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1220,
+    1224
+   ],
+   "note": "Not built [V]: `scripts/knowledge/export.ts` reads the rows back, but no workflow writes the nightly export or opens the PR (workflows: import, keys, conditions, drift, pack, answers, capabilities, run-links only). #1220 (open) is this criterion. Open bug #1224 (an ontology entry cannot move from coming to live) is tagged to it too."
+  },
+  {
+   "id": "14",
+   "text": "The stress tests in the brief run as the store's test suite, each seen failing first",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1382
+   ],
+   "note": "Suite exists: 20 blocks in `supabase/tests/knowledge_store.sql` run by `tests/knowledge-store-db.test.ts`, each guard mutated out and seen red (#1221 PR body) [V]. Checked: one `[guards F125.14 partial]`; the drift query and `precedents` stress tests were left to the lookup tool and carry no whole marker, so no."
+  }
+ ]
+}

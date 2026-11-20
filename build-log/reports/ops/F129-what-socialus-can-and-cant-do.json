@@ -1,0 +1,144 @@
+{
+ "schema": 1,
+ "feature": "F129",
+ "title": "anyone can ask what SocialUs can and can't do, and get a short true answer",
+ "area": "ops",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-20",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "One answer by who is asking: a visitor, a member, someone who runs a Page or event; each a short list of can and can't yet",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`who` column and `capabilities(who)` (#1245) [V]. Checked: `[guards F129.1]` in `tests/knowledge-capabilities.test.ts`."
+  },
+  {
+   "id": "2",
+   "text": "Plain and brief: one line per thing, no ticket or scenario numbers, under 1,500 words",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "33 hand-kept lines in `capability-words.json`, 582 words dry run (#1245) [V]. Checked: `[guards F129.2]` in `tests/knowledge-capabilities.test.ts`."
+  },
+  {
+   "id": "3",
+   "text": "Can means proven: a line is \"can\" only when its slice is shipped and its checks and live smoke test pass",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Rule built in #1245; PR body marks 'Proven live (F129.3, F129.7): partial', because the overnight smoke tests screens, not criteria [V]. Checked: `[guards F129.3]` in `tests/knowledge-capabilities.test.ts`."
+  },
+  {
+   "id": "4",
+   "text": "Can't yet says why: the condition it waits on, or \"not planned\", \"not built yet\" or \"built, waiting on its checks\"",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`set_capability` refuses any other reason (#1245; amended in plan #311) [V]. Checked: `[guards F129.4]` in `tests/knowledge-capabilities.test.ts` and the SQL suite."
+  },
+  {
+   "id": "5",
+   "text": "Asked through the store: \"what can SocialUs do\", optionally for one kind of person, is one lookup call with each line linked to its feature",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`can_do` verb (#1245) [V]. Checked: `[guards F129.5]` in `tests/knowledge-capabilities.test.ts`."
+  },
+  {
+   "id": "6",
+   "text": "A pack for a chat project: the same answer as one Markdown file in `socialus-plan` when a slice ships, is withdrawn or changes condition, and monthly",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1392
+   ],
+   "note": "`packs/what-socialus-can-do.md` sent by auto-merging PR on `knowledge-capabilities.yml` (11:47 UTC) (#1245) [V]. Checked: only `[guards F129.6 partial]` in `tests/knowledge-capabilities.test.ts`."
+  },
+  {
+   "id": "7",
+   "text": "It stays true: if a \"can\" line's live smoke test fails, the line moves to \"can't right now\" until it passes",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built via the open `bug \u00b7 live:` Issue and the smoke report, screen-level only (#1245) [V]. Checked: `[guards F129.7]` in `tests/knowledge-capabilities.test.ts`."
+  },
+  {
+   "id": "8",
+   "text": "It takes over the hand-run capabilities page after a week side by side",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1246
+   ],
+   "note": "Not built [V]: #1245 PR body 'F129.8 ... #1246'. #1246 (open) needs a week of nightly packs and `PLAN_PACK_TOKEN`."
+  }
+ ]
+}
