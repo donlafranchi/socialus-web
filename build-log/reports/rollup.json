@@ -11280,7 +11280,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-30",
+   "as_of": "2026-11-20",
    "path": "page-editing/F056-owner-edits-shop.md",
    "n": 11,
    "totals": {
@@ -11333,7 +11333,7 @@
      "issues": [
       1006
      ],
-     "note": "[V] Edit page Basics card prefills image, name and description (EditCards.tsx, #472, Reviewed by) and saves through group.update (#158, no Reviewed by line); deploy-health green on 1ebe680 and 614c920. Checked: EditCards.basics-whole.test.tsx (#1073, seen failing with the description dropped from the save) opens the sheet prefilled, saves image, name and about in one save and reads all three back on the public Page; its marker is `[guards F056.1 partial: image, name and about; the values line was cut]` since #1089, because socialus-plan's marker lint knows criterion 1, not the report's 1a; the part it leaves out is exactly 1b. Smoked: unknown, page-edit has no LIVE_PATHS entry in smoke-live (skipped in the 10-26 and 10-27 runs). #1006 is still open though its check merged. Split from 1: the values line is 1b",
+     "note": "[V] Edit page Basics card prefills image, name and description (EditCards.tsx, #472, Reviewed by) and saves through group.update (#158, no Reviewed by line); deploy-health green on 1ebe680 and 614c920. Checked: EditCards.basics-whole.test.tsx (#1073, seen failing with the description dropped from the save) opens the sheet prefilled, saves image, name and about in one save and reads all three back on the public Page; its marker is `[guards F056.1 partial: image, name and about; the values line was cut]` since #1089, because socialus-plan's marker lint knows criterion 1, not the report's 1a; the part it leaves out is exactly 1b. Smoked: unknown. `page-edit` still has no `LIVE_PATHS` entry in `evals/smoke/live.spec.ts`, so no run opens the editor; `smoke-live` on `main` 2026-11-19 (05178ea) was green on `explore`, `page` and `you` only [V gh run view, grep 2026-11-20]. Since 2026-10-30 the editor changed twice without touching the Basics card: #1181 (2026-11-05) swapped the tag box for a Listed-under card and #1146 (2026-11-01) readable addresses; the whole-half check and its marker are still in `EditCards.basics-whole.test.tsx` and CI on `main` is green [V reread 2026-11-20]. #1006 is still open though its check merged.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -11356,7 +11356,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "[V] no values field and no column; the 'Values & badges' card in EditCards.tsx is a 'Coming soon' placeholder (#465, planned not built). Conflict: the scenario's approved line and the 2026-09-07 ruling cut the values statement, yet the criterion text still names it. #16 was closed 2026-10-18 saying 'shop image, description and values are edited in the Page editor'; values are not. Routed to scope-scenario",
+     "note": "[V] no values field and no column; the 'Values & badges' card in EditCards.tsx is a 'Coming soon' placeholder (#465, planned not built). Conflict: the scenario's approved line and the 2026-09-07 ruling cut the values statement, yet the criterion text still names it. #16 was closed 2026-10-18 saying 'shop image, description and values are edited in the Page editor'; values are not. Routed to scope-scenario [V reread 2026-11-20] still no values column or field (grep `values_statement` over `src` and `supabase/migrations`: none).",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -11379,7 +11379,7 @@
      "issues": [
       585
      ],
-     "note": "[V] group.update (src/actions/group/update.ts): managing role with left_at null, active/archived only, appends group.updated naming the fields. Built in #158 (no Reviewed by line); #944 (Reviewed by) added stops to the same handler; deploy-health green on 1ebe680 and 0083294. No commit touched src/actions/group since 2026-10-23. Smoked: unknown, page-edit is skipped in smoke-live. unmarked: update.test.ts ('refuses a stranger', 'writes an event naming the fields that changed'). Check ticket #585",
+     "note": "[V] group.update (src/actions/group/update.ts): managing role with left_at null, active/archived only, appends group.updated naming the fields. Built in #158 (no Reviewed by line); #944 (Reviewed by) added stops to the same handler; deploy-health green on 1ebe680 and 0083294. #1181 (2026-11-05, Reviewed by) changed `update.ts` for the label set only; the active-owner check and the `group.updated` event are untouched [V reread 2026-11-20]. Smoked: unknown. `page-edit` still has no `LIVE_PATHS` entry in `evals/smoke/live.spec.ts`, so no run opens the editor; `smoke-live` on `main` 2026-11-19 (05178ea) was green on `explore`, `page` and `you` only [V gh run view, grep 2026-11-20]. unmarked: update.test.ts ('refuses a stranger', 'writes an event naming the fields that changed'). Check ticket #585",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -11403,7 +11403,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "[V] no values_statement column in supabase/migrations or src; tests/migrations-page-identity.test.ts asserts only that one migration does not add it. Same conflict as 1b: the values line is cut, so the column this guards does not exist. Routed to scope-scenario",
+     "note": "[V] no values_statement column in supabase/migrations or src; tests/migrations-page-identity.test.ts asserts only that one migration does not add it. Same conflict as 1b: the values line is cut, so the column this guards does not exist. Routed to scope-scenario [V reread 2026-11-20] unchanged.",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -11426,7 +11426,7 @@
      "issues": [
       584
      ],
-     "note": "[V] no tagline column in supabase/migrations, no field in group.update or Edit, nothing in the Page's generateMetadata. TileCard takes a tagline prop but OwnPages passes the description into it. Ticket #584, no milestone",
+     "note": "[V] no tagline column in supabase/migrations, no field in group.update or Edit, nothing in the Page's generateMetadata. TileCard takes a tagline prop but OwnPages passes the description into it. Ticket #584, no milestone [V reread 2026-11-20] still no tagline column, field or metadata (grep `tagline`: only `TileCard`'s prop and unrelated pages); #584 is open.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -11449,7 +11449,7 @@
      "issues": [
       845
      ],
-     "note": "[V] ShopPublicPage omits an empty description, placement line, map, Contact and badge (sections built in #472, reworked by #926 and #944, all with Reviewed by; deploy-health green on 614c920, d453170, 0083294). Checked: ShopPublicPage.test.tsx 'F056 criterion 5 — every optional field empty' `[guards F056.5]` (#1066, tightened by #1067; seen failing with an 'Add a description' line) renders a Page with description, photo, links, tags, contact and place all empty for a visitor, a member and the owner and matches no nag line; the owner's deliberate 'add your first product' prompt (#920) is allowed by the check, which settles the [A] from 2026-10-23. #1081 (Wonders, 2026-10-26) added a Wonders panel to ShopPublicPage after the check merged [A: CI on main stayed green]. Smoked: unknown, smoke-live opens the first Page Explore lists, not one with every field empty. #845 is still open though its check merged",
+     "note": "[V] ShopPublicPage omits an empty description, placement line, map, Contact and badge (sections built in #472, reworked by #926 and #944, all with Reviewed by; deploy-health green on 614c920, d453170, 0083294). Checked: ShopPublicPage.test.tsx 'F056 criterion 5 — every optional field empty' `[guards F056.5]` (#1066, tightened by #1067; seen failing with an 'Add a description' line) renders a Page with description, photo, links, tags, contact and place all empty for a visitor, a member and the owner and matches no nag line; the owner's deliberate 'add your first product' prompt (#920) is allowed by the check, which settles the [A] from 2026-10-23. #1081 (Wonders, 2026-10-26) added a Wonders panel to ShopPublicPage after the check merged [A: CI on main stayed green]. Smoked: unknown, `smoke-live` opens the first Page Explore lists (green on `main` 2026-11-19), not one with every field empty. #845 is still open though its check merged.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -11473,7 +11473,7 @@
      "issues": [
       585
      ],
-     "note": "[V] WhereFields + PinAdjustMap (#351, Reviewed by), 'Drop a pin' saves the map's coordinates (#441, Reviewed by); #944 (Reviewed by) rebuilt WhereFields as seven answers with 'Street address' keeping the search, pin and refusal; deploy-health green on 3492589, e79a69d, 0083294. With no map key the address is used as found and no map is drawn. No commit touched src/components/locations since 2026-10-23. Smoked: unknown, page-edit is skipped in smoke-live. unmarked: WhereFields.test.tsx ('says so when nothing matches the address'), PinAdjustMap.test.tsx, LocationPlaceFields.test.tsx. Check ticket #585",
+     "note": "[V] WhereFields + PinAdjustMap (#351, Reviewed by), 'Drop a pin' saves the map's coordinates (#441, Reviewed by); #944 (Reviewed by) rebuilt WhereFields as seven answers with 'Street address' keeping the search, pin and refusal; deploy-health green on 3492589, e79a69d, 0083294. With no map key the address is used as found and no map is drawn. Only #1302 (American spelling, 2026-11-16) touched src/components/locations since 2026-10-23 [V]. Smoked: unknown. `page-edit` still has no `LIVE_PATHS` entry in `evals/smoke/live.spec.ts`, so no run opens the editor; `smoke-live` on `main` 2026-11-19 (05178ea) was green on `explore`, `page` and `you` only [V gh run view, grep 2026-11-20]. unmarked: WhereFields.test.tsx ('says so when nothing matches the address'), PinAdjustMap.test.tsx, LocationPlaceFields.test.tsx. Check ticket #585",
      "gaps": [
       "NO-CHECK",
       "NOT-SMOKED",
@@ -11500,7 +11500,7 @@
       586,
       585
      ],
-     "note": "[V] seeded boundaries (#350: 88 places, 165 neighbourhoods; no Reviewed by line); the pick in #351 and #468 (Reviewed by), now the 'Neighbourhood only' answer in #944 (Reviewed by); saves a neighborhoodId and no point (where-save.ts). deploy-health green on 32c0cdc, 3492589, d41939a, 0083294. Invariant: #944 and #926 added per-answer privacy tests ('an area-only Page never sends its exact point') but no standing guard over every surface that reads a Page's location (#586). #1038 (2026-10-24) made neighbourhood search read no MSA without touching the pick or where-save. Smoked: unknown. unmarked: where-save.test.ts, tests/boundaries-db.test.ts. Split from 7: the pin is 7b",
+     "note": "[V] seeded boundaries (#350: 88 places, 165 neighbourhoods; no Reviewed by line); the pick in #351 and #468 (Reviewed by), now the 'Neighbourhood only' answer in #944 (Reviewed by); saves a neighborhoodId and no point (where-save.ts). deploy-health green on 32c0cdc, 3492589, d41939a, 0083294. Invariant: #944 and #926 added per-answer privacy tests ('an area-only Page never sends its exact point') but no standing guard over every surface that reads a Page's location (#586). #1038 (2026-10-24) made neighbourhood search read no MSA without touching the pick or where-save. Smoked: unknown. `page-edit` still has no `LIVE_PATHS` entry in `evals/smoke/live.spec.ts`, so no run opens the editor; `smoke-live` on `main` 2026-11-19 (05178ea) was green on `explore`, `page` and `you` only [V gh run view, grep 2026-11-20]. unmarked: where-save.test.ts, tests/boundaries-db.test.ts. Split from 7: the pin is 7b #1278 now reads a Page's address signed out \"at the precision the owner chose (an area anchor is an area)\" (`resolve-shop.ts`), so an area-only Page still sends no exact point; still no standing guard over every surface (#586) [V reread 2026-11-20].",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -11530,11 +11530,10 @@
      "red": false
     },
     {
-     "id": "8",
-     "text": "Owner picks or creates tags in their own words, editable any time; no category and no 'Something else'; at least one tag to publish",
+     "id": "8a",
+     "text": "The owner picks a Page's labels, editable any time; a Page needs at least one to publish",
      "kind": [
-      "behavior",
-      "invariant"
+      "behavior"
      ],
      "status": "active",
      "built": "yes",
@@ -11546,14 +11545,34 @@
      "issues": [
       585
      ],
-     "note": "[V] group.update replaces the tag set and refuses to leave none (#288, no Reviewed by line; deploy-health green on a5ab3a1); group.activate refuses a Page with no tags (T159). group.update still accepts a category field but no Edit or Create component offers one. Invariant (no category, no 'Something else'): no standing guard. Smoked: unknown. unmarked: update.test.ts ('refuses to leave a Page with no tags'), activate.test.ts, ShopPublicPage.test.tsx ('shows no category chip'). Check ticket #585",
+     "note": "[V reread 2026-11-20] Built differently since 2026-11-05: #1181 (Listed under, Reviewed by; deploy-health green on 591ab70) replaced the free tag box with labels from one shared list (12 interest labels, 66 finer ones), up to 3, a pick pinned; `group.update` still replaces the set and refuses to leave none, and `group.activate` never publishes a Page unlisted (labels sent, else saved, else a word match on the name and description, else Neighborhood life) (`update.ts`, `activate.ts`, `labels.ts`). Built first in #288 (no Reviewed by line; green on a5ab3a1), so Reviewed stays no. Smoked: unknown. unmarked: update.test.ts ('refuses to leave a Page with no tags'), activate.test.ts, ShopPublicPage.test.tsx ('shows no category chip'). Check ticket #585",
      "gaps": [
-      "INVARIANT-UNPROVEN",
+      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
      "score": 2,
+     "red": false
+    },
+    {
+     "id": "8b",
+     "text": "...in their own words, creating tags; no category is offered and no free-text 'Something else' field exists",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "retired",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "RETIRED. Overtaken by the PM's 2026-11-05 option B on socialus-plan #273 (\"the free-typed tag box goes\"; labels come from one shared list, suggested by a word match, changeable with one tap), built in #1181. The dated line is not yet in F056 `## Rulings` and criterion 8 still says \"in their own words\"; `sync-roadmap` amends the scenario. No 'Something else' field exists [V reread 2026-11-20]. Shown, not counted.",
+     "gaps": [],
+     "score": 0,
      "red": false
     },
     {
@@ -11572,7 +11591,7 @@
      "issues": [
       585
      ],
-     "note": "[V] groups.contact_phone granted to authenticated only (#305, no Reviewed by line; deploy-health green on 7381f60); #926 (Reviewed by; green on d453170) moved it into the Contact card, shown only when signed in ('signed out, no Contact at all' test). Text follows the 2026-10-07 ruling (phone defaults to members). Smoked: unknown. unmarked: tests/page-contact-db.test.ts ('never answer a signed-out caller'). Split from 9: the owner's switch is 9b. Check ticket #585",
+     "note": "[V] groups.contact_phone granted to authenticated only (#305, no Reviewed by line; deploy-health green on 7381f60); #926 (Reviewed by; green on d453170) moved it into the Contact card, shown only when signed in ('signed out, no Contact at all' test). Text follows the 2026-10-07 ruling (phone defaults to members). Smoked: unknown. `page-edit` still has no `LIVE_PATHS` entry in `evals/smoke/live.spec.ts`, so no run opens the Contact card; `smoke-live` on `main` 2026-11-19 (05178ea) was green on `explore`, `page` and `you` only [V gh run view, grep 2026-11-20]. #1278's anonymous read holds `groups.contact_phone` back (migration 20261113000000_visitors_read, comments at lines 17 and 46) [V].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -11598,7 +11617,7 @@
      "issues": [
       480
      ],
-     "note": "[V] 2026-10-07 ruling: each contact field carries everyone/members, phone and Contact email default to members. No visibility column, no switch and no Contact email in supabase/migrations or src; #926 notes 'no public email field in the schema'. Open Issue #480 (change, milestone After beta), so nothing new filed",
+     "note": "[V] 2026-10-07 ruling: each contact field carries everyone/members, phone and Contact email default to members. No visibility column, no switch and no Contact email in supabase/migrations or src; #926 notes 'no public email field in the schema'. Open Issue #480 (change, milestone After beta), so nothing new filed [V reread 2026-11-20] #480 still open, After beta; nothing built.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -11614,7 +11633,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-30",
+   "as_of": "2026-11-20",
    "path": "page-editing/F069-non-business-pages-resolve-everywhere.md",
    "n": 4,
    "totals": {
@@ -11668,7 +11687,7 @@
       591,
       22
      ],
-     "note": "[V] /g/<id> uses resolvePageById and resolveShop, whose kinds filter is optional and defaults to every kind (resolve-shop.ts:177-217; T156, #174, no Reviewed by line; deploy-health green on 9dde664). #1025 and #1074 (bug #978, review-skipped, 'Reviewed by: build lane') reworked the same read for speed this week and kept no kind filter; deploy-health green on 264fa51 and 4d71a8c. Smoked: unknown, smoke-live opens the first Page Explore lists and does not pick a non-business one. unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description'). Check ticket #591",
+     "note": "[V] /g/<id> uses resolvePageById and resolveShop, whose kinds filter is optional and defaults to every kind (resolve-shop.ts:177-217; T156, #174, no Reviewed by line; deploy-health green on 9dde664). #1025 and #1074 (bug #978, review-skipped, 'Reviewed by: build lane') reworked the same read for speed this week and kept no kind filter; deploy-health green on 264fa51 and 4d71a8c. Smoked: unknown. `smoke-live` on `main` 2026-11-19 (05178ea) was green on `page` and `you`, but `page` opens the first Page Explore lists, never a non-business one [V gh run view 2026-11-20]. unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description'). Check ticket #591 Since 2026-10-30 #1146 (readable addresses, Reviewed by) and #1278 (F134) changed the read and the new `/[place]/[page]` route resolves through `resolveShop` with no kind filter, so a non-business Page still resolves [V reread 2026-11-20].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -11695,7 +11714,7 @@
       22,
       591
      ],
-     "note": "[V] gatherings: resolve-gathering.ts has no kind filter (built half). Products and services: resolve-product.ts:116 and resolve-service.ts:98 still `.eq('kind', 'business')` on the group lookup, so they 404 under any other Page; no commit touched src/lib/items since 2026-10-23. #920 lets any Page feature up to 12 products and services on the Page itself with no link to the item's own URL, so the gap is reachable but not visible from the Page. Tickets #22 (T134) and #591 (gathering half only)",
+     "note": "[V] gatherings: resolve-gathering.ts has no kind filter (built half). Products and services: resolve-product.ts:116 and resolve-service.ts:98 still `.eq('kind', 'business')` on the group lookup, so they 404 under any other Page; no commit touched src/lib/items since 2026-10-23. #920 lets any Page feature up to 12 products and services on the Page itself with no link to the item's own URL, so the gap is reachable but not visible from the Page. Tickets #22 (T134) and #591 (gathering half only) [V reread 2026-11-20] unchanged: `resolve-product.ts:116` and `resolve-service.ts:98` still filter `.eq('kind', 'business')`; nothing in `src/lib/items` changed since 2026-10-23.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -11719,7 +11738,7 @@
       591,
       24
      ],
-     "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. First built in f19adc6, a direct commit with no PR and no deploy-health run (none for that sha); later edits #181, #254, #389, #424, #472 carry no Reviewed by except #472. #966's Following row is a finder surface, not a producer one. Smoked: unknown, the smoke accounts hold one Page each. No commit touched own-pages.ts or OwnPages.tsx since 2026-10-23 except the #1068 test file. unmarked: src/lib/member/own-pages.test.ts. Check ticket #591",
+     "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. First built in f19adc6, a direct commit with no PR and no deploy-health run (none for that sha); later edits #181, #254, #389, #424, #472 carry no Reviewed by except #472. #966's Following row is a finder surface, not a producer one. Smoked: unknown, `you` is green on `main` 2026-11-19 but the smoke accounts hold one Page each. unmarked: src/lib/member/own-pages.test.ts. Check ticket #591",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -11747,7 +11766,7 @@
       24,
       846
      ],
-     "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). Checked: OwnPages.drafts.test.tsx `[guards F069.4]` (#1068, seen failing against a mutant that keeps only the first draft) runs the real getOwnPages and OwnPages over three drafts and finds all three, each with Continue and Delete. Smoked: unknown, /you is smoked (10-26, 10-27 runs) but the builder accounts hold no second draft. #846 is still open though its check merged",
+     "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). Checked: OwnPages.drafts.test.tsx `[guards F069.4]` (#1068, seen failing against a mutant that keeps only the first draft) runs the real getOwnPages and OwnPages over three drafts and finds all three, each with Continue and Delete. Smoked: unknown, `you` is green on `main` 2026-11-19 but the builder accounts hold no second draft. #846 is still open though its check merged.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -11764,7 +11783,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-11-06",
+   "as_of": "2026-11-20",
    "path": "page-editing/F106-page-says-where-giveback-goes.md",
    "n": 6,
    "totals": {
@@ -11817,7 +11836,7 @@
      "issues": [
       700
      ],
-     "note": "[V 2026-11-06] #1146 (8a9fb51, 2026-11-01) freezes a Page's home town at first publish: `groups.place_url_slug` from `page_home_place_slug(anchor_location_id)` (migration 20261101120000; the column comment calls it \"the Page's home town in its address\"); city polygon first, then the Location's own place, postal city, county. Checked: no test claims criterion 1 and no `[guards F106` marker exists. Reviewed: #1146 carries `Reviewed by:` a second session, no `review-skipped`. Shipped: deploy-health green on 8a9fb51. Smoked: no run covers the address, and nothing shows it as a home town. Comment added to #700.",
+     "note": "[V 2026-11-06, reread 2026-11-20: unchanged] #1146 (8a9fb51, 2026-11-01) freezes a Page's home town at first publish: `groups.place_url_slug` from `page_home_place_slug(anchor_location_id)` (migration 20261101120000; the column comment calls it \"the Page's home town in its address\"); city polygon first, then the Location's own place, postal city, county. Checked: no test claims criterion 1 and no `[guards F106` marker exists. Reviewed: #1146 carries `Reviewed by:` a second session, no `review-skipped`. Shipped: deploy-health green on 8a9fb51. Smoked: no run covers the address, and nothing shows it as a home town. Comment added to #700. Since 2026-11-06 #1146 is the only change to the home town, and no test or `[guards F106` marker has been added (grep) [V]. #1278 reads the address signed out; the stored value is unchanged.",
      "gaps": [
       "NO-CHECK",
       "NOT-SMOKED",
@@ -11842,7 +11861,7 @@
      "issues": [
       700
      ],
-     "note": "[V 2026-11-06] `page_home_place_slug` returns null for a Page with no anchor Location and the trigger then leaves the address unset (`if place is null then return new`); the member's `home_town` exists (F103.5, migrations 20261012060000 and 20261018191800) but nothing falls back to it for a Page. Deferred, not beta (#700).",
+     "note": "[V 2026-11-06, reread 2026-11-20: unchanged] `page_home_place_slug` returns null for a Page with no anchor Location and the trigger then leaves the address unset (`if place is null then return new`); the member's `home_town` exists (F103.5, migrations 20261012060000 and 20261018191800) but nothing falls back to it for a Page. Deferred, not beta (#700).",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -11866,7 +11885,7 @@
      "issues": [
       700
      ],
-     "note": "[V 2026-11-06] No give-back field, column or setting anywhere in src, scripts, supabase or tests (grep give_back, giveBack, give-back finds nothing). Deferred (#700).",
+     "note": "[V 2026-11-06, reread 2026-11-20: unchanged] No give-back field, column or setting anywhere in src, scripts, supabase or tests (grep give_back, giveBack, give-back finds nothing). Deferred (#700).",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -11889,7 +11908,7 @@
      "issues": [
       701
      ],
-     "note": "[V reread 2026-11-06] Not built as written: no give-back town exists to key a badge to. What exists instead: #875 (2026-10-16, review-skipped) shows 'Claimed local owner' whenever the owner has made the Locally Owned claim, with no distance or town test, on Don's words that day ('Local will be solely determined by if money comes back to where it was generated'; for now 'Yes claim'). That badge is the interim, not this criterion. Badge wording is the PM's (#701)",
+     "note": "[V reread 2026-11-20] Not built as written: no give-back town exists to key a badge to. What exists instead: #875 (2026-10-16, review-skipped) shows 'Claimed local owner' whenever the owner has made the Locally Owned claim, with no distance or town test, on Don's words that day ('Local will be solely determined by if money comes back to where it was generated'; for now 'Yes claim'). That badge is the interim, not this criterion. Badge wording is the PM's (#701)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -11912,7 +11931,7 @@
      "issues": [
       701
      ],
-     "note": "[V reread 2026-11-06] Not built; depends on F105 vantage and on criterion 3 (#701)",
+     "note": "[V reread 2026-11-20] Not built; depends on F105 vantage and on criterion 3 (#701)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -11935,7 +11954,7 @@
      "issues": [
       700
      ],
-     "note": "[V reread 2026-11-06] Not built; no declaration exists to change (#700)",
+     "note": "[V reread 2026-11-20] Not built; no declaration exists to change (#700)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -13730,7 +13749,6 @@
    "F125.2",
    "F125.8",
    "F056.7a",
-   "F056.8",
    "F057.1",
    "F065.2a",
    "F077.3"
@@ -13785,6 +13803,7 @@
    "F135.2",
    "F056.2",
    "F056.6",
+   "F056.8a",
    "F056.9a",
    "F069.1",
    "F069.3",
@@ -13927,7 +13946,7 @@
    "F056.1a",
    "F056.2",
    "F056.7a",
-   "F056.8",
+   "F056.8a",
    "F056.9a",
    "F069.1",
    "F069.3",
@@ -14199,7 +14218,7 @@
    "F056.5",
    "F056.6",
    "F056.7a",
-   "F056.8",
+   "F056.8a",
    "F056.9a",
    "F069.1",
    "F069.3",
@@ -14482,7 +14501,7 @@
    "F056.5",
    "F056.6",
    "F056.7a",
-   "F056.8",
+   "F056.8a",
    "F056.9a",
    "F069.1",
    "F069.3",
