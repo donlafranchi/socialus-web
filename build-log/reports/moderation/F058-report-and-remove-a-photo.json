@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -19,12 +19,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     578
    ],
-   "note": "`ReportControl` on the Page and post cards, its entries labelled \"Report this Page\", \"Report this Page's photo\", \"Report this post\" (#938, 647eccb); `sendReportAction` refuses signed-out callers (#81, #82); #1184 added a third subject, a member's own post, to the same control (`subjectKind` `member_post`) [V reread 2026-11-06]. Checked: `[guards F058.1]` in `f058-criteria.test.tsx` [V]. Reviewed: #81, #82 carry no `Reviewed by:`; #938 does [V]. Shipped: deploy-health began 2026-09-16, after #81 and #82 merged on 14 Sep, so no run exists for them; #938 green [V]. Smoked: unknown. The last green run covering `page` is `smoke-live` 2026-11-01 (3df9260); #1169, #1172 and #1184 changed the Page's report entries after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
+   "note": "`ReportControl` on the Page and post cards, its entries labelled \"Report this Page\", \"Report this Page's photo\", \"Report this post\" (#938, 647eccb); `sendReportAction` refuses signed-out callers (#81, #82); #1184 added a third subject, a member's own post, to the same control (`subjectKind` `member_post`) [V reread 2026-11-20]; since then `sendReportAction` reads the member from the verified token (`viewerId`, #1269), still refusing signed-out callers, and its test still passes [V]. Checked: `[guards F058.1]` in `f058-criteria.test.tsx` [V]. Reviewed: #81, #82 carry no `Reviewed by:`; #938 does [V]. Shipped: deploy-health began 2026-09-16, after #81 and #82 merged on 14 Sep, so no run exists for them; #938 green [V]. Smoked: yes. `smoke-live` on `main` 2026-11-19 (05178ea, the current head) was green on `page` for the signed-out and signed-in personas, after every merge that touched it; the run opens the screen and sends no report [V gh run view 2026-11-20]."
   },
   {
    "id": "2",
@@ -61,7 +61,7 @@
    "issues": [
     578
    ],
-   "note": "`report.remove` and `report.reverse` refuse a member, an owner and an unset operator before the database; `/admin/reports` is 404 to others [V] reread 2026-11-06. Checked: `[guards F058.3]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373, 2026-09-17) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
+   "note": "`report.remove` and `report.reverse` refuse a member, an owner and an unset operator before the database; `/admin/reports` is 404 to others [V] reread 2026-11-06. Checked: `[guards F058.3]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373, 2026-09-17) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "4",
@@ -74,13 +74,13 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     577,
     833
    ],
-   "note": "`report.remove` sets `photo_removed_at`, keeps the URL, writes `report_decisions`; Page, share cards, Browse and the map read it (#779) [V] reread 2026-11-06. Checked: `[guards F058.4]` in `tests/f058-remove-every-surface-db.test.ts`, seen failing against five mutants (#912, closed #833); the map marker in `useMapPages.test.ts:82` stays partial [V] Reviewed: #151, #152, #779 carry no `Reviewed by:`; #912 does [V] Shipped: deploy-health green on #151 (311a373), #152 (1c1b0c9), #779 (a265d7c) and #912 (99c10e5) [V] Smoked: unknown. The last green runs covering `explore` and `page` are `smoke-live` 2026-11-01 (3df9260); #1172 and #1181 changed both after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
+   "note": "`report.remove` sets `photo_removed_at`, keeps the URL, writes `report_decisions`; Page, share cards, Browse and the map read it (#779) [V] reread 2026-11-06. Checked: `[guards F058.4]` in `tests/f058-remove-every-surface-db.test.ts`, seen failing against five mutants (#912, closed #833); the map marker in `useMapPages.test.ts:82` stays partial [V] Reviewed: #151, #152, #779 carry no `Reviewed by:`; #912 does [V] Shipped: deploy-health green on #151 (311a373), #152 (1c1b0c9), #779 (a265d7c) and #912 (99c10e5) [V] Smoked: yes. `smoke-live` on `main` 2026-11-19 (05178ea) was green on `explore` and `page`, after #1172 and #1181 changed both; the smoke removes no photo, it opens the screens that read the projection [V gh run view 2026-11-20]."
   },
   {
    "id": "5",
@@ -99,7 +99,7 @@
    "issues": [
     578
    ],
-   "note": "Every report lands in the `/admin/reports` queue; urgent categories also alert the operator, by email through Resend until Twilio exists (#751), by SMS once the Twilio values are set (#707 still open) [V] reread 2026-11-06. Checked: `[guards F058.5]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373) and #751 (ebce891) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
+   "note": "Every report lands in the `/admin/reports` queue; urgent categories also alert the operator, by email through Resend until Twilio exists (#751), by SMS only if Twilio values are ever set; the 2026-11-12 ruling makes email the way for now (#707 stays open for sign-in codes) [V] reread 2026-11-06. Checked: `[guards F058.5]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373) and #751 (ebce891) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "6",
@@ -117,7 +117,7 @@
    "issues": [
     578
    ],
-   "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] reread 2026-11-06. Checked: `[guards F058.6]` in `f058-criteria.test.tsx` [V] Reviewed: #152 no `Reviewed by:` [V] Shipped: deploy-health green on #152 (1c1b0c9, 2026-09-18) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
+   "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] reread 2026-11-06. Checked: `[guards F058.6]` in `f058-criteria.test.tsx` [V] Reviewed: #152 no `Reviewed by:` [V] Shipped: deploy-health green on #152 (1c1b0c9, 2026-09-18) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   }
  ]
 }
