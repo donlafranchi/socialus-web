@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     1192
    ],
-   "note": "Not built: no ask bar anywhere in src [V grep]. Rechecked 2026-11-06 [V grep]. Filed #1192."
+   "note": "Not built: no ask bar anywhere in src [V grep]. Rechecked 2026-11-20 [V grep]. Filed #1192."
   },
   {
    "id": "2",
@@ -43,7 +43,7 @@
    "issues": [
     1193
    ],
-   "note": "Not built. The only model calls in the repo are moderation's (F100) [A]. Rechecked 2026-11-06 [V grep]. Filed #1193."
+   "note": "Not built. The only model calls in src are moderation's (F100, `assess.ts`, `key-check.ts`) and problem-report triage [V grep]. Rechecked 2026-11-20 [V grep]. Filed #1193."
   },
   {
    "id": "3",
@@ -61,7 +61,7 @@
    "issues": [
     1194
    ],
-   "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Rechecked 2026-11-06 [V grep]. Filed #1194."
+   "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Rechecked 2026-11-20 [V grep]. Filed #1194."
   },
   {
    "id": "4",
@@ -79,7 +79,7 @@
    "issues": [
     1195
    ],
-   "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]; Explore's header search now writes its words to the one box in the URL (#1161), which is one more deep link but not a registry [V]. Rechecked 2026-11-06 [V grep]. Filed #1195."
+   "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]; Explore's header search now writes its words to the one box in the URL (#1161), which is one more deep link but not a registry [V]. Rechecked 2026-11-20 [V grep]. Filed #1195."
   },
   {
    "id": "5",
@@ -98,7 +98,7 @@
    "issues": [
     1196
    ],
-   "note": "Not built: no page registry in src [V grep]. Rechecked 2026-11-06 [V grep]. Filed #1196."
+   "note": "Not built: no page registry in src [V grep]. Rechecked 2026-11-20 [V grep]. Filed #1196."
   },
   {
    "id": "6",
@@ -116,7 +116,7 @@
    "issues": [
     1197
    ],
-   "note": "Not built; needs a standing guard once the router exists. Rechecked 2026-11-06 [V grep]. Filed #1197."
+   "note": "Not built; needs a standing guard once the router exists. Rechecked 2026-11-20 [V grep]. Filed #1197."
   },
   {
    "id": "7",
@@ -135,7 +135,7 @@
    "issues": [
     1198
    ],
-   "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Search-demand logging itself exists (`search-demand-actions.ts`, shown on /admin/metrics) [V grep]; F089 stays a draft scenario. Rechecked 2026-11-06 [V grep]. Filed #1198."
+   "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Search-demand logging itself exists (`search-demand-actions.ts`, shown on /admin/metrics) [V grep]; F089 stays a draft scenario. Rechecked 2026-11-20 [V grep]. Filed #1198."
   },
   {
    "id": "8",
@@ -153,7 +153,7 @@
    "issues": [
     1199
    ],
-   "note": "Not built. Rechecked 2026-11-06 [V grep]. Filed #1199."
+   "note": "Not built. Rechecked 2026-11-20 [V grep]. Filed #1199."
   },
   {
    "id": "9",
@@ -171,7 +171,7 @@
    "issues": [
     1200
    ],
-   "note": "Not built. Rechecked 2026-11-06 [V grep]. Filed #1200."
+   "note": "Not built. Rechecked 2026-11-20 [V grep]. Filed #1200."
   }
  ]
 }
