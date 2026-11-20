@@ -5,8 +5,8 @@
  "area": "explore-map",
  "area_source": "label",
  "gates": "launch",
- "retired": false,
- "as_of": "2026-10-30",
+ "retired": true,
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -15,15 +15,15 @@
     "behavior",
     "invariant"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "`page_posts` has no anonymous read (`to authenticated`); `announcements_withheld` has no body in its return type (#914, #969) [V migrations 20261018170000, 20261019143000]. Checked: `tests/announcements-signed-out-rest.test.ts` `[guards F093.1]` asks PostgREST with the publishable key; #218 records it failing on the pre-migration database, and `tests/f093-red-runs.json` now names that PR (#1047) [V]. Nothing merged for it since 2026-10-23 [V git log]. Reviewed no: #218 and #230 carry no `Reviewed by:` [V]. Shipped: Deploy health green on 75c682a8, 1fc06c8b, bfbbd619 [V]. Smoked unknown: the smoke does not call PostgREST."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "2",
@@ -31,15 +31,15 @@
    "kind": [
     "invariant"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Same policy; the return type has no `starts_at` or `location_id`; `kind` (#969) is the Page's kind [V]. `[guards F093.2]` selects `starts_at, location_id` as anon and expects no rows; #906 ran it against a mutant anon policy (red-runs ledger: #906); the exact-column allow-list under F093.3 covers later columns [V]. Reviewed no (#218, #230); shipped yes (75c682a8, 1fc06c8b, bfbbd619). Smoked unknown (PostgREST)."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "3",
@@ -47,15 +47,15 @@
    "kind": [
     "invariant"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "`announcements_withheld` returns ten named columns since #969 [V migration 20261019143000]. `[guards F093.3]` asserts that exact key set with a reason per column, watched failing in #230 (ledger) and red on any further column [V]. Reviewed no (#218, #230); shipped yes (75c682a8, 19109a1e, b7766901, 1fc06c8b, bfbbd619). Smoked unknown (PostgREST)."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "4",
@@ -64,15 +64,15 @@
     "behavior",
     "invariant"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Photo, name, count with its period, the details line and the sign-in call, no body, time, place or Page location; a no-photo or hidden-photo card draws the kind's art (#969) [V `WithheldAnnouncementCard.tsx`, withheld-announcements.ts]. `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the five things against real rows and the art's `data-kind`; red before the migration (#969, ledger); mutants in #769 [V]. Reviewed no: #218, #230 no line; #969 `Reviewed by: Claude (Explore lane)`. Shipped: 75c682a8, 19109a1e, bfbbd619 green [V]. Smoked: smoke-live green daily 10-24 to 10-30, run 41093000135 on main 09ffba30 (2026-10-30) opening root and explore at 390 and 1280 for signed-out, stranger, member, owner and operator; it loads the route, it does not tap [V]."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "5",
@@ -80,15 +80,15 @@
    "kind": [
     "behavior"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "One row per Page (#230); label 'N posts this week', zero reads 'A new post'; the period follows `post_current_until` (#914) [V withheld-copy.ts]. `[guards F093.5]` checks both against real rows, seen failing against mutants (#769, ledger) [V]. Reviewed no (#218, #230); shipped yes (75c682a8, 19109a1e, 1fc06c8b). Smoked yes (run 41093000135, explore signed out, 2026-10-30) [V]."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "6",
@@ -96,15 +96,15 @@
    "kind": [
     "invariant"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "`[guards F093.6]` in `tests/f093-front-door-guards.test.tsx` reads bodies, times, places, tags and order as a signed-in member through the real Page and Explore loaders and expects no withheld card; seen failing against 8 mutants (#770, ledger) [V]. Reviewed no (#218, #255); shipped yes (75c682a8, a7814ce9). Smoked yes (run 41093000135 opens explore as member, owner and operator) [V]. Caveat: Explore for members keeps changing on purpose (#932, #1086); this scenario's claim is about its own change only."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "7",
@@ -112,15 +112,15 @@
    "kind": [
     "behavior"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "`loadBrowse` merges `getWithheldAnnouncements` into the signed-out mix, one card per Page in reach (#932); the signed-out posts-only view lists the same cards (#906) [V load.ts]. `[guards F093.7]` in `tests/f093-signed-out-explore.test.tsx` and `load-withheld.test.ts` (two whole markers) load Explore through the real `loadBrowse` as anonymous; failed on main before the fix and against two mutants (#906, ledger) [V]. Reviewed no (#218 no line; #906 review-skipped). Shipped: 75c682a8, 7286b487, f8578fbb green [V]. Smoked yes (run 41093000135, explore signed out) [V]."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "8",
@@ -129,15 +129,15 @@
     "behavior",
     "invariant"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "`anon` loses `locations`, `anchor_location_id`, `page_tags`, `tags`; `browse_feed` returns null location, empty tags and no geography signed out (#932); no quick links signed out (#931); `?view=map&focus=` only signed in (#944); `robots.ts` admits search crawlers [V]. #1074 (2026-10-26, bug #978, review-skipped) made the Page's place one query and asserts it is never read signed out; the signed-out Page is unchanged [V PR body, resolve-shop.test.ts]. `[guards F093.8]` in `tests/f093-front-door-guards.test.tsx`, `member-reads-audit-db.test.ts`, `item-url.test.ts` (mutants #770, ledger) [V]. Button reads 'Sign in to see what's happening' (2026-10-04 ruling, placeholder copy). Reviewed no (#255, #259 no `Reviewed by:`). Shipped unknown: no Deploy health run for 73625848 (#259); 4d71a8c8 green [V]. Smoked yes: run 41093000135 opens explore signed out; page rides only when its route is in the day's list [V]."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "9",
@@ -145,15 +145,15 @@
    "kind": [
     "behavior"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "`WithheldPagePosts` carries an anchor per announcement id; the database returns all ids for a Page (#230) [V]. `[guards F093.9]` renders the Page for the latest and an older id, expects one marked card with the sign-in call, no 404; mutants #769 (ledger) [V]. Reviewed no (#230); shipped yes (19109a1e); smoked yes (run 39977671049 on 2026-10-23 opened page signed out after the last merge here; it does not follow an anchor) [V]."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "10",
@@ -161,15 +161,15 @@
    "kind": [
     "invariant"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "The sign-in call links to `/auth/login?next=<Page>`; the card link goes only to the Page; no quick links signed out (#931) [V `WithheldAnnouncementCard.tsx`]. `[guards F093.10]` collects every link on the signed-out Explore card and Page card and matches them against Page or sign-in only; mutants #769 (ledger) [V]. Reviewed no (#218, #230); shipped yes; smoked yes (as 9)."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "11",
@@ -177,15 +177,15 @@
    "kind": [
     "invariant"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Nothing on the withheld path reads a cookie, header, storage, clock or place; signed out the reach starts from the market's principal city (#932) [V]. `[guards F093.11]` renders for two readers with different headers, timezones and cookies and expects identical output, and scans the path files for per-reader reads; mutants #770 (ledger) [V]. Reviewed no (#218, #230); shipped yes; smoked yes (run 41093000135, explore signed out)."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   },
   {
    "id": "12",
@@ -193,15 +193,15 @@
    "kind": [
     "coverage"
    ],
-   "status": "active",
-   "built": "yes",
-   "checked": "yes",
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Checked since 2026-10-23: `tests/f093-coverage.test.ts` `[guards F093.12]` (whole since #1047) scans src and tests and fails if any of F093.1-11 lacks a whole marker on a line of a test file, and reads `tests/f093-red-runs.json`, which names for each criterion the PR holding its seen-failing run (1 #218, 2 #906, 3 #230, 4 #969, 5 #769, 6 #770, 7 #906, 8 #770, 9 #769, 10 #769, 11 #770); seen failing with each criterion stripped in turn, criterion 7 demoted to partial, and a blank, non-PR or missing ledger entry (#1037, #1042, #1047 bodies) [V]. Reviewed no: #1037 and #1042 `Reviewed by: n/a`, #1047 `Reviewed by: author`; #906, #769, #770 review-skipped [V]. Shipped unknown: Deploy health 40097098636 on 32936da4 (#1037) was cancelled; 40104152349 on cd05fa65 and 40149729700 on 830d493e green [V]. Smoked unknown: not a route. #1017 closed 2026-10-25."
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ('Visitors without an account can read everything'; [replaces F093: ...] lines, [replaces 2026-09-23: Who exists is public. What's happening is not]); the scenario was deleted as retired by F134 (plan 44fd60b, 2026-11-12). #1278 deleted the withheld card, the no-pins rule and the F093 suites; F134's own criteria and checks carry what stays private. The newer one wins. Shown, not counted."
   }
  ]
 }

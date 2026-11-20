@@ -6,7 +6,7 @@
  "area_source": "guess",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -22,7 +22,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Not built. The v1 form (the ruled MVP, 2026-10-26) does not exist: the town page's 'Count me in' is a link to sign-in, and nothing on `/open` asks a role [V src/app/open/[town]/page.tsx line 87, grep]. Unplanned, horizon next."
+   "note": "Not built. The v1 form (the ruled MVP, 2026-10-26) does not exist: the town page's 'Count me in' is a link to sign-in, and nothing on `/open` asks a role [V src/app/open/[town]/page.tsx line 87, grep]. Unplanned, horizon next. Rechecked 2026-11-20 [V]: the F076 waitlist journey (#1313, #1314, #1321, behind the `waitlist-journey` flag) now asks plans, a maker's links, name, zip, email and mobile; the scenario has not said it is this form (open question owner=code 2026-10-26), so it is not counted here [A]."
   },
   {
    "id": "2",
@@ -38,7 +38,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Not built: no form of its own; the email asked today is the signup's (F081) or the waitlist panel's (F076.13) [V]. Unplanned, horizon next."
+   "note": "Not built: no form of its own; the email asked today is the signup's (F081) or the waitlist panel's (F076.13) [V]. Unplanned, horizon next. Rechecked 2026-11-20 [V]: the F076 waitlist journey (#1313, #1314, #1321, behind the `waitlist-journey` flag) now asks plans, a maker's links, name, zip, email and mobile; the scenario has not said it is this form (open question owner=code 2026-10-26), so it is not counted here [A]."
   },
   {
    "id": "3",
@@ -54,7 +54,7 @@
    "shipped": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Not built as a maker's own sign-up. The only URL field is the add-a-maker form, where a supporter gives someone else's site or social (`town.maker_add`, #1093) [V]. Unplanned, horizon next."
+   "note": "Not built as a maker's own sign-up. The only URL field is the add-a-maker form, where a supporter gives someone else's site or social (`town.maker_add`, #1093) [V]. Unplanned, horizon next. Rechecked 2026-11-20 [V]: the F076 waitlist journey (#1313, #1314, #1321, behind the `waitlist-journey` flag) now asks plans, a maker's links, name, zip, email and mobile; the scenario has not said it is this form (open question owner=code 2026-10-26), so it is not counted here [A]."
   },
   {
    "id": "4",
@@ -70,7 +70,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Not built; the home town comes from the signup zip, and nothing asks where a person plays (an open question in the scenario) [V]. Unplanned, horizon next."
+   "note": "Not built; the home town comes from the signup zip, and nothing asks where a person plays (an open question in the scenario) [V]. Unplanned, horizon next. Rechecked 2026-11-20 [V]: the F076 waitlist journey (#1313, #1314, #1321, behind the `waitlist-journey` flag) now asks plans, a maker's links, name, zip, email and mobile; the scenario has not said it is this form (open question owner=code 2026-10-26), so it is not counted here [A]."
   },
   {
    "id": "5",
@@ -103,7 +103,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Half built, behind a flag that is off. #1093 built `/open/<town>` with two bars (makers of 100, supporters of 1,000, '{n} to go'), cached an hour (F076.14), per county 'town' in the ring around Sacramento plus Lake Tahoe [V src/lib/open/board.ts, towns.ts, migration 20261026160000]. Missing against the 2026-10-27 ruling: the unit is the market (#1101 says the Solano and Yuba-Sutter regions go away), there is an `/open` index, and no maker-or-supporter-then-email step precedes the page. `OPEN_YOUR_TOWN = false` makes both routes 404 (#1100) [V src/lib/features.ts, flag.test.ts]. Unplanned, horizon next."
+   "note": "Half built, behind a flag that is off. #1093 built `/open/<town>` with two bars (makers of 100, supporters of 1,000, '{n} to go'), cached an hour (F076.14), per county 'town' in the ring around Sacramento plus Lake Tahoe [V src/lib/open/board.ts, towns.ts, migration 20261026160000]. Missing against the 2026-10-27 ruling: the unit is the market (#1101 says the Solano and Yuba-Sutter regions go away), there is an `/open` index, and no maker-or-supporter-then-email step precedes the page. `OPEN_YOUR_TOWN = false` makes both routes 404 (#1100) [V src/lib/features.ts, flag.test.ts]. Unplanned, horizon next. Rechecked 2026-11-20 [V]: `OPEN_YOUR_TOWN` is still false and since 2026-10-26 only the American-spelling pass (#1302), F134 (#1278) and the header (#1095) touched `/open`."
   },
   {
    "id": "7",
@@ -135,7 +135,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built by #1093, reachable only with the flag on. `town.maker_add` makes an unclaimed Page owned by the system member from the maker's own site or social profile only (a review site or map is refused), no photo (so credited photos, no children and Samples labels do not arise), deduped by site however it was typed or by name in the town, offering the existing Page instead; the share is 'Claim your free Page on SocialUs' into the existing self-serve claim; a claim counts the maker and credits the adder [V src/actions/town/maker-add.ts, PR body]. Checked no: `maker-add.test.ts` (10 cases) and `tests/open-your-town-db.test.ts` (the claim counts and credits, against a database) exist but carry no `[guards F118.8]` marker [V grep]. Reviewed yes: #1093 names a second session, which posted a GitHub review (2026-10-26) [V]. Shipped: Deploy health 40392132524 green on 55fb92f2, 40566148895 on dca80800 (#1100) [V]. Smoked unknown: `/open` is not a smoke route and is 404 while the flag is off."
+   "note": "Built by #1093, reachable only with the flag on. `town.maker_add` makes an unclaimed Page owned by the system member from the maker's own site or social profile only (a review site or map is refused), no photo (so credited photos, no children and Samples labels do not arise), deduped by site however it was typed or by name in the town, offering the existing Page instead; the share is 'Claim your free Page on SocialUs' into the existing self-serve claim; a claim counts the maker and credits the adder [V src/actions/town/maker-add.ts, PR body]. Checked no: `maker-add.test.ts` (10 cases) and `tests/open-your-town-db.test.ts` (the claim counts and credits, against a database) exist but carry no `[guards F118.8]` marker [V grep]. Reviewed yes: #1093 names a second session, which posted a GitHub review (2026-10-26) [V]. Shipped: Deploy health 40392132524 green on 55fb92f2, 40566148895 on dca80800 (#1100) [V]. Smoked unknown: `/open` is not a smoke route and is 404 while the flag is off. Rechecked 2026-11-20 [V]: `OPEN_YOUR_TOWN` is still false and no `[guards F118.n]` marker exists."
   },
   {
    "id": "9",
@@ -151,7 +151,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built by #1093, flagged off: the town page lists maker counts by the five kinds from `town_board()`; a supporter picks one of the five when adding [V src/lib/open/towns.ts, maker-add.ts]. Per county town, not per ruled market (as 6). Checked no: no marked test [V]. Reviewed yes (#1093). Shipped yes (55fb92f2, dca80800 green). Smoked unknown (as 8)."
+   "note": "Built by #1093, flagged off: the town page lists maker counts by the five kinds from `town_board()`; a supporter picks one of the five when adding [V src/lib/open/towns.ts, maker-add.ts]. Per county town, not per ruled market (as 6). Checked no: no marked test [V]. Reviewed yes (#1093). Shipped yes (55fb92f2, dca80800 green). Smoked unknown (as 8). Rechecked 2026-11-20 [V]: `OPEN_YOUR_TOWN` is still false and no `[guards F118.n]` marker exists."
   },
   {
    "id": "10",
@@ -184,7 +184,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built by #1093, flagged off: signed in only, `DAILY_ADDS = 10` under a member lock, the Page is reportable and removable like any unclaimed Page; `town_board()` counts distinct people and excludes builders and the system member [V maker-add.ts, migration lines 111-147]. Checked no: `maker-add.test.ts` covers the limit and the lock without a marker; no standing guard for the never-counts [V]. Reviewed yes (#1093). Shipped yes (55fb92f2, dca80800). Smoked unknown (as 8)."
+   "note": "Built by #1093, flagged off: signed in only, `DAILY_ADDS = 10` under a member lock, the Page is reportable and removable like any unclaimed Page; `town_board()` counts distinct people and excludes builders and the system member [V maker-add.ts, migration lines 111-147]. Checked no: `maker-add.test.ts` covers the limit and the lock without a marker; no standing guard for the never-counts [V]. Reviewed yes (#1093). Shipped yes (55fb92f2, dca80800). Smoked unknown (as 8). Rechecked 2026-11-20 [V]: `OPEN_YOUR_TOWN` is still false and no `[guards F118.n]` marker exists."
   },
   {
    "id": "12",

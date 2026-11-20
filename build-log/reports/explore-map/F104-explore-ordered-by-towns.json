@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
    "issues": [
     696
    ],
-   "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`); search covers 'the whole market' in #924's words but reads the metro scope [V]. No market scope on any surface (rechecked 2026-11-06; #1038 only removed the word metro from copy) [V]. #932's rings start from the member's home town (`explore_vantage`), inside the metro. Open #696, deferred to the fortnight after beta."
+   "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`); search covers 'the whole market' in #924's words but reads the metro scope [V]. No market scope on any surface (rechecked 2026-11-06; #1038 only removed the word metro from copy) [V]. #932's rings start from the member's home town (`explore_vantage`), inside the metro. Open #696, deferred to the fortnight after beta. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
   },
   {
    "id": "2",
@@ -43,7 +43,7 @@
    "issues": [
     697
    ],
-   "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. What exists instead is #932 (Don, 2026-10-18 [for now, beta]): rings of about 15 minutes' drive as straight-line kilometres from the home town's centroid, widened until a screen is full, capped at an hour; order inside is recency and `mixRuns` (#902). Rechecked 2026-11-06: still no adjacency table or `ST_Touches` use in src or migrations [V grep]. Open #697."
+   "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. What exists instead is #932 (Don, 2026-10-18 [for now, beta]): rings of about 15 minutes' drive as straight-line kilometres from the home town's centroid, widened until a screen is full, capped at an hour; order inside is recency and `mixRuns` (#902). Rechecked 2026-11-06: still no adjacency table or `ST_Touches` use in src or migrations [V grep]. Open #697. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
   },
   {
    "id": "3a",
@@ -61,7 +61,7 @@
    "issues": [
     697
    ],
-   "note": "Explore cards show no distance [V `BrowseResultCard.tsx`], but distance still shows elsewhere: `venueDistanceMeters` on the place pages `/p/[...slug]`, 'No matches near you yet.' in `FeedEmptyState.tsx`, 'near you' in the site description (`layout.tsx`) and landing copy; `MarketSelector.tsx` still prints miles but nothing imports it; rechecked 2026-11-06: `venueDistanceMeters` on `/p/[...slug]`, 'No matches near you yet.', 'What's happening near you' in `HomeFeed.tsx` and 'near you' in the site, manifest and push copy remain [V grep]. No guard scans for them (#697's checklist). Open #697."
+   "note": "Explore cards show no distance [V `BrowseResultCard.tsx`], but distance still shows elsewhere: `venueDistanceMeters` on the place pages `/p/[...slug]`, 'No matches near you yet.' in `FeedEmptyState.tsx`, 'near you' in the site description (`layout.tsx`) and landing copy; `MarketSelector.tsx` still prints miles but nothing imports it; rechecked 2026-11-06: `venueDistanceMeters` on `/p/[...slug]`, 'No matches near you yet.', 'What's happening near you' in `HomeFeed.tsx` and 'near you' in the site, manifest and push copy remain [V grep]. No guard scans for them (#697's checklist). Open #697. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
   },
   {
    "id": "3b",
@@ -95,7 +95,7 @@
    "issues": [
     696
    ],
-   "note": "No Page-to-market link or waiting-market filter in the repo [V grep]; a Page's `where_mode` (#944) and anchor decide its pin, not its market. Open #696."
+   "note": "No Page-to-market link or waiting-market filter in the repo [V grep]; a Page's `where_mode` (#944) and anchor decide its pin, not its market. Open #696. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
   },
   {
    "id": "5",
@@ -113,7 +113,7 @@
    "issues": [
     697
    ],
-   "note": "No bands exist [V grep]; #932 starts a member at their home town's ring, which is the nearest thing to the town band and is not it. Open #697."
+   "note": "No bands exist [V grep]; #932 starts a member at their home town's ring, which is the nearest thing to the town band and is not it. Open #697. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
   }
  ]
 }

@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": true,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1a",
@@ -16,13 +16,13 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "yes",
+   "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "The segmented bar is gone: the only list/map controls are `ExploreDock` (one fixed control at the bottom right, a rounded-rectangle bar since #956, under 1024px) and `ListMapToggle`, rendered only in the `docked` layout (`BrowseSurface.tsx:379`) [V]. Checked: #1058 (merged 2026-10-26, closed #824) added one test claiming the criterion whole in `ExploreDock.test.tsx` ('the only fixed List/Map control is a corner dock, open or closed; the inline toggle is not fixed'), seen failing with `inset-x-0` added to the dock; #1069 turned its `[guards F044.1a]` marker into a plain comment because socialus-plan's marker lint rejects a marker naming a scenario that no longer exists; read here as checked, since the test names the criterion and was proven, and no marker can exist for a retired scenario [V]. Reviewed: T116 had no PR; #279 carries no `Reviewed by:`; #479 and #496 are review-skipped; #956 (the 2026-10-18 restyle) has `Reviewed by: Claude (lane agent)` but restyled only; the 10-26 check PRs #1058 and #1069 are tests only, review-skipped [V]. Shipped: T116 landed as direct commit 060ee79 with no deploy run; #279 18948ae7, #479 3c490272, #496 0cee585a, #956 546f0862, #1058 e27184a2, #1069 c16d4f0b are deploy-health green [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. PM looked: #519 J10 ('a Map switch is within reach and works both ways') is unticked [V]."
+   "note": "No full-width fixed List/Map bar exists: `ExploreDock`, `ListMapToggle` and the bottom bar were deleted by #1161 (2026-11-02); the map opens from a 'Show on map' link in the results header (under 1024px) or the ➕ menu's Show the map / Show the list, and side by side from 1024px [V BrowseSurface.tsx]. Checked no: #1058's test sat in the deleted `ExploreDock.test.tsx`; no test asserts the absence now [V git log]. Reviewed no (#1058 tests only). Shipped unknown. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "1b",
@@ -46,17 +46,15 @@
    "kind": [
     "behavior"
    ],
-   "status": "active",
-   "built": "yes",
+   "status": "retired",
+   "built": "no",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
-   "issues": [
-    644
-   ],
-   "note": "`setView('map')` through the dock's view button or the docked tab (`BrowseSurface.tsx`); the docked tab carries `aria-selected` and an underline (#956); the map gets the same mix as the list (`showMap`) [V]. Signed out, Map opens sign-in (#334, #496) and `?view=map&focus=` (#944) opens the map only signed in [V]. Checked: unmarked and not proven against a mutant: `BrowseSurface.layout.test.tsx` ('opens into the four actions, and the view switch swaps list and map'), `ListMapToggle.test.tsx` ('marks the active view selected and the other not'), `ExploreDock.test.tsx` ('switching view reports the other view and shrinks back') [V]. #644 asks for `[guards F044.N]` markers, which the plan lint now rejects (#1069); the check can only be a test named for the criterion, seen failing. Reviewed: T116 had no PR; #279 carries no `Reviewed by:`; #479 and #496 are review-skipped; #956 (the 2026-10-18 restyle) has `Reviewed by: Claude (lane agent)` but restyled only; the 10-26 check PRs #1058 and #1069 are tests only, review-skipped [V]. Shipped: T116 landed as direct commit 060ee79 with no deploy run; #279 18948ae7, #479 3c490272, #496 0cee585a, #956 546f0862, #1058 e27184a2, #1069 c16d4f0b are deploy-health green [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. Open #644."
+   "issues": [],
+   "note": "Overtaken by Don's 2026-11-01 asks, built in #1161 (2026-11-02): the List|Map toggle with an active state is deleted; the map opens from a 'Show on map' link and the ➕ menu, and the scenario is retired. The newer ruling wins; no scenario Rulings line, since the scenario is deleted. Shown, not counted."
   },
   {
    "id": "3",
@@ -64,17 +62,15 @@
    "kind": [
     "behavior"
    ],
-   "status": "active",
-   "built": "yes",
+   "status": "retired",
+   "built": "no",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
-   "issues": [
-    644
-   ],
-   "note": "Same path, `setView('list')` [V]. Checked: unmarked: `ListMapToggle.test.tsx` ('reports list when Map is active and List is tapped'), the same layout and dock tests as criterion 2 [V]. Reviewed, Shipped, Smoked: as criterion 2. Open #644 (markers it asks for are rejected by the plan lint since #1069)."
+   "issues": [],
+   "note": "Overtaken by Don's 2026-11-01 asks, built in #1161 (2026-11-02): the List|Map toggle with an active state is deleted; the map opens from a 'Show on map' link and the ➕ menu, and the scenario is retired. The newer ruling wins; no scenario Rulings line, since the scenario is deleted. Shown, not counted."
   },
   {
    "id": "4",
