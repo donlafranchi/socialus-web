@@ -8193,6 +8193,2542 @@
    ]
   },
   {
+   "feature": "F125",
+   "title": "every decision, pattern and why lives in one store every agent asks",
+   "area": "ops",
+   "area_source": "label",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F125-one-store-for-decisions-and-whys.md",
+   "n": 14,
+   "totals": {
+    "built": {
+     "yes": 13,
+     "no": 1,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 9,
+     "no": 5,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 10,
+     "no": 4,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 13,
+     "no": 1,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 1,
+     "unknown": 13
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 14,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "Every live ruling is a decision record with date, words, concern, departments and tags, and the store exports `constraints/code.md` identical to the hand-built one",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1379
+     ],
+     "note": "Import built (#1222, `scripts/knowledge/import.ts`, export in `export.ts`; PR body: export matches line for line, a second run changes nothing) [V]. Checked: only `[guards F125.1 partial]` in `tests/knowledge-import.test.ts`, so no. Reviewed: #1222 says 'Reviewed by: none' and #1283 (replaces-tag fix) the same, so no.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Nothing is deleted: the store refuses to retire a decision without a link to the newer one, no change rewrites a record in place, every change writes a history row naming person and agent",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1380
+     ],
+     "note": "Retire-needs-link, history triggers and append-only versions built in #1221 (`20261110120000_knowledge_store.sql`) [V]. Checked: only `[guards F125.2 partial]` (3 blocks in `supabase/tests/knowledge_store.sql`); no whole marker, so no standing guard for the 'no change rewrites in place' half.",
+     "gaps": [
+      "INVARIANT-UNPROVEN",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "The store refuses a philosophy, pattern, decision or correction without a why",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Why check at both layers built in #1221 [V]. Checked: `[guards F125.3]` in `supabase/tests/knowledge_store.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "History in one call: every version and the chain of older and newer decisions; what was live for a concern on a date",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built through the lookup tool (#1226, #1221) [V]. Checked: `[guards F125.4]` in `supabase/tests/knowledge_store.sql` and `tests/knowledge-lookup.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Every record has a kind (philosophy, pattern, decision, correction, ...) and a strength (absolute, rule, guideline)",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Kinds and strengths are lookup tables in #1221 [V]. Checked: `[guards F125.5]` in `supabase/tests/knowledge_store.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Model-neutral: no record names an agent or model as its audience; the model a correction was seen in is only evidence",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Corrections served alike to every agent; `sightings` keep the model as evidence (#1221; import #1222) [V]. Checked: `[guards F125.6]` in `supabase/tests/knowledge_store.sql`. Reviewed: #1222 (import) says 'Reviewed by: none', so no.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "Settled stays settled: a settled record cannot be proposed for change; the attempt is refused and logged",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`refusals` table and refusal in #1221 [V]. Checked: `[guards F125.7]` in `supabase/tests/knowledge_store.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Departments wall off: a department key cannot read another department's internal records; the store login reaches nothing outside its schema and no more than the public key (stage 1)",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1381
+     ],
+     "note": "Wall built in #1221, proven for tables, views, sequences; functions no more than the public key (PM picked A, [for now]) [V]. Checked: six `[guards F125.8 partial]` blocks in `supabase/tests/knowledge_store.sql`; the 'no more than the public key' half cannot run without app tables and fails locally on main; no whole marker, so no.",
+     "gaps": [
+      "INVARIANT-UNPROVEN",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "One concern, one call: moderation live decisions under 2,000 tokens",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1286
+     ],
+     "note": "`live('moderation-and-reports')` was 1,755 tokens in #1226; over budget once (#1284, fixed in #1285 to 1,736); #1286 (open) warns it will pass again as rulings grow [V]. Checked: `[guards F125.9]` in `tests/knowledge-lookup.test.ts`. Reviewed: #1285 says 'Reviewed by: none', so no.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "10",
+     "text": "Precedent: one call lists every live decision applying a pattern, with departures; inferred links marked",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built through the lookup tool (#1226) [V]. Checked: `[guards F125.10]` in `tests/knowledge-lookup.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "11",
+     "text": "The platform's why can be read as it stood on any past date, each change naming its evidence",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1221 [V]. Checked: `[guards F125.11]` in `supabase/tests/knowledge_store.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "12",
+     "text": "Unanswered questions are kept: every search that finds nothing is logged",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`unanswered` log in #1226 [V]. Checked: `[guards F125.12]` in `tests/knowledge-lookup.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "13",
+     "text": "Git keeps a copy: a nightly export writes the store to the plan repo by PR, and `constraints/code.md` is generated from it after a week side by side",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1220,
+      1224
+     ],
+     "note": "Not built [V]: `scripts/knowledge/export.ts` reads the rows back, but no workflow writes the nightly export or opens the PR (workflows: import, keys, conditions, drift, pack, answers, capabilities, run-links only). #1220 (open) is this criterion. Open bug #1224 (an ontology entry cannot move from coming to live) is tagged to it too.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "14",
+     "text": "The stress tests in the brief run as the store's test suite, each seen failing first",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1382
+     ],
+     "note": "Suite exists: 20 blocks in `supabase/tests/knowledge_store.sql` run by `tests/knowledge-store-db.test.ts`, each guard mutated out and seen red (#1221 PR body) [V]. Checked: one `[guards F125.14 partial]`; the drift query and `precedents` stress tests were left to the lookup tool and carry no whole marker, so no.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F126",
+   "title": "decisions and features wait on exactly the conditions they need",
+   "area": "ops",
+   "area_source": "label",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F126-things-wait-on-the-conditions-they-need.md",
+   "n": 9,
+   "totals": {
+    "built": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 1
+    },
+    "checked": {
+     "yes": 5,
+     "no": 4,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 8,
+     "no": 1,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 7,
+     "no": 2,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 2,
+     "unknown": 7
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "A condition is a record with a why, owner, status (not started, partial, met, withdrawn) and the check that decides it",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1225 (`20261111120000_knowledge_conditions.sql`) [V]. Checked: `[guards F126.1]` in `supabase/tests/knowledge_conditions.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Conditions have parts; a parent's status is computed from its parts, never set by hand",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1225 [V]. Checked: `[guards F126.2]` in `supabase/tests/knowledge_conditions.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "A condition can be a number crossing a line, decided by a scheduled query",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1225 (scheduled-check job) [V]. Checked: `[guards F126.3]` in `tests/knowledge-conditions-job.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Two ways to wait: `starts when` and `ends when` links to any condition or part; waiting on one part does not wait on the whole",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1225 [V]. Checked: `[guards F126.4]` in `supabase/tests/knowledge_conditions.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Both questions in one call each: what does this condition unlock, and what is this waiting on, following parts all the way down",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1383
+     ],
+     "note": "`unlocks` and `waits_on` are in `src/lib/knowledge/tools.ts` and the migration; #1225 left them to the lookup tool (#1226) [V]. Checked: no `[guards F126.5]` marker anywhere, so no.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "One batch when something is met: one GitHub Issue lists everything it starts or ends",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1225 [V]. Checked: `[guards F126.6]` in `tests/knowledge-conditions-job.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "Parked means parked: an agent asked about parked work answers with the condition; the store refuses to mark parked work as building",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "unknown",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Store half built: `is_parked` and the refusal (#1225) [V]. The agent's-answer half was left to #1219; no 'parked' handling found in `src/lib/knowledge/*.ts` [A: `waits_on` may serve it]. Checked: only `[guards F126.7 partial]` in `supabase/tests/knowledge_conditions.sql`.",
+     "gaps": [
+      "UNKNOWN"
+     ],
+     "score": 1,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Runs without a computer: checks run on a GitHub Actions schedule; the PM marks a condition met or withdrawn from his phone",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1384
+     ],
+     "note": "`knowledge-conditions.yml` runs daily 15:17 UTC and by hand [V]. Checked: only `[guards F126.8 partial]` in `tests/knowledge-conditions-job.test.ts`; the phone mark-met path has no whole marker, so no.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "Today's waiting lines come in as proposals: `[for now]` until-text and scenario `gates:` / `depends:` become proposed conditions, listed in one Issue",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1385
+     ],
+     "note": "Not built [V]: #1225 PR body 'Left to an import follow-on (F126.9)'; the condition kind has no `proposed` status and `scripts/knowledge/conditions.ts` has no import of waiting lines. No Issue existed before this report.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F127",
+   "title": "versions are plans of feature slices that can change without breaking",
+   "area": "ops",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F127-versions-are-plans-of-feature-slices.md",
+   "n": 8,
+   "totals": {
+    "built": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 1,
+     "unknown": 7
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 8,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "A feature has slices, each with its own horizon, rank and the conditions it waits on",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1241 [V]. Checked: `[guards F127.1]` in `supabase/tests/knowledge_plans.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "A version is a record: outcomes, appetite, slices in and out, each leave-out with a reason and the condition that brings it back",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1241 [V]. Checked: `[guards F127.2]` in `supabase/tests/knowledge_plans.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "No feature or slice carries a date; a version may",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1241 (due_on refused on kinds it does not belong to) [V]. Checked: `[guards F127.3]` in `supabase/tests/knowledge_plans.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "A change of plan is a new version with a why naming the outcome that changed; the earlier plan stays readable",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`replan` in #1241 [V]. Checked: `[guards F127.4]` in `supabase/tests/knowledge_plans.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "One call each: what a version held on any date, and what changed between two dates, with the whys",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`plan` and `plan_changes` verbs in #1241 [V]. Checked: `[guards F127.5]` in `supabase/tests/knowledge_plans.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Left out is not forgotten: a left-out slice is listed again when its condition is met or its outcome changes",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1241 [V]. Checked: `[guards F127.6]` in `supabase/tests/knowledge_plans.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "Today's plan comes in: each scenario becomes a feature with one slice carrying horizon and rank",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Import in #1241 (slice `F###-S1`) [V]. Checked: `[guards F127.7]` in `tests/knowledge-plans.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Nothing breaks: the dashboard and `STATUS.md` are generated from the store after a week side by side with today's generators",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1242
+     ],
+     "note": "Not built [V]: #1241 PR body 'F127.8 ... #1242'. #1242 (open) needs a nightly compare job, then seven clean days, then the switch.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F128",
+   "title": "how we work lives in the store, so any method can be checked against it quickly",
+   "area": "ops",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F128-how-we-work-lives-in-the-store.md",
+   "n": 9,
+   "totals": {
+    "built": {
+     "yes": 8,
+     "no": 1,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 2,
+     "no": 7,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 7,
+     "no": 2,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 8,
+     "no": 1,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 1,
+     "unknown": 8
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "Every rule of how we work is a record with scope process, its why, the dated failure as evidence, strength and the enforcing check",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1386
+     ],
+     "note": "100 practices loaded from the seed, 6 absolutes left to their own records (#1243 PR body) [V]. Checked: only `[guards F128.1 partial]` in `tests/knowledge-practices.test.ts` and `supabase/tests/knowledge_practices.sql`, so no. Reviewed: #1243 reviewed, but #1355 and #1362 (seed edits) carry no `Reviewed by:`, so no.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Ask how something runs: \"how does our DevOps work\" returns a short answer from live records, each line linked to its record and enforcing check",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`how` verb with `area_words` in #1243 [V]. Checked: `[guards F128.2]` in `tests/knowledge-practices.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Drift shows itself: a weekly job flags any practice whose enforcing check or workflow no longer exists",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1387
+     ],
+     "note": "Step added to `knowledge-drift.yml` (Mondays 16:41 UTC), `scripts/knowledge/practice-drift.ts` [V]. Checked: only `[guards F128.3 partial]` in `tests/knowledge-practices.test.ts`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Review a method in one session: claims (at most 15) each marked do, opposite on purpose, gap or clash, with one experiment; no web research",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1388
+     ],
+     "note": "`review_method` verb returns the steps and the pack and fetches nothing (#1243) [V]. The review itself is an agent procedure. Checked: only `[guards F128.4 partial]` in `tests/knowledge-practices.test.ts`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Every practice has a ring (adopt, trial, assess, hold); moving a ring writes a new version with its why",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`ring` column, moved only through `revise` (#1243) [V]. Checked: `[guards F128.5]` in `supabase/tests/knowledge_practices.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Experiments are records: practice changed, baseline, measure, verdict date, verdict; the single-loop plan's changes come in first",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1389
+     ],
+     "note": "`experiment` kind, 8 experiments loaded (#1243) [V]. Checked: only `[guards F128.6 partial]` in `tests/knowledge-practices.test.ts` and `supabase/tests/knowledge_practices.sql`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "The monthly upkeep lists practices not confirmed in 90 days and experiments past their verdict date",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1390
+     ],
+     "note": "`upkeep` verb (#1243) [V]. Checked: only `[guards F128.7 partial]`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Docs follow the store: after a week side by side, `socialus-ops` `process/` docs are generated from the records",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1244
+     ],
+     "note": "Not built [V]: PR body 'Criterion 8 ... follow-up #1244'. #1244 (open) waits a week after the first import that loads practices.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "One pack for a chat project: a Markdown pack of how we work (under 10,000 tokens, dated, sized) plus a review-a-method file, written to `socialus-ops` on change and monthly",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1391
+     ],
+     "note": "`knowledge-pack.yml` writes `how-we-work.md` (4,881 tokens from the real seed) and `review-a-method.md` to a `knowledge-pack` branch in socialus-ops by PR (#1243) [V]. Checked: only `[guards F128.9 partial]` in `tests/knowledge-practices.test.ts`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F129",
+   "title": "anyone can ask what SocialUs can and can't do, and get a short true answer",
+   "area": "ops",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F129-what-socialus-can-and-cant-do.md",
+   "n": 8,
+   "totals": {
+    "built": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 6,
+     "no": 2,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 1,
+     "unknown": 7
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 8,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "One answer by who is asking: a visitor, a member, someone who runs a Page or event; each a short list of can and can't yet",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`who` column and `capabilities(who)` (#1245) [V]. Checked: `[guards F129.1]` in `tests/knowledge-capabilities.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Plain and brief: one line per thing, no ticket or scenario numbers, under 1,500 words",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "33 hand-kept lines in `capability-words.json`, 582 words dry run (#1245) [V]. Checked: `[guards F129.2]` in `tests/knowledge-capabilities.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Can means proven: a line is \"can\" only when its slice is shipped and its checks and live smoke test pass",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Rule built in #1245; PR body marks 'Proven live (F129.3, F129.7): partial', because the overnight smoke tests screens, not criteria [V]. Checked: `[guards F129.3]` in `tests/knowledge-capabilities.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Can't yet says why: the condition it waits on, or \"not planned\", \"not built yet\" or \"built, waiting on its checks\"",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`set_capability` refuses any other reason (#1245; amended in plan #311) [V]. Checked: `[guards F129.4]` in `tests/knowledge-capabilities.test.ts` and the SQL suite.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Asked through the store: \"what can SocialUs do\", optionally for one kind of person, is one lookup call with each line linked to its feature",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`can_do` verb (#1245) [V]. Checked: `[guards F129.5]` in `tests/knowledge-capabilities.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "A pack for a chat project: the same answer as one Markdown file in `socialus-plan` when a slice ships, is withdrawn or changes condition, and monthly",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1392
+     ],
+     "note": "`packs/what-socialus-can-do.md` sent by auto-merging PR on `knowledge-capabilities.yml` (11:47 UTC) (#1245) [V]. Checked: only `[guards F129.6 partial]` in `tests/knowledge-capabilities.test.ts`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "It stays true: if a \"can\" line's live smoke test fails, the line moves to \"can't right now\" until it passes",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built via the open `bug · live:` Issue and the smoke report, screen-level only (#1245) [V]. Checked: `[guards F129.7]` in `tests/knowledge-capabilities.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "It takes over the hand-run capabilities page after a week side by side",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1246
+     ],
+     "note": "Not built [V]: #1245 PR body 'F129.8 ... #1246'. #1246 (open) needs a week of nightly packs and `PLAN_PACK_TOKEN`.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F130",
+   "title": "a concept keeps one identity from first idea to what got built",
+   "area": "ops",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F130-a-concept-keeps-one-identity.md",
+   "n": 10,
+   "totals": {
+    "built": {
+     "yes": 8,
+     "no": 2,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 5,
+     "no": 5,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 8,
+     "no": 2,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 8,
+     "no": 2,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 2,
+     "unknown": 8
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 10,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "One identity: a concept's id never changes; names are listed with dates and the ruling behind each; a refused name stays refused",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`concept`, `concept_names` (#1233) [V]. Checked: `[guards F130.1]` in `supabase/tests/knowledge_concepts.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Typed events: ten event types, each with a date, evidence and the PM's words in their own field",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`concept_events`, append-only (#1233) [V]. Checked: `[guards F130.2]` in `supabase/tests/knowledge_concepts.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Lineage holds: split, merged and became links between concepts, scenarios and ideas still resolve after a file is deleted",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Four lineage link types (#1233) [V]. Checked: `[guards F130.3]` in `supabase/tests/knowledge_concepts.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Proven on real history: Posts (from Bulletins) and Open your town load with the brief's timelines, entry for entry",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`concepts-seed.json` holds both timelines (#1233; the test reads the real brief in CI) [V]. Checked: `[guards F130.4]` in `tests/knowledge-concepts.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5a",
+     "text": "Ideas move in: each of IMAGINE.md's ideas becomes a concept with status idea",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1393
+     ],
+     "note": "Import creates the ideas (#1233; story-map placement #1331) [V]. Checked: only `[guards F130.5 partial]` in `tests/knowledge-concepts.test.ts`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "5b",
+     "text": "Ideas leave IMAGINE.md once loaded",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1394
+     ],
+     "note": "Not built [V]: socialus-plan `IMAGINE.md` still lists its ideas (42 `CO-` lines on 2026-11-20); #1233 PR body: 'removal ... socialus-plan's half, done by the parent session'. This is socialus-plan work.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "6a",
+     "text": "Scenarios join their concept: a scenario names its concept in frontmatter and the import links them",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1395
+     ],
+     "note": "Import reads `concept:` frontmatter (#1233; `concept: new` #1251) [V]. Checked: only `[guards F130.6 partial]` in `tests/knowledge-concepts.test.ts`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "6b",
+     "text": "A scenario touched after this ships without a concept fails lint",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1396
+     ],
+     "note": "Not built [V]: no concept check in socialus-plan `scripts/*.py`; #1233 PR body leaves it to socialus-plan.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "One call answers it: \"how did this concept change and why\" is one lookup call",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`concept` verb and `concept_timeline` (#1233) [V]. Checked: `[guards F130.7]` in `tests/knowledge-concepts.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Drift is found: a weekly check lists concepts whose built and ruled states disagree and docs that still call something cut after it came back",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1345,
+      1397
+     ],
+     "note": "`knowledge-drift.yml` opens one Issue (#1345 is its latest, open; it lists 3 stale 'Bulletins, cut' lines in socialus-plan) [V]. Checked: only `[guards F130.8 partial]`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F131",
+   "title": "three short answers: what we built, where we are, what's next",
+   "area": "ops",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F131-three-short-answers.md",
+   "n": 9,
+   "totals": {
+    "built": {
+     "yes": 6,
+     "no": 3,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 6,
+     "no": 3,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 7,
+     "no": 2,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 6,
+     "no": 3,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 3,
+     "unknown": 6
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "Three calls: `built`, `where` and `next`, each in 10 lines or fewer, plain words, no ticket numbers",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`src/lib/knowledge/answers.ts` (#1252) [V]. Checked: `[guards F131.1]` in `tests/knowledge-answers.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "What we built: one line per area, only what is live, each with its point from the concept's why",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1252 [V]. Checked: `[guards F131.2]` in `tests/knowledge-answers.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Where we are: live, broken, slow, in flight, launch blockers, waiting on the PM",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1252 [V]. Checked: `[guards F131.3]` in `tests/knowledge-answers.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "What's next: at most five things in order, each with who; broken first, then what unblocks others, then the top of Now",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1252 [V]. Checked: `[guards F131.4]` in `tests/knowledge-answers.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Live state comes in: a job writes GitHub's state (deploys, failing checks, open bugs, smoke and speed results, items waiting on the PM) into the store",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1398
+     ],
+     "note": "Half built: `knowledge.live_state` and `knowledge-answers.yml` (nightly 12:07 UTC) cover alarms, deploy, failing checks, launch blockers and PM items in socialus-web. Missing: items waiting on the PM in socialus-plan and socialus-ops (the workflow token reaches only this repo), per #1252 PR body [V]. Checked: only `[guards F131.5 partial]`.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 1,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Every line names its source; a line nothing backs is not shown",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1252 [V]. Checked: `[guards F131.6]` in `tests/knowledge-answers.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "One phone page shows the same three answers, generated from the same calls",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Same three texts written to socialus-plan `ANSWERS.md` by auto-merging PR (#1252) [V]. Checked: `[guards F131.7]` in `tests/knowledge-answers.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Retired after a week side by side: the dashboard, DASHBOARD.md and its script, handoff files and the launch reports",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1254
+     ],
+     "note": "Not built [V]: #1252 PR body 'F131.8 ... #1254'. #1254 (open) starts a week after the first nightly run.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "Orientation shrinks: each repo's CLAUDE.md is about 40 lines and starts an agent with the three calls",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1255
+     ],
+     "note": "Not built [V]: #1252 PR body 'F131.9 ... #1255'. #1255 (open).",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F132",
+   "title": "story maps in the store, so every item sits in the bigger picture",
+   "area": "ops",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F132-story-maps-in-the-store.md",
+   "n": 8,
+   "totals": {
+    "built": {
+     "yes": 8,
+     "no": 0,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 8,
+     "no": 0,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 8,
+     "no": 0,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 0,
+     "unknown": 8
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 8,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "Patton's structure as records: journey, activities, tasks, details, each knowing its parent",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Kinds `journey`, `activity`, `task`, `detail` with `parent` and `place` (#1257) [V]. Checked: `[guards F132.1]` in `supabase/tests/knowledge_maps.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Up and down in one call: any item returns its place, what sits around it and what it is made of",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`knowledge.map_place` (#1257; every-department read #1343, #1350) [V]. Checked: `[guards F132.2]` in `tests/knowledge-maps.test.ts` and `supabase/tests/knowledge_maps.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Slices cut across the map: each task shows which slices include it and whether it is built",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`slice_of` a journey, `takes`, `knowledge.built` (#1257; built from shipped state #1341, review recorded) [V]. Checked: `[guards F132.3]` in `tests/knowledge-maps.test.ts` and `supabase/tests/knowledge_maps.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Editing shows the picture: a proposed change returns the journey, slices and features it touches before it is decided",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`map_propose`, `map_decide` (#1257) [V]. Checked: `[guards F132.4]` in `tests/knowledge-maps.test.ts` and `supabase/tests/knowledge_maps.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Where does this fit: a new idea in plain words returns the journey, activity and task, what it stands on, what must be built first, and what it clashes with",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`fits` (#1257); for an unplaced idea it lists rules sharing its words as 'may clash, not judged yet', not a judged clash [V]. Checked: `[guards F132.5]` in `tests/knowledge-maps.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Today comes in: `uat-journeys.json` walk-throughs become journeys, each feature is placed, IMAGINE ideas are placed or marked \"no journey yet\"",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`maps.ts` and `maps-seed.json`, ideas CO-0003 to CO-0043 placed (#1257; later ideas #1331) [V]. Checked: `[guards F132.6]` in `tests/knowledge-maps.test.ts`. Reviewed: #1331 carries no `Reviewed by:`, so no.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "The first map is real: \"a neighbour finds something happening this weekend and goes\" loads with its activities, tasks, details and two slices",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Loaded from `maps-seed.json` (#1257) [V]. Checked: `[guards F132.7]` in `tests/knowledge-maps.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Short answers: each answer fits a phone screen, plain words, no ticket numbers",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Every verb answers in twelve lines or fewer (#1257) [V]. Checked: `[guards F132.8]` in `tests/knowledge-maps.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F133",
+   "title": "usage counts kept in our own database, nothing leaving the platform",
+   "area": "ops",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F133-usage-counts-in-our-own-database.md",
+   "n": 8,
+   "totals": {
+    "built": {
+     "yes": 7,
+     "no": 0,
+     "unknown": 1
+    },
+    "checked": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 1,
+     "unknown": 7
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 8,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "Coming back: members active each week, by the week they joined, for the last 12 weeks",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Count tables and handler (#1268) [V]. Checked: `[guards F133.1]` in `tests/usage-counts-db.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "What they use: per day, members who used each part of the app, once per member per part per day",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1268 [V]. Checked: `[guards F133.2]` in `tests/usage-counts-db.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Where they drop off: per week, how many reached each sign-up step, a first follow and a first post",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1268 [V]. Checked: `[guards F133.3]` in `tests/usage-counts-db.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Counts only: no member id, email, IP or precise location beside any count; dedupe keys are one-way hashes deleted within 8 days",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1268 [V]. Checked: `[guards F133.4]` in `tests/usage-counts-db.test.ts` (schema-level).",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Nothing leaves: no usage data goes to an outside service; nothing added to a page load",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1268 [V]. Checked: standing guard `[guards F133.5]` in `src/lib/usage/count-use.test.ts` (no client file reaches the counting code, which calls nothing outside).",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "One switch: a member who turned sharing off on You is never counted; builders are never counted",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Uses the existing search and map-tap switch (#1268) [V]. Checked: `[guards F133.6]` in `tests/usage-counts-db.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "On the dashboard: staff see the three answers; nobody else can read the counts",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1268 [V]. Checked: `[guards F133.7]` in `tests/usage-counts-db.test.ts`; the dashboard itself is slated for retirement (F131.8).",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Counting starts before the first invited cohort arrives",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "unknown",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Timing: #1268 PR body 'merge and apply before the first cohort'. Merged 2026-11-12; no source read today shows the migration applied in production or the cohort date [A].",
+     "gaps": [
+      "UNKNOWN"
+     ],
+     "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F135",
+   "title": "each run of a repeated routine keeps a dated history",
+   "area": "ops",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-20",
+   "path": "ops/F135-run-history-for-repeated-routines.md",
+   "n": 8,
+   "totals": {
+    "built": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 6,
+     "no": 2,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 7,
+     "no": 1,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 1,
+     "unknown": 7
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 8,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "A run is a record linked to its practice: date, commit, membership simulated, numbers, what broke first, what changed after, next ideas",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`run` kind, `run_terms`, `run_of` link (#1276) [V]. Checked: `[guards F135.1]` in `supabase/tests/knowledge_runs.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Runs record themselves: the routine writes its record when it finishes, pass or fail; a run that ends without a record fails its workflow",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      1399
+     ],
+     "note": "New step in the Load simulation workflow fails the job if it cannot record (#1276) [V]. Checked: only `[guards F135.2 partial]` in `tests/knowledge-runs.test.ts` and `supabase/tests/knowledge_runs.sql`.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "What changed after links itself: a PR naming the run or its practice is linked when it merges",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`knowledge-run-links.yml` on each merge to main (#1276) [V]. Checked: `[guards F135.3]` in `supabase/tests/knowledge_runs.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Every practice carries a try-next-time list; an idea leaves only when a later run tried it or the PM drops it",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`idea` kind (open, tried, dropped) (#1276) [V]. Checked: `[guards F135.4]` in `supabase/tests/knowledge_runs.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Load simulation first: #1264 and the Load simulation workflow write runs; its first result is loaded as run one",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Routine and both runs recorded by a full import (#1276 PR body) [V]. Checked: `[guards F135.5]` in `tests/knowledge-runs.test.ts`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Then the other three: tap-speed re-benchmarks, the monthly backup restore test and the method review write runs the same way",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1277
+     ],
+     "note": "Not built [V]: #1276 PR body 'Not in this PR (criterion 6, #1277)'. #1277 (open) lists what each needs: a tap-speed ruling, a backup practice in the plan seed, and a lookup-tool write for the method review.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "One call answers it: history of a practice and what to try next in one lookup call",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1276 [V]. Checked: `[guards F135.7]` in `tests/knowledge-runs.test.ts` and `supabase/tests/knowledge_runs.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "The monthly upkeep lists a practice with no run in its interval, or an idea open over 90 days",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built in #1276 [V]. Checked: `[guards F135.8]` in `supabase/tests/knowledge_runs.sql`.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    }
+   ]
+  },
+  {
    "feature": "F056",
    "title": "A producer edits a shop that already exists",
    "area": "page-editing",
@@ -10130,6 +12666,43 @@
     }
    }
   },
+  "ops": {
+   "features": 10,
+   "n": 91,
+   "red": 0,
+   "totals": {
+    "built": {
+     "yes": 78,
+     "no": 11,
+     "unknown": 2
+    },
+    "checked": {
+     "yes": 61,
+     "no": 30,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 75,
+     "no": 16,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 78,
+     "no": 13,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 13,
+     "unknown": 78
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 91,
+     "unknown": 0
+    }
+   }
+  },
   "page-editing": {
    "features": 3,
    "n": 21,
@@ -10206,38 +12779,38 @@
   }
  },
  "all": {
-  "features": 35,
-  "n": 301,
+  "features": 45,
+  "n": 392,
   "red": 10,
   "totals": {
    "built": {
-    "yes": 213,
-    "no": 88,
-    "unknown": 0
+    "yes": 291,
+    "no": 99,
+    "unknown": 2
    },
    "checked": {
-    "yes": 148,
-    "no": 153,
+    "yes": 209,
+    "no": 183,
     "unknown": 0
    },
    "reviewed": {
-    "yes": 43,
-    "no": 258,
+    "yes": 118,
+    "no": 274,
     "unknown": 0
    },
    "shipped": {
-    "yes": 177,
-    "no": 88,
+    "yes": 255,
+    "no": 101,
     "unknown": 36
    },
    "smoked": {
     "yes": 68,
-    "no": 88,
-    "unknown": 145
+    "no": 101,
+    "unknown": 223
    },
    "pm_looked": {
     "yes": 0,
-    "no": 301,
+    "no": 392,
     "unknown": 0
    }
   }
@@ -10253,6 +12826,10 @@
    "F056.3",
    "F057.4b",
    "F065.2b"
+  ],
+  "UNKNOWN": [
+   "F126.7",
+   "F133.8"
   ],
   "NOT-BUILT": [
    "F114.1",
@@ -10321,6 +12898,17 @@
    "F100.11b",
    "F100.12",
    "F102.13b",
+   "F125.13",
+   "F126.9",
+   "F127.8",
+   "F128.8",
+   "F129.8",
+   "F130.5b",
+   "F130.6b",
+   "F131.5",
+   "F131.8",
+   "F131.9",
+   "F135.6",
    "F056.4",
    "F056.9b",
    "F069.2",
@@ -10355,6 +12943,8 @@
    "F076.15",
    "F092.1a",
    "F118.11",
+   "F125.2",
+   "F125.8",
    "F056.7a",
    "F056.8",
    "F057.1",
@@ -10390,6 +12980,21 @@
    "F118.9",
    "F121.1a",
    "F121.3b",
+   "F125.1",
+   "F125.14",
+   "F126.5",
+   "F126.8",
+   "F128.1",
+   "F128.3",
+   "F128.4",
+   "F128.6",
+   "F128.7",
+   "F128.9",
+   "F129.6",
+   "F130.5a",
+   "F130.6a",
+   "F130.8",
+   "F135.2",
    "F056.2",
    "F056.6",
    "F056.9a",
@@ -10542,6 +13147,11 @@
    "F102.12",
    "F102.13a",
    "F102.14",
+   "F125.1",
+   "F125.6",
+   "F125.9",
+   "F128.1",
+   "F132.6",
    "F056.1a",
    "F056.2",
    "F056.7a",
@@ -10724,6 +13334,84 @@
    "F102.12",
    "F102.13a",
    "F102.14",
+   "F125.1",
+   "F125.2",
+   "F125.3",
+   "F125.4",
+   "F125.5",
+   "F125.6",
+   "F125.7",
+   "F125.8",
+   "F125.9",
+   "F125.10",
+   "F125.11",
+   "F125.12",
+   "F125.14",
+   "F126.1",
+   "F126.2",
+   "F126.3",
+   "F126.4",
+   "F126.5",
+   "F126.6",
+   "F126.8",
+   "F127.1",
+   "F127.2",
+   "F127.3",
+   "F127.4",
+   "F127.5",
+   "F127.6",
+   "F127.7",
+   "F128.1",
+   "F128.2",
+   "F128.3",
+   "F128.4",
+   "F128.5",
+   "F128.6",
+   "F128.7",
+   "F128.9",
+   "F129.1",
+   "F129.2",
+   "F129.3",
+   "F129.4",
+   "F129.5",
+   "F129.6",
+   "F129.7",
+   "F130.1",
+   "F130.2",
+   "F130.3",
+   "F130.4",
+   "F130.5a",
+   "F130.6a",
+   "F130.7",
+   "F130.8",
+   "F131.1",
+   "F131.2",
+   "F131.3",
+   "F131.4",
+   "F131.6",
+   "F131.7",
+   "F132.1",
+   "F132.2",
+   "F132.3",
+   "F132.4",
+   "F132.5",
+   "F132.6",
+   "F132.7",
+   "F132.8",
+   "F133.1",
+   "F133.2",
+   "F133.3",
+   "F133.4",
+   "F133.5",
+   "F133.6",
+   "F133.7",
+   "F135.1",
+   "F135.2",
+   "F135.3",
+   "F135.4",
+   "F135.5",
+   "F135.7",
+   "F135.8",
    "F056.1a",
    "F056.2",
    "F056.5",
@@ -10934,6 +13622,84 @@
    "F102.12",
    "F102.13a",
    "F102.14",
+   "F125.1",
+   "F125.2",
+   "F125.3",
+   "F125.4",
+   "F125.5",
+   "F125.6",
+   "F125.7",
+   "F125.8",
+   "F125.9",
+   "F125.10",
+   "F125.11",
+   "F125.12",
+   "F125.14",
+   "F126.1",
+   "F126.2",
+   "F126.3",
+   "F126.4",
+   "F126.5",
+   "F126.6",
+   "F126.8",
+   "F127.1",
+   "F127.2",
+   "F127.3",
+   "F127.4",
+   "F127.5",
+   "F127.6",
+   "F127.7",
+   "F128.1",
+   "F128.2",
+   "F128.3",
+   "F128.4",
+   "F128.5",
+   "F128.6",
+   "F128.7",
+   "F128.9",
+   "F129.1",
+   "F129.2",
+   "F129.3",
+   "F129.4",
+   "F129.5",
+   "F129.6",
+   "F129.7",
+   "F130.1",
+   "F130.2",
+   "F130.3",
+   "F130.4",
+   "F130.5a",
+   "F130.6a",
+   "F130.7",
+   "F130.8",
+   "F131.1",
+   "F131.2",
+   "F131.3",
+   "F131.4",
+   "F131.6",
+   "F131.7",
+   "F132.1",
+   "F132.2",
+   "F132.3",
+   "F132.4",
+   "F132.5",
+   "F132.6",
+   "F132.7",
+   "F132.8",
+   "F133.1",
+   "F133.2",
+   "F133.3",
+   "F133.4",
+   "F133.5",
+   "F133.6",
+   "F133.7",
+   "F135.1",
+   "F135.2",
+   "F135.3",
+   "F135.4",
+   "F135.5",
+   "F135.7",
+   "F135.8",
    "F056.1a",
    "F056.2",
    "F056.5",
@@ -10979,6 +13745,14 @@
   "F046: scenario retired; shown, not counted",
   "F063: area 'explore-map' is a guess; no Issue carries an area: label",
   "F118: area 'explore-map' is a guess; no Issue carries an area: label",
+  "F127: area 'ops' is a guess; no Issue carries an area: label",
+  "F128: area 'ops' is a guess; no Issue carries an area: label",
+  "F129: area 'ops' is a guess; no Issue carries an area: label",
+  "F130: area 'ops' is a guess; no Issue carries an area: label",
+  "F131: area 'ops' is a guess; no Issue carries an area: label",
+  "F132: area 'ops' is a guess; no Issue carries an area: label",
+  "F133: area 'ops' is a guess; no Issue carries an area: label",
+  "F135: area 'ops' is a guess; no Issue carries an area: label",
   "F060: unknown cells: Smoked 4",
   "F061: unknown cells: Shipped 1, Smoked 3",
   "F072: unknown cells: Shipped 2, Smoked 5",
@@ -10999,6 +13773,16 @@
   "F100: unknown cells: Smoked 11",
   "F101: unknown cells: Shipped 12, Smoked 1",
   "F102: unknown cells: Shipped 1, Smoked 13",
+  "F125: unknown cells: Smoked 13",
+  "F126: unknown cells: Built 1, Smoked 7",
+  "F127: unknown cells: Smoked 7",
+  "F128: unknown cells: Smoked 8",
+  "F129: unknown cells: Smoked 7",
+  "F130: unknown cells: Smoked 8",
+  "F131: unknown cells: Smoked 6",
+  "F132: unknown cells: Smoked 8",
+  "F133: unknown cells: Built 1, Smoked 7",
+  "F135: unknown cells: Smoked 7",
   "F056: unknown cells: Smoked 7",
   "F069: unknown cells: Shipped 1, Smoked 3",
   "F106: unknown cells: Smoked 1",

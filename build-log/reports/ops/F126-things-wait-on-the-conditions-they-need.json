@@ -1,0 +1,162 @@
+{
+ "schema": 1,
+ "feature": "F126",
+ "title": "decisions and features wait on exactly the conditions they need",
+ "area": "ops",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-20",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A condition is a record with a why, owner, status (not started, partial, met, withdrawn) and the check that decides it",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1225 (`20261111120000_knowledge_conditions.sql`) [V]. Checked: `[guards F126.1]` in `supabase/tests/knowledge_conditions.sql`."
+  },
+  {
+   "id": "2",
+   "text": "Conditions have parts; a parent's status is computed from its parts, never set by hand",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1225 [V]. Checked: `[guards F126.2]` in `supabase/tests/knowledge_conditions.sql`."
+  },
+  {
+   "id": "3",
+   "text": "A condition can be a number crossing a line, decided by a scheduled query",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1225 (scheduled-check job) [V]. Checked: `[guards F126.3]` in `tests/knowledge-conditions-job.test.ts`."
+  },
+  {
+   "id": "4",
+   "text": "Two ways to wait: `starts when` and `ends when` links to any condition or part; waiting on one part does not wait on the whole",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1225 [V]. Checked: `[guards F126.4]` in `supabase/tests/knowledge_conditions.sql`."
+  },
+  {
+   "id": "5",
+   "text": "Both questions in one call each: what does this condition unlock, and what is this waiting on, following parts all the way down",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1383
+   ],
+   "note": "`unlocks` and `waits_on` are in `src/lib/knowledge/tools.ts` and the migration; #1225 left them to the lookup tool (#1226) [V]. Checked: no `[guards F126.5]` marker anywhere, so no."
+  },
+  {
+   "id": "6",
+   "text": "One batch when something is met: one GitHub Issue lists everything it starts or ends",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1225 [V]. Checked: `[guards F126.6]` in `tests/knowledge-conditions-job.test.ts`."
+  },
+  {
+   "id": "7",
+   "text": "Parked means parked: an agent asked about parked work answers with the condition; the store refuses to mark parked work as building",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Store half built: `is_parked` and the refusal (#1225) [V]. The agent's-answer half was left to #1219; no 'parked' handling found in `src/lib/knowledge/*.ts` [A: `waits_on` may serve it]. Checked: only `[guards F126.7 partial]` in `supabase/tests/knowledge_conditions.sql`."
+  },
+  {
+   "id": "8",
+   "text": "Runs without a computer: checks run on a GitHub Actions schedule; the PM marks a condition met or withdrawn from his phone",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1384
+   ],
+   "note": "`knowledge-conditions.yml` runs daily 15:17 UTC and by hand [V]. Checked: only `[guards F126.8 partial]` in `tests/knowledge-conditions-job.test.ts`; the phone mark-met path has no whole marker, so no."
+  },
+  {
+   "id": "9",
+   "text": "Today's waiting lines come in as proposals: `[for now]` until-text and scenario `gates:` / `depends:` become proposed conditions, listed in one Issue",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1385
+   ],
+   "note": "Not built [V]: #1225 PR body 'Left to an import follow-on (F126.9)'; the condition kind has no `proposed` status and `scripts/knowledge/conditions.ts` has no import of waiting lines. No Issue existed before this report."
+  }
+ ]
+}

@@ -1,0 +1,141 @@
+{
+ "schema": 1,
+ "feature": "F133",
+ "title": "usage counts kept in our own database, nothing leaving the platform",
+ "area": "ops",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-20",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Coming back: members active each week, by the week they joined, for the last 12 weeks",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Count tables and handler (#1268) [V]. Checked: `[guards F133.1]` in `tests/usage-counts-db.test.ts`."
+  },
+  {
+   "id": "2",
+   "text": "What they use: per day, members who used each part of the app, once per member per part per day",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1268 [V]. Checked: `[guards F133.2]` in `tests/usage-counts-db.test.ts`."
+  },
+  {
+   "id": "3",
+   "text": "Where they drop off: per week, how many reached each sign-up step, a first follow and a first post",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1268 [V]. Checked: `[guards F133.3]` in `tests/usage-counts-db.test.ts`."
+  },
+  {
+   "id": "4",
+   "text": "Counts only: no member id, email, IP or precise location beside any count; dedupe keys are one-way hashes deleted within 8 days",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1268 [V]. Checked: `[guards F133.4]` in `tests/usage-counts-db.test.ts` (schema-level)."
+  },
+  {
+   "id": "5",
+   "text": "Nothing leaves: no usage data goes to an outside service; nothing added to a page load",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1268 [V]. Checked: standing guard `[guards F133.5]` in `src/lib/usage/count-use.test.ts` (no client file reaches the counting code, which calls nothing outside)."
+  },
+  {
+   "id": "6",
+   "text": "One switch: a member who turned sharing off on You is never counted; builders are never counted",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Uses the existing search and map-tap switch (#1268) [V]. Checked: `[guards F133.6]` in `tests/usage-counts-db.test.ts`."
+  },
+  {
+   "id": "7",
+   "text": "On the dashboard: staff see the three answers; nobody else can read the counts",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in #1268 [V]. Checked: `[guards F133.7]` in `tests/usage-counts-db.test.ts`; the dashboard itself is slated for retirement (F131.8)."
+  },
+  {
+   "id": "8",
+   "text": "Counting starts before the first invited cohort arrives",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Timing: #1268 PR body 'merge and apply before the first cohort'. Merged 2026-11-12; no source read today shows the migration applied in production or the cohort date [A]."
+  }
+ ]
+}
