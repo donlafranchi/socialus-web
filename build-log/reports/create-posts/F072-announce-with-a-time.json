@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1a",
@@ -25,7 +25,7 @@
    "issues": [
     599
    ],
-   "note": "`requireManagingRole` via `managingRoleForKind` in `group.post_create` and `group.post_edit`; an edit is an `update` on the same row id; `page_posts` has no client write policy [V actions/group/post.ts]. Built by #115 (T164) and #183 (T166), neither with `Reviewed by:`; Deploy health green on #183, no run for #115's merge commit (it predates the workflow). Checked: no `[guards F072.1a]` marker exists anywhere [V grep]; `post.test.ts` and `PagePosts.test.tsx` are unmarked (#599)."
+   "note": "`requireManagingRole` via `managingRoleForKind` in `group.post_create` and `group.post_edit`; an edit is an `update` on the same row id; `page_posts` has no client write policy [V actions/group/post.ts]. Built by #115 (T164) and #183 (T166), neither with `Reviewed by:`; Deploy health green on #183, no run for #115's merge commit (it predates the workflow). Checked: no `[guards F072.1a]` marker exists anywhere [V grep]; `post.test.ts` and `PagePosts.test.tsx` are unmarked (#599). Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   },
   {
    "id": "1b",
@@ -41,7 +41,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: Don's 2026-10-02 ruling on #318 ('Owners can delete their own posts'), built in #319 [V gh]. It is not yet a dated line in this scenario's `## Rulings`; `sync-roadmap` should record it. Shown, not counted."
+   "note": "Retired: Don's 2026-10-02 ruling on #318 ('Owners can delete their own posts'), built in #319 [V gh]. It is not yet a dated line in this scenario's `## Rulings`; `sync-roadmap` should record it. Shown, not counted. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   },
   {
    "id": "2a",
@@ -61,7 +61,7 @@
     599,
     601
    ],
-   "note": "A post shows on its Page and in browse as coming from the Page, with no price, buy control or listing chrome: no price field in the composer, none in `PagePosts.tsx` or `BrowseResultCard.tsx` [V grep]. Since 10-23 the cards were reworked (#1126 post kinds and lead line, #1143, #1168, #1170, #1140 Page view); the first four carry `Reviewed by:`, #1140 does not, and the original #115/#183/#258 carry none. Checked: unmarked tests; nothing scans for listing chrome (#599, #601). Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+   "note": "A post shows on its Page and in browse as coming from the Page, with no price, buy control or listing chrome: no price field in the composer, none in `PagePosts.tsx` or `BrowseResultCard.tsx` [V grep]. Since 10-23 the cards were reworked (#1126 post kinds and lead line, #1143, #1168, #1170, #1140 Page view); the first four carry `Reviewed by:`, #1140 does not, and the original #115/#183/#258 carry none. Checked: unmarked tests; nothing scans for listing chrome (#599, #601). Smoked: unknown; smoke-live was green on 05178ea (11-19; routes explore, page, you; 15 passed) [V gh run] but opens no route that shows this criterion. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   },
   {
    "id": "2b",
@@ -77,7 +77,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired by the newer ruling: F121 `## Rulings` 2026-10-30, 'Timely posts leave the shelves and lists at a shelf life set by kind ... shelf life is when a post ends', with F121.3 ('a dated item qualifies only before it ends'). It overtakes 'start time has passed', which was the spec-conflict with #815/#914 keeping a dated post until its end. Built as `post_current_until` / `SHELF_DAYS` in `src/lib/posts/kinds.ts` and `20261031120000_post_kinds.sql` (#1126). Shown, not counted."
+   "note": "Retired by the newer ruling: F121 `## Rulings` 2026-10-30, 'Timely posts leave the shelves and lists at a shelf life set by kind ... shelf life is when a post ends', with F121.3 ('a dated item qualifies only before it ends'). It overtakes 'start time has passed', which was the spec-conflict with #815/#914 keeping a dated post until its end. Built as `post_current_until` / `SHELF_DAYS` in `src/lib/posts/kinds.ts` and `20261031120000_post_kinds.sql` (#1126). Shown, not counted. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   },
   {
    "id": "2c",
@@ -93,7 +93,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired by the same F121 ruling (2026-10-30): an undated post now leaves at its kind's shelf life (news 7 days, offer 7, limited 14, proposal 14, hiring 30) and sits under Past on its Page, replacing the 14-day rule and 'Earlier' section of 2026-10-02 [V kinds.ts]. #914/#965's 'show until' and 'Earlier' were built to the older rule. Shown, not counted; `sync-roadmap` amends the scenario."
+   "note": "Retired by the same F121 ruling (2026-10-30): an undated post now leaves at its kind's shelf life (news 7 days, offer 7, limited 14, proposal 14, hiring 30) and sits under Past on its Page, replacing the 14-day rule and 'Earlier' section of 2026-10-02 [V kinds.ts]. #914/#965's 'show until' and 'Earlier' were built to the older rule. Shown, not counted; `sync-roadmap` amends the scenario. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   },
   {
    "id": "3",
@@ -111,7 +111,7 @@
    "issues": [
     599
    ],
-   "note": "`group.post_create` writes `starts_at`, `ends_at` and `location_id`; `browse_feed` compares timestamptz bounds and needs `starts_at` for a window; `METRO_TIME_ZONE` in `metro-time.ts` is the one zone, a constant until the metro carries its own (#173) [V]. Built by #183, #212, #258 (no `Reviewed by:`). Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599). Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+   "note": "`group.post_create` writes `starts_at`, `ends_at` and `location_id`; `browse_feed` compares timestamptz bounds and needs `starts_at` for a window; `METRO_TIME_ZONE` in `metro-time.ts` is the one zone, a constant until the metro carries its own (#173) [V]. Built by #183, #212, #258 (no `Reviewed by:`). Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599). Smoked: unknown; smoke-live was green on 05178ea (11-19; routes explore, page, you; 15 passed) [V gh run] but opens no route that shows this criterion. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   },
   {
    "id": "4",
@@ -131,7 +131,7 @@
     599,
     601
    ],
-   "note": "`AudienceSwitch.tsx`: 'Anyone' by default, the restricted setting shown but not postable (delivery is cut), the count reads in words at zero; the words 'announcement' and 'bulletin' appear only in code comments and in the unrouted sell flow, not in a composer label [V]. Built by #183 (no `Reviewed by:`). One test reads one label (`PagePosts.test.tsx`); nothing scans every label and state (#601); all unmarked (#599). The composer is not opened by smoke-live."
+   "note": "`AudienceSwitch.tsx`: 'Anyone' by default, the restricted setting shown but not postable (delivery is cut), the count reads in words at zero; the words 'announcement' and 'bulletin' appear only in code comments and in the unrouted sell flow, not in a composer label [V]. Built by #183 (no `Reviewed by:`). One test reads one label (`PagePosts.test.tsx`); nothing scans every label and state (#601); all unmarked (#599). The composer is not opened by smoke-live. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   },
   {
    "id": "5",
@@ -149,7 +149,7 @@
    "issues": [
     599
    ],
-   "note": "`group.post_create` is one insert in a transaction; a failed save leaves no row [V actions/group/post.ts]. Built by #183. Checked: unmarked tests (#599)."
+   "note": "`group.post_create` is one insert in a transaction; a failed save leaves no row [V actions/group/post.ts]. Built by #183. Checked: unmarked tests (#599). Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   },
   {
    "id": "6",
@@ -168,7 +168,7 @@
     596,
     599
    ],
-   "note": "Half built: `ends_at` with a check constraint (#263), `.ics` with DTEND and `AddToCalendarLink` (#261), and `cardImageAlt` (title, date, place) on browse cards [V]. Missing: a Page's own post photo takes the first line of the post as alt (`PagePosts.tsx` line 701), with no fallback to title, date and place (#596). F099.10 now reads 'owner's words, else the default', which this still lacks. The label 'Event' is not asserted [A]. Held by the build freeze."
+   "note": "Half built: `ends_at` with a check constraint (#263), `.ics` with DTEND and `AddToCalendarLink` (#261), and `cardImageAlt` (title, date, place) on browse cards [V]. Missing: a Page's own post photo takes the first line of the post as alt (`PagePosts.tsx` line 701), with no fallback to title, date and place (#596). F099.10 now reads 'owner's words, else the default', which this still lacks. The label 'Event' is not asserted [A]. Held by the build freeze. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
   }
  ]
 }

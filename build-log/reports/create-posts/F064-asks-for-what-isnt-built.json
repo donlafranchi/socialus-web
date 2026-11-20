@@ -6,7 +6,7 @@
  "area_source": "guess",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     33
    ],
-   "note": "No signal table in `supabase/migrations` and no code for an unmapped-label or Other-description source [V grep]. Open #33 covers it; its 2026-09-15 comment says build the table and the ranked query only, because both sources sit behind unruled drafts (the label layer, F088 which is still `draft`, horizon later)."
+   "note": "No signal table in `supabase/migrations` and no code for an unmapped-label or Other-description source [V grep]. Open #33 covers it; its 2026-09-15 comment says build the table and the ranked query only, because both sources sit behind unruled drafts (the label layer, F088 which is still `draft`, horizon later). Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     33
    ],
-   "note": "No 'not built yet' option and no tap handler exist [V grep]. Covered by #33."
+   "note": "No 'not built yet' option and no tap handler exist [V grep]. Covered by #33. Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open."
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     33
    ],
-   "note": "Nothing built, so nothing to guard. A guard ships with #33."
+   "note": "Nothing built, so nothing to guard. A guard ships with #33. Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open."
   },
   {
    "id": "4",
@@ -78,7 +78,7 @@
    "issues": [
     33
    ],
-   "note": "Nothing built. Covered by #33."
+   "note": "Nothing built. Covered by #33. Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open."
   },
   {
    "id": "5",
@@ -96,7 +96,7 @@
    "issues": [
     33
    ],
-   "note": "Nothing built; no operator query or table. Covered by #33."
+   "note": "Nothing built; no operator query or table. Covered by #33. Re-read 2026-11-20 [V]: no signal table, handler or copy exists (migrations and src grepped); #33 still open."
   }
  ]
 }
