@@ -38,7 +38,7 @@ import {
 } from './plan-source'
 import { placeOf, ABSOLUTE_CONCERN, CONCERN_DEPARTMENT } from './concerns'
 import { inferApplies } from './infer'
-import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
+import { loadConcepts, readSeed, readImagine, readScenarios, readBriefs, conceptReport, type ConceptSummary, type Seed } from './concepts'
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
 import { loadPractices, readPracticeSeed, practiceSeedPath, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
 import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
@@ -440,6 +440,7 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     seed: src.seed ?? readSeed(),
     ideas: readImagine(resolve(src.planDir, 'IMAGINE.md')),
     scenarios: readScenarios(src.planDir),
+    briefs: readBriefs(src.planDir),
     commits: { plan: src.commits?.plan, web: src.commits?.web },
     today,
   })
