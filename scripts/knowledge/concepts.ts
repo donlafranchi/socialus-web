@@ -1,6 +1,8 @@
 // F130 (#1232): concepts into the knowledge store: the two traced timelines
 // (concepts-seed.json, criterion 4), socialus-plan's IMAGINE.md ideas
-// (criterion 5) and each scenario's `concept:` frontmatter (criterion 6).
+// (criterion 5), each scenario's `concept:` frontmatter (criterion 6), and
+// each brief that names its concept (#1300: briefs are not imported, so a
+// brief's words reach the store as a dated change on the concept it develops).
 //
 // Called by the import (import.ts) inside its one transaction, as the store's
 // login holding an operator key. Writes only through the store's functions:
@@ -240,6 +242,42 @@ export function readScenarios(planDir: string): Scenario[] {
     })
 }
 
+// Briefs.
+
+export interface Brief {
+  file: string
+  concept: string
+  /** The brief's "As of" date, or null for the import's date. */
+  on: string | null
+  body: string
+  pmWords: string | null
+}
+
+const PM_LINE = /^\*(?:The PM|Don|Then|And)\b[^*]*\*\s*(.+)$/
+const AS_OF = /\*\*As of (\d{4}-\d{2}-\d{2})\*\*/
+
+export function readBriefs(planDir: string): Brief[] {
+  const dir = join(planDir, 'planning', 'briefs')
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.md'))
+    .sort()
+    .flatMap((f) => {
+      const text = readFileSync(join(dir, f), 'utf8')
+      const concept = frontmatter(text).concept
+      if (!concept || !CONCEPT_ID.test(concept)) return []
+      const lines = splitLines(text)
+      let start = 0
+      if (lines[0]?.trim() === '---') {
+        const end = lines.findIndex((l, i) => i > 0 && l.trim() === '---')
+        start = end < 0 ? 0 : end + 1
+      }
+      const body = lines.slice(start).join('\n').trim()
+      const pm = lines.map((l) => PM_LINE.exec(l.trim())?.[1]).filter((w): w is string => Boolean(w))
+      return [{ file: `planning/briefs/${f}`, concept, on: AS_OF.exec(body)?.[1] ?? null, body, pmWords: pm.length ? pm.join('\n\n') : null }]
+    })
+}
+
 const FEATURE_STATUS: Record<string, string> = {
   draft: 'draft',
   proposed: 'draft',
@@ -367,6 +405,7 @@ export interface ConceptSources {
   seed: Seed
   ideas: Idea[]
   scenarios: Scenario[]
+  briefs?: Brief[]
   commits?: { plan?: string; web?: string }
   /** The import's date, for a concept minted for a scenario; today unless given. */
   today?: string
@@ -502,6 +541,21 @@ export async function loadConcepts(db: ClientBase, src: ConceptSources): Promise
     if (await ensureFeature(db, s, sum, src.commits?.plan)) {
       await link(db, s.id, s.concept, 'scopes', `${s.file} names ${s.concept} in its frontmatter.`, sum)
     }
+  }
+
+  // Briefs that name their concept: each version of the brief is one dated change, kept after the brief is deleted.
+  for (const b of src.briefs ?? []) {
+    const target = await recordOf(db, b.concept)
+    if (!target || target.kind !== 'concept') {
+      sum.problems.push(`${b.file}: no concept ${b.concept} in the store`)
+      continue
+    }
+    const evidence: Evidence[] = [
+      { kind: 'doc', ref: b.file },
+      ...(src.commits?.plan ? [{ kind: 'plan_commit' as const, ref: src.commits.plan.slice(0, 7) }] : []),
+    ]
+    await event(db, b.concept, b.on ?? src.today ?? new Date().toISOString().slice(0, 10),
+      { type: 'idea', what: `From ${b.file}:\n\n${b.body}`, evidence, pm_words: b.pmWords }, sum)
   }
   return sum
 }
