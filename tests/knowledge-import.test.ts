@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
-import { readRulings } from '../scripts/knowledge/plan-source'
+import { readRulings, readAbsolutes } from '../scripts/knowledge/plan-source'
 import { renderConstraints } from '../scripts/knowledge/render'
 import { enterStore, leaveStore, importAll, type Sources } from '../scripts/knowledge/import'
 import { exportConstraints } from '../scripts/knowledge/export'
@@ -118,7 +118,12 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
     )
     const registry = JSON.parse(readFileSync(src.registryPath, 'utf8'))
     const count = (k: string, s: string) => Number(rows.find((r) => r.kind === k && r.strength === s)?.n ?? 0)
-    expect(count('decision', 'absolute')).toBeGreaterThanOrEqual(8)
+    // Every absolute in the two files, however many they hold today (the 2026-11-18 retirement took one out).
+    const inFiles =
+      readAbsolutes(resolve(src.planDir, 'product/ABSOLUTES.md'), 'socialus-plan/product/ABSOLUTES.md', 'product').length +
+      readAbsolutes(resolve(src.opsDir, 'process/ABSOLUTES.md'), 'socialus-ops/process/ABSOLUTES.md', 'process').length
+    expect(inFiles).toBeGreaterThan(0)
+    expect(count('decision', 'absolute')).toBeGreaterThanOrEqual(inFiles)
     expect(count('noun', 'guideline')).toBe(registry.objectTypes.length + registry.rejectedAsNouns.length)
     expect(count('verb', 'guideline')).toBe(registry.handlers.length)
     expect(count('link', 'guideline')).toBe(registry.links.length)
