@@ -175,6 +175,65 @@
           ]
         }
       ]
+    },
+    {
+      "id": "JY-VALUES",
+      "answer": "Members who care shop by their values, and find the owners who share them",
+      "why": "The PM, 2026-11-21: \"those who think it's important can opt in and those who don't think it's important don't ever have to think about it.\" Working name Shop by your values. Its heart is the blue dot: a Page shows it only to a viewer when both took the values survey and align enough; everyone else sees nothing. Opt-in on both sides, never inferred, never ranking anyone down; no stalking (PRINCIPLES.md, 2026-11-15). Related: Badges vs values (CO-0029), Locally Made badge (CO-0008), Reciprocity & goodwill (CO-0013), Discovery that knows what a person is optimizing for (CO-0025), hyper-specific search (F136), the two-halves soul line, Bring it to life (JY-BRING), The town before it opens (CO-0065).",
+      "activities": [
+        {
+          "answer": "Find out it's there",
+          "tasks": [
+            {
+              "answer": "Come across the invitation without being interrupted",
+              "details": [
+                "A quiet entry in You",
+                "Tap a wink to learn what it is",
+                "Ask the chat who shares my values",
+                "Never on the main path, never a nag"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Say what matters to you",
+          "tasks": [
+            {
+              "answer": "Take the values survey, privately",
+              "details": [
+                "Broad values first; the political part only if you choose",
+                "Members and Page owners take the same survey",
+                "Change or delete any time"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Find who shares it",
+          "tasks": [
+            {
+              "answer": "See the blue dot where you and a Page align",
+              "details": [
+                "Only the two who both took it see it",
+                "Aligned enough, not identical",
+                "Filter to blue-dot Pages, if you took it"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Support each other",
+          "tasks": [
+            {
+              "answer": "Spend with owners who share your values",
+              "details": [
+                "Never ranks anyone down for not taking it",
+                "Counts only at ten or more, never per person"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "features": {
