@@ -61,16 +61,19 @@ jobs:
           echo "$RUNNER_TEMP/k6-$K6_VERSION-linux-amd64" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/k6-$K6_VERSION-linux-amd64/k6" version
 
+      # #1346 — production's Node (the Vercel project's setting, 24.x). On Node 20 every closed page stream
+      # stayed reachable through web streams' native transfer hook, so the heap filled under load: a crash
+      # production's runtime does not have.
       - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Cache node_modules
         id: node-modules
         uses: actions/cache@v5
         with:
           path: node_modules
-          key: node-modules-${{ runner.os }}-node20-${{ hashFiles('package-lock.json') }}
+          key: node-modules-${{ runner.os }}-node24-${{ hashFiles('package-lock.json') }}
 
       - if: steps.node-modules.outputs.cache-hit != 'true'
         run: npm ci
