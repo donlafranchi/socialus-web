@@ -11,7 +11,7 @@ const read = <T>(f: string, fallback: T): T => (existsSync(join(dir, f)) ? JSON.
 const lines = <T>(f: string): T[] => (existsSync(join(dir, f)) ? readFileSync(join(dir, f), 'utf8').trim().split('\n').filter(Boolean).map((l) => JSON.parse(l) as T) : [])
 
 type K6 = { scenario: string; load: string; requests: number; rps: number; p50: number; p95: number; failed: number; handled: number | null; refused: number | null; dropped: number | null; broke: string[] }
-type Sample = { t: number; level: string; appCpu: number | null; active?: number; lock_waits?: number; app_conns?: number; rest_conns?: number; total?: number; longest_ms?: number; max_connections?: number; dbError?: string }
+type Sample = { t: number; level: string; appCpu: number | null; appRssMb?: number | null; active?: number; lock_waits?: number; app_conns?: number; rest_conns?: number; total?: number; longest_ms?: number; max_connections?: number; dbError?: string }
 type Mark = { level: string; start: number; end?: number; logFrom: number; logTo?: number; exit?: number }
 
 const POOL = Number(process.env.DB_POOL_MAX || 10)
@@ -50,7 +50,7 @@ const levels = marks.map((m) => {
   const broke = !r || (r.broke?.length ?? 0) > 0 || (m.exit !== undefined && m.exit !== 0 && m.exit !== 99)
   return {
     level: m.level, r, broke, layers, poolTimeouts, errors,
-    peaks: { appCpu: max(xs.map((s) => s.appCpu)), appConns: max(xs.map((s) => s.app_conns)), restConns: max(xs.map((s) => s.rest_conns)), total: max(xs.map((s) => s.total)), active: max(xs.map((s) => s.active)), longest: max(xs.map((s) => s.longest_ms)), locks: max(xs.map((s) => s.lock_waits)) },
+    peaks: { appCpu: max(xs.map((s) => s.appCpu)), appRssMb: max(xs.map((s) => s.appRssMb ?? null)), appConns: max(xs.map((s) => s.app_conns)), restConns: max(xs.map((s) => s.rest_conns)), total: max(xs.map((s) => s.total)), active: max(xs.map((s) => s.active)), longest: max(xs.map((s) => s.longest_ms)), locks: max(xs.map((s) => s.lock_waits)) },
     poolFullSeconds: xs.filter((s) => (s.app_conns ?? 0) >= POOL).length,
   }
 })
@@ -72,9 +72,9 @@ const out = [
   headline,
   firstSaturated ? `\nFirst layer to saturate: **${firstSaturated.layer}** during ${firstSaturated.level} (${firstSaturated.why}).` : '\nNo layer crossed its line (app CPU 90% for 3 s, the pool timing out, a lock wait for 3 s, a query over 1 s).',
   '',
-  '| Level | Load | req/s | p50 | p95 | failed | handled | Result | App CPU peak | App DB conns (pool) | Longest query | Lock waits | Saturated |',
-  '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
-  ...levels.map((l) => `| ${l.level} | ${l.r?.load ?? '—'} | ${l.r?.rps ?? '—'} | ${ms(l.r?.p50)} | ${ms(l.r?.p95)} | ${pct(l.r?.failed)} | ${pct(l.r?.handled)} | ${!l.r ? '⚪ did not run' : l.broke ? '🔴 broke' : '🟢'} | ${l.peaks.appCpu}% | ${l.peaks.appConns} (${POOL}${l.poolTimeouts ? `, ${l.poolTimeouts} timeouts` : ''}) | ${ms(l.peaks.longest)} | ${l.peaks.locks} | ${l.layers.map((x) => x.layer).join(', ') || '—'} |`),
+  '| Level | Load | req/s | p50 | p95 | failed | handled | Result | App CPU peak | App memory peak | App DB conns (pool) | Longest query | Lock waits | Saturated |',
+  '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...levels.map((l) => `| ${l.level} | ${l.r?.load ?? '—'} | ${l.r?.rps ?? '—'} | ${ms(l.r?.p50)} | ${ms(l.r?.p95)} | ${pct(l.r?.failed)} | ${pct(l.r?.handled)} | ${!l.r ? '⚪ did not run' : l.broke ? '🔴 broke' : '🟢'} | ${l.peaks.appCpu}% | ${l.peaks.appRssMb ?? '—'} MB | ${l.peaks.appConns} (${POOL}${l.poolTimeouts ? `, ${l.poolTimeouts} timeouts` : ''}) | ${ms(l.peaks.longest)} | ${l.peaks.locks} | ${l.layers.map((x) => x.layer).join(', ') || '—'} |`),
   '',
   `Cold start: the first request to a fresh server took ${ms(coldMs)} for the Page signed out, ${ms(cold?.pageSignedIn?.ms)} signed in, ${ms(cold?.heart?.ms)} for the first ♡ and ${ms(cold?.report?.ms)} for the first report; a warm Page takes ${ms(warm)} (median of 10).`,
   ...levels.filter((l) => l.r?.refused).map((l) => `\n${l.level}: ${l.r.refused} reports were refused by the report caps (the handler answering, counted as handled).`),

@@ -28,6 +28,15 @@ function cpuSeconds(pid: string): number | null {
   } catch { return null }
 }
 
+// #1346 — resident memory of the app and its children, in MB: the run that ran out of heap had no record of it.
+function rssMb(pid: string): number | null {
+  try {
+    const kids = (() => { try { return execFileSync('pgrep', ['-P', pid], { encoding: 'utf8' }).trim().split('\n').filter(Boolean) } catch { return [] } })()
+    const kb = [pid, ...kids].reduce((sum, p) => sum + (Number(execFileSync('ps', ['-o', 'rss=', '-p', p], { encoding: 'utf8' }).trim()) || 0), 0)
+    return Math.round(kb / 1024)
+  } catch { return null }
+}
+
 const SAMPLE = `
   select count(*)::int as total,
          count(*) filter (where state = 'active' and backend_type = 'client backend' and application_name <> 'load-watch')::int as active,
@@ -51,11 +60,12 @@ async function sample(pid: string) {
     const now = { t: Date.now(), cpu: cpuSeconds(pid) }
     const appCpu = now.cpu !== null && last.cpu !== null ? Math.round(((now.cpu - last.cpu) / ((now.t - last.t) / 1000)) * 100) : null
     last = now
+    const appRssMb = rssMb(pid)
     try {
       const row = (await db.query(SAMPLE)).rows[0]
-      appendFileSync(join(OUT, 'samples.jsonl'), JSON.stringify({ t: now.t, level, appCpu, ...row }) + '\n')
+      appendFileSync(join(OUT, 'samples.jsonl'), JSON.stringify({ t: now.t, level, appCpu, appRssMb, ...row }) + '\n')
     } catch (e) {
-      appendFileSync(join(OUT, 'samples.jsonl'), JSON.stringify({ t: now.t, level, appCpu, dbError: String(e) }) + '\n')
+      appendFileSync(join(OUT, 'samples.jsonl'), JSON.stringify({ t: now.t, level, appCpu, appRssMb, dbError: String(e) }) + '\n')
     }
   }
 }
