@@ -141,20 +141,28 @@ report after each level. Level 1 was run on 2026-11-16 (03:45 UTC): 5 at once
 on `/` and `/about` (CDN hits), 2 on `/auth/login`: 600 + 100 requests, no
 errors, p95 about 0.5 s, health check fine after. Nothing heavier was run.
 
-**Load re-run, 2026-11-16, vs 2026-11-12** (CI, one 4-core runner):
+**Load re-runs since 2026-11-12** (CI, one 4-core runner):
 
-| | 11-12 | 11-16 main | 11-16 with this PR |
-|---|---|---|---|
-| 50 signed out, p95 | 45 ms | 115 ms | 82 ms |
-| 200 signed out, p95 | 1.26 s | 3.72 s | 2.86 s |
-| 50 signed in, p95 (short run) | — | 770 ms | 181 ms (Sentry on, 10%) / 132 ms (off) |
-| 200 signed in, p95 (short run) | 3.77 s | 7.67 s | 3.78 s |
-| Full run | no crash | **out of memory** after 1,000 viewers | **still out of memory** (#1346) |
+| | 11-12 | 11-16 main | 11-16 Sentry fix | 11-22 Node 24 (#1346) |
+|---|---|---|---|---|
+| 50 signed out, p95 | 45 ms | 115 ms | 82 ms | 62 ms |
+| 200 signed out, p95 | 1.26 s | 3.72 s | 2.86 s | 1.75 s |
+| 1,000 signed out, handled | 85% | 69% | 75% | 83% |
+| 50 signed in, p95 (after the 1,000) | 2.16 s | crashed | crashed | 80 ms |
+| App memory peak | not measured | out of memory | out of memory | 1.29 GB |
+| Full run | no crash | **out of memory** | **out of memory** | no crash |
+
+The crash was the runner's Node, not the app: the load run used Node 20,
+production runs Node 24 (the Vercel project's setting). On Node 20 every
+finished page kept its whole render in memory, held through web streams'
+native transfer hook (heap snapshot, #1346: 1,939 closed page streams still
+reachable), so the heap filled under load and slower renders tipped it over.
+On Node 24 live memory stays near 150 MB at 200 viewers. The load run now uses
+Node 24 and records the app's memory per level.
 
 What breaks first is still rendering at 200 viewers on one Node process. No
 result shows a Vercel or Supabase plan limit: the longest query stayed under
-35 ms and the pool never ran dry before the crash. Sentry's 100% tracing was a
-real cost (fixed here); the memory crash is an app regression, #1346.
+250 ms and the pool never ran dry.
 
 **Wire-up.** No code. Dashboard only.
 
@@ -165,7 +173,7 @@ real cost (fixed here); the memory crash is an app regression, #1346.
 | Build command | `npm run build` |
 | Output directory | `.next` |
 | Install command | `npm install` |
-| Node version | 20.x |
+| Node version | 24.x |
 
 **Verify.** `vercel api /v2/teams/socialus` shows `billing.plan: "pro"`, and
 `vercel logs -e production --since 72h` returns records older than a day.
