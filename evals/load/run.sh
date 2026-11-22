@@ -83,8 +83,7 @@ trap cleanup EXIT
 # No production key reaches this server: emails, texts and AI moderation stay off.
 ( cd "$APP" && exec env -u RESEND_API_KEY -u ANTHROPIC_MODERATION_KEY -u TWILIO_ACCOUNT_SID -u TWILIO_AUTH_TOKEN "${build_env[@]}" \
     PORT="$PORT" DATABASE_URL="$DATABASE_URL" SUPABASE_URL="$SUPABASE_URL" SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
-    ${LOAD_APP_NODE_OPTIONS:+NODE_OPTIONS="$LOAD_APP_NODE_OPTIONS --diagnostic-dir=$OUT"} \
-    node node_modules/next/dist/bin/next start -p "$PORT" ) > "$OUT/server.log" 2>&1 &
+    node ${LOAD_APP_NODE_OPTIONS:+$LOAD_APP_NODE_OPTIONS --diagnostic-dir="$OUT"} node_modules/next/dist/bin/next start -p "$PORT" ) > "$OUT/server.log" 2>&1 &
 APP_PID=$!
 for _ in $(seq 1 60); do curl -s -o /dev/null "$BASE/api/version" && break; sleep 1; done
 
