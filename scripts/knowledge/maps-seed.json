@@ -234,6 +234,86 @@
           ]
         }
       ]
+    },
+    {
+      "id": "JY-LAUNCH",
+      "answer": "Sacramento opens: people hear about SocialUs, learn what it's for, find out their town is open, and join",
+      "why": "The PM, 2026-11-22: \"the launch campaign is going to comprise of the new chat search, oriented homepage, and it will also include some sample prompts that teach the users how they can use the site teach the users what the site is intended to be for and tells users whether their market is open or not and this will also include emails that go out to vendors and [patrons] to let them know what we're about and where to find us and why they would want to use us and then I'm also thinking about some kind of outreach campaign alongside this that includes some kind of stickers for businesses to put up to say find us here and there may be more things\". Then: \"this is the town launch. I'm thinking the sacramento area and for January 1 or so.\" The Sacramento launch campaign. Room for more: a new step joins as an activity or task here. What each step waits on is a condition (CN-0001 and its parts, CN-0002 to CN-0016). Brief and cut line: socialus-plan planning/briefs/sacramento-launch-campaign-2026-11-22.md. Related: The town before it opens (CO-0065), hyper-specific search (F136), the waitlist (F076), phone sign-up (F081).",
+      "activities": [
+        {
+          "answer": "Hear about it",
+          "tasks": [
+            {
+              "answer": "Get an email from SocialUs: what we're about, where to find us, why use us",
+              "details": [
+                "Vendors: why their business belongs here (waits on CN-0012)",
+                "Patrons: what they can find and do here (waits on CN-0012)",
+                "Sent only to people who asked or to public business contacts, with a one-click opt-out"
+              ]
+            },
+            {
+              "answer": "See a \"Find us here\" sticker at a local business",
+              "details": [
+                "Scan it to land on the front door (waits on CN-0013)",
+                "The business is on SocialUs when you arrive"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Ask the front door",
+          "tasks": [
+            {
+              "answer": "Type a question into the homepage in plain words",
+              "details": [
+                "Chat-search, rules only, no AI model: the first slice (waits on CN-0010)",
+                "Words from the PM's 2026-11-21 draft copy brief and intent brief (waits on CN-0011)",
+                "Item tags sharpen the answers (waits on CN-0014)"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Learn what it's for",
+          "tasks": [
+            {
+              "answer": "Tap a sample prompt that shows what SocialUs is for and how to use it",
+              "details": [
+                "A few prompts, each opening a real answer from real local Pages (waits on CN-0011)",
+                "Prompts for both sides: finding locals, and being found"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Find out if my town is open",
+          "tasks": [
+            {
+              "answer": "Ask \"is my town open?\" and get a straight answer",
+              "details": [
+                "Open: go straight to sign-up",
+                "Not yet: join the waitlist, and see why it's waiting",
+                "Decided by the zip; the Sacramento area as the market stands"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Join",
+          "tasks": [
+            {
+              "answer": "Sign up with a mobile number",
+              "details": [
+                "A texted code, real mobiles only, bots kept out (waits on CN-0002, CN-0003)",
+                "Waitlisted people invited by email (waits on CN-0006)",
+                "New accounts start small for their first week (waits on CN-0004)",
+                "Every post screened before it shows (waits on CN-0005)",
+                "Google or Apple to sign in next time (waits on CN-0015)"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "features": {
