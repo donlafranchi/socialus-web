@@ -579,14 +579,13 @@ run was reporting to the production project. Errors are still sent at 100%.
 |---|---|
 | Browser SDK live on socialus.org | **Yes.** A deliberate test error thrown in a production page; three envelopes accepted by Sentry's ingest (200) |
 | Server SDK | In the build (`instrumentation.ts`); no server event seen yet |
-| Source maps | **No.** Production build log: "No auth token provided. Will not upload source maps." |
-| Releases tagged by commit | **No**, same cause. With a token the plugin names each release by the Vercel commit SHA on its own |
+| Source maps | **Yes** since 2026-11-22: `SENTRY_AUTH_TOKEN` (an org token, Production only, sensitive) is in Vercel; the build log says "Successfully uploaded source maps to Sentry" |
+| Releases tagged by commit | **Yes** since 2026-11-22: the live bundle carries the deployed commit SHA as its release |
 | Alert rules | Not visible from here (dashboard not signed in) |
 | Swallowed errors | Not reported. Explore logs a failed query and renders an empty page, so the 11-13 JWT outage and today's statement timeouts on `/explore` never reach Sentry |
 
-**To finish (PM):** install the Sentry integration on Vercel (it adds
-`SENTRY_AUTH_TOKEN` to the project), redeploy, and set the two alerts: a new
-issue, and a spike (more than 20 events in 5 minutes) both email the PM.
+**To finish (PM):** the two alerts: a new issue, and a spike (more than 20
+events in 5 minutes), both emailing the PM.
 Each alert's action is "Send a notification to Member: the PM" (the account's
 only member), and his Sentry account email is the one he reads; check
 Settings → Account → Notifications → Issue alerts is on.
