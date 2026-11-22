@@ -21,6 +21,9 @@ on:
         description: 'Fail the run when a level breaks'
         type: boolean
         default: false
+      node_options:
+        description: 'Node flags for the app only, to diagnose memory (e.g. --trace-gc --heapsnapshot-near-heap-limit=1)'
+        default: ''
       ideas:
         description: 'Ideas to try next time, separated by ; (optional; the run adds one for the layer that broke first)'
         default: ''
@@ -80,6 +83,7 @@ jobs:
           LOAD_LEVELS: ${{ inputs.levels || '50 200 1000' }}
           LOAD_SCENARIOS: ${{ inputs.scenarios || 'view-out view-in tap report' }}
           LOAD_GATE: ${{ inputs.gate && '1' || '' }}
+          LOAD_APP_NODE_OPTIONS: ${{ inputs.node_options }}
         run: npm run load
 
       - name: Summary
@@ -119,6 +123,7 @@ jobs:
             load-out/*.json
             load-out/*.jsonl
             load-out/server.log
+            load-out/*.heapsnapshot
             !load-out/fixture.json
           retention-days: 30
           if-no-files-found: ignore

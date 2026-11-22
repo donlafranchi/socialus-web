@@ -15,7 +15,8 @@
 #
 # LOAD_PORT (3100), LOAD_OUT (load-out), LOAD_LEVELS ("50 200 1000"),
 # LOAD_SCENARIOS ("view-out view-in tap report"), LOAD_SKIP_BUILD=1 to reuse a build,
-# LOAD_GATE=1 to exit non-zero when a level breaks.
+# LOAD_GATE=1 to exit non-zero when a level breaks. LOAD_APP_NODE_OPTIONS: Node flags for the app only
+# (e.g. "--trace-gc --heapsnapshot-near-heap-limit=1"; snapshots land in the out folder).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 ROOT="$PWD"
@@ -82,6 +83,7 @@ trap cleanup EXIT
 # No production key reaches this server: emails, texts and AI moderation stay off.
 ( cd "$APP" && exec env -u RESEND_API_KEY -u ANTHROPIC_MODERATION_KEY -u TWILIO_ACCOUNT_SID -u TWILIO_AUTH_TOKEN "${build_env[@]}" \
     PORT="$PORT" DATABASE_URL="$DATABASE_URL" SUPABASE_URL="$SUPABASE_URL" SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+    ${LOAD_APP_NODE_OPTIONS:+NODE_OPTIONS="$LOAD_APP_NODE_OPTIONS --diagnostic-dir=$OUT"} \
     node node_modules/next/dist/bin/next start -p "$PORT" ) > "$OUT/server.log" 2>&1 &
 APP_PID=$!
 for _ in $(seq 1 60); do curl -s -o /dev/null "$BASE/api/version" && break; sleep 1; done
