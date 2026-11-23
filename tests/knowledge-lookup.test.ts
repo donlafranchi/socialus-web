@@ -205,7 +205,7 @@ describe.skipIf(!RUNNABLE)('F125 — the lookup tool', () => {
     await as('operator')
     const out = await call('precedents', { question: 'members correct their own posts before staff step in' })
     expect(out.isError).toBeFalsy()
-    expect(out.text).toMatch(/PH-\d{4}|rests on no principle/)
+    expect(out.text).toMatch(/PH-\d{4}|rests? on no principle/)
   })
 
   it('gives one record with its links and versions, and nothing a department key may not read', async () => {
