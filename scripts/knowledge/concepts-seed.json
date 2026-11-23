@@ -132,6 +132,106 @@
         { "from": "F103", "type": "scopes" },
         { "from": "F118", "type": "scopes" }
       ]
+    },
+    {
+      "id": "CO-0072",
+      "title": "**Market rings** (where a market ends, and who may sign up when it opens)",
+      "status": "scoped",
+      "concern": null,
+      "why": "Not the search rings. A market's edge is set once, ahead of time, by a script with fixed parameters (hub 50,000; one hour of free-flow drive time from the hub; a town nearer another hub goes there; small leftovers merge in; tie broken by commuting zone; the Tahoe subdivisions stay their own), so the next market opens on the same ones. Approved 2026-11-23 as option E of the Sacramento market-edges brief, for the Sacramento launch campaign (CO-0070). Not approved: the wider 75-minute consumer list, an open question for the PM. Rules: product/systems/rings.md.",
+      "names": [
+        {
+          "name": "market rings",
+          "on": "2026-11-23",
+          "state": "used",
+          "evidence": [
+            {
+              "kind": "doc",
+              "ref": "product/systems/rings.md"
+            }
+          ]
+        }
+      ],
+      "entries": [
+        {
+          "on": "2026-11-23",
+          "text": "ruling: market rings are separate from search rings; the Sacramento edge is the one-hour method (option E), written as a reusable method (plan product/systems/rings.md).",
+          "events": [
+            {
+              "type": "ruling",
+              "what": "Market rings: the one-hour method with its parameters, approved as option E for the Sacramento opening",
+              "evidence": [
+                {
+                  "kind": "doc",
+                  "ref": "product/systems/rings.md"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "lineage": [
+        {
+          "from": "F103",
+          "type": "scopes"
+        },
+        {
+          "from": "F076",
+          "type": "scopes"
+        }
+      ]
+    },
+    {
+      "id": "CO-0073",
+      "title": "**Search rings** (how wide one person's search widens)",
+      "status": "scoped",
+      "concern": null,
+      "why": "Not the market rings. Per person, centred on their vantage (home by default, F105): a search widens hood, town, area, beyond, each step labelled, until it finds enough results for what they asked. Ruled 2026-11-23 in the PM's words; how many is enough (10 by default) and the labelling are the agents' call by precedent (Yelp and Google 'near' widening, Airbnb 'expand your search'). Part of hyper-specific search (F136). Rules: product/systems/rings.md.",
+      "names": [
+        {
+          "name": "search rings",
+          "on": "2026-11-23",
+          "state": "used",
+          "evidence": [
+            {
+              "kind": "doc",
+              "ref": "product/systems/rings.md"
+            }
+          ]
+        }
+      ],
+      "entries": [
+        {
+          "on": "2026-11-23",
+          "text": "ruling: search rings are per person, centred on their vantage, widening by result count (plan product/systems/rings.md).",
+          "events": [
+            {
+              "type": "ruling",
+              "what": "Search rings: a search widens hood, town, area, beyond until it finds enough results",
+              "evidence": [
+                {
+                  "kind": "doc",
+                  "ref": "product/systems/rings.md"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "lineage": [
+        {
+          "from": "F136",
+          "type": "scopes"
+        },
+        {
+          "from": "F104",
+          "type": "scopes"
+        },
+        {
+          "from": "F105",
+          "type": "scopes"
+        }
+      ]
     }
   ]
 }
