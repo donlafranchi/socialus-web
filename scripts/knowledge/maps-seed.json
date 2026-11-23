@@ -313,6 +313,44 @@
             }
           ]
         }
+      ],
+      "slices": [
+        {
+          "id": "JY-LAUNCH-S1",
+          "outcome": "Sacramento opens as a beta on Wednesday 2027-01-06, after a private dry run the week of 2026-12-28",
+          "horizon": "next",
+          "rank": 1,
+          "why": "Launch B, the PM, 2026-11-23: \"B.\" then \"Approve launch B\". Must-haves only: the first email wave, the rules-only homepage with its words and sample prompts, \"is my town open?\", and phone sign-up with its protections.",
+          "takes": [
+            "JY-LAUNCH.A1.T1.D1",
+            "JY-LAUNCH.A1.T1.D2",
+            "JY-LAUNCH.A1.T1.D3",
+            "JY-LAUNCH.A2.T1.D1",
+            "JY-LAUNCH.A2.T1.D2",
+            "JY-LAUNCH.A3.T1.D1",
+            "JY-LAUNCH.A3.T1.D2",
+            "JY-LAUNCH.A4.T1.D1",
+            "JY-LAUNCH.A4.T1.D2",
+            "JY-LAUNCH.A4.T1.D3",
+            "JY-LAUNCH.A5.T1.D1",
+            "JY-LAUNCH.A5.T1.D2",
+            "JY-LAUNCH.A5.T1.D3",
+            "JY-LAUNCH.A5.T1.D4"
+          ]
+        },
+        {
+          "id": "JY-LAUNCH-S2",
+          "outcome": "In January, stickers lead people in, item tags sharpen answers, and Google or Apple sign-in arrives",
+          "horizon": "next",
+          "rank": 2,
+          "why": "Follows the opening (launch B, 2026-11-23). AI chat, values and the blue dot, the pulse map and floating wishes come later, after opening, and have no step on this map yet.",
+          "takes": [
+            "JY-LAUNCH.A1.T2.D1",
+            "JY-LAUNCH.A1.T2.D2",
+            "JY-LAUNCH.A2.T1.D3",
+            "JY-LAUNCH.A5.T1.D5"
+          ]
+        }
       ]
     }
   ],
