@@ -1,5 +1,5 @@
 {
- "at": "2026-11-16T23:47:14.084Z",
+ "at": "2026-11-24T02:22:15.193Z",
  "state": "green",
  "kinds": [
   {
@@ -71,6 +71,18 @@
     },
     {
      "week": "2026-11-16",
+     "kind": "follow_posts",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 1,
+     "members": 14
+    },
+    {
+     "week": "2026-11-23",
      "kind": "follow_posts",
      "sends": 0,
      "opens": 0,
@@ -161,6 +173,18 @@
      "emails": 0,
      "opted_in_members": 1,
      "members": 14
+    },
+    {
+     "week": "2026-11-23",
+     "kind": "weekend",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 1,
+     "members": 14
     }
    ]
   },
@@ -221,6 +245,18 @@
     },
     {
      "week": "2026-11-16",
+     "kind": "reminder",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 1,
+     "members": 14
+    },
+    {
+     "week": "2026-11-23",
      "kind": "reminder",
      "sends": 0,
      "opens": 0,
