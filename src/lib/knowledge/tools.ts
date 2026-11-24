@@ -454,6 +454,18 @@ export const TOOLS: KnowledgeTool[] = [
       return { text: `${id} is live, version ${out.version}.` }
     },
   }),
+
+  define({
+    name: 'retire',
+    description:
+      'Internal. Retire a record that a newer one replaces, with the newer record and a reason. Nothing is deleted; the old one stays findable. A decision is retired only with the live record that replaces it. Your key must be able to change the old record; a settled one is refused.',
+    input: { id: z.string(), replaced_by: z.string().optional(), reason: z.string().min(1) },
+    run: async (db, { id, replaced_by, reason }) => {
+      const out = await k.retire(db, id, replaced_by ?? null, reason)
+      if (out.refused) return { text: `Refused: ${out.refused}`, isError: true }
+      return { text: `${id} is retired${out.replaced_by ? `, replaced by ${out.replaced_by}` : ''}, version ${out.version}.` }
+    },
+  }),
 ]
 
 /**

@@ -38,7 +38,9 @@ describe('the tool list', () => {
        // F132: story maps
        'story_map', 'fits', 'place_on_map', 'propose_map_change', 'decide_map_change',
        // F135: run history
-       'runs', 'drop_idea'].sort(),
+       'runs', 'drop_idea',
+       // retiring a record a newer one replaces
+       'retire'].sort(),
     )
     for (const t of TOOLS) {
       expect(t.description, t.name).not.toMatch(/\b(claude|anthropic|openai|gpt|gemini|llama|haiku|sonnet|opus|fable|codex)\b/i)
@@ -279,6 +281,28 @@ describe.skipIf(!RUNNABLE)('F125 — the lookup tool', () => {
     expect(ok.isError).toBeFalsy()
     const { rows } = await db.query<{ status: string }>('select status from knowledge.records where id = $1', [id])
     expect(rows[0].status).toBe('live')
+  })
+
+  it('retires a decision only with the live record that replaces it, and keeps both', async () => {
+    await as('operator')
+    const mk = async (answer: string) => {
+      const p = await call('propose', {
+        record: { kind: 'decision', concern: 'moderation-and-reports', answer, why: 'a test', path: 'well-worn',
+                  audience: 'department', departments: ['trust-and-safety'] },
+        reason: 'test',
+      })
+      return /D-\d{4}/.exec(p.text)![0]
+    }
+    const older = await mk('Older wording of a rule.')
+    const newer = await mk('Newer wording of the rule.')
+    const without = await call('retire', { id: older, reason: 'superseded' })
+    expect(without.isError).toBe(true)
+    const ok = await call('retire', { id: older, replaced_by: newer, reason: 'superseded' })
+    expect(ok.isError).toBeFalsy()
+    const { rows } = await db.query<{ status: string }>('select status from knowledge.records where id = $1', [older])
+    expect(rows[0].status).toBe('retired')
+    const link = await db.query('select 1 from knowledge.links where from_id = $1 and to_id = $2 and type = $3', [newer, older, 'replaces'])
+    expect(link.rowCount).toBe(1)
   })
 
   it('refuses a proposal without a why, in words', async () => {
