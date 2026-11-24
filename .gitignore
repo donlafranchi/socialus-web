@@ -36,3 +36,6 @@ speed.log
 
 # F125 (#1218): CI checks out socialus-plan and socialus-ops here for the knowledge import test.
 /.knowledge/
+
+# Sentry Config File
+.env.sentry-build-plugin

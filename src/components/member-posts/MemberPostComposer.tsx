@@ -19,7 +19,7 @@ const HINT: Record<MemberPostKind, string> = {
 }
 
 const PLACEHOLDER: Record<MemberPostKind, string> = {
-  lost_found: 'Grey cat, white paws, answers to Miso. Last seen on 24th St.',
+  lost_found: 'Gray cat, white paws, answers to Miso. Last seen on 24th St.',
   free_sale: 'Free couch on the curb, or a yard sale on Saturday.',
   ask: 'Who fixes old bikes around here?',
 }

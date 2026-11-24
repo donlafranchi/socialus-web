@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     598
    ],
-   "note": "`PagePhotoPicker` sits in the About step of `SellWalkthrough` (`isOptional`) and in `PageEditor`; `photoUrl: null` clears, a failed upload does not trap the member [V src]. Built by #121: no `Reviewed by:` line [V]; no deploy-health run for 61902755 [V]. Checked no: unmarked `PagePhotoPicker.test.tsx` ('never blocks the step'), `SellWalkthrough.test.tsx`; zero `[guards F070.n]` markers in src or tests [V grep]. Smoked unknown: the composer is not a smoke route. Open #598."
+   "note": "`PagePhotoPicker` sits in the About step of `SellWalkthrough` (`isOptional`) and in `PageEditor`; `photoUrl: null` clears, a failed upload does not trap the member [V src]. Built by #121: no `Reviewed by:` line [V]; no deploy-health run for 61902755 [V]. Checked no: unmarked `PagePhotoPicker.test.tsx` ('never blocks the step'), `SellWalkthrough.test.tsx`; zero `[guards F070.n]` markers in src or tests [V grep]. Smoked unknown: the composer is not a smoke route. Open #598. Rechecked 2026-11-20 [V]: no merge since 2026-11-06 touches the photo path; still no `[guards F070.n]` marker."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     598
    ],
-   "note": "`upload-image.ts` re-encodes through canvas to WebP; the `media` bucket accepts `image/webp` only (`039_media_bucket.sql`) [V]. Checked no: `upload-image.test.ts:112` reads a GPS fixture byte-level but on pipeline output, not an object read back from the bucket; unmarked [V]. Built by T120 and #121, both before deploy-health ran, and neither carries `Reviewed by:` [V]. Open #598."
+   "note": "`upload-image.ts` re-encodes through canvas to WebP; the `media` bucket accepts `image/webp` only (`039_media_bucket.sql`) [V]. Checked no: `upload-image.test.ts:112` reads a GPS fixture byte-level but on pipeline output, not an object read back from the bucket; unmarked [V]. Built by T120 and #121, both before deploy-health ran, and neither carries `Reviewed by:` [V]. Open #598. Rechecked 2026-11-20 [V]: no merge since 2026-11-06 touches the photo path; still no `[guards F070.n]` marker."
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     598
    ],
-   "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to the member's own folder [V migration 039]. `tests/media-bucket-storage-api.test.ts` rejects JPEG, SVG, over 5MB and another member's prefix against a real stack; CI runs the Vitest suite against local Supabase [V ci.yml]. Checked no only because it carries no `[guards F070.3]` marker. Open #598."
+   "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to the member's own folder [V migration 039]. `tests/media-bucket-storage-api.test.ts` rejects JPEG, SVG, over 5MB and another member's prefix against a real stack; CI runs the Vitest suite against local Supabase [V ci.yml]. Checked no only because it carries no `[guards F070.3]` marker. Open #598. Rechecked 2026-11-20 [V]: no merge since 2026-11-06 touches the photo path; still no `[guards F070.n]` marker."
   },
   {
    "id": "4",
@@ -78,7 +78,7 @@
    "issues": [
     598
    ],
-   "note": "`DefaultArt` by kind (still rendered by `ShopPublicPage`, `BrowseResultCard`, `PagePosts`, `WithheldAnnouncementCard` on 2026-11-06 [V grep]) (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`, now photo-led, #931) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Since #969 (change #335, 2026-10-19) the signed-out withheld card gets the kind too: `announcements_withheld` returns `kind` and `mapWithheldRow` passes it as `groupKind`, so a no-photo or hidden-photo card draws the kind's art rather than a plain tile, the same for every anonymous reader [V src/lib/feed/withheld-announcements.ts, WithheldAnnouncementCard.tsx]. Checked no: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the withheld card's kind (red before the migration, #969 body); `DefaultArt.test.tsx` and the Page and card tests are unmarked; nothing marks F070.4 (#598). Reviewed no: #312 and #364 carry no `Reviewed by:`; #969 has `Reviewed by: Claude (Explore lane)` [V]. Shipped: deploy-health green on 19e90a05, c006495f, bfbbd619 [V]. Smoked: smoke-live run 41328585318 on main 3df92600 (2026-11-01, 51 passed) opened explore and page routes at 390 and 1280, after #969; it loads the route, it does not tap [V]. Main runs since (11-02, 11-05, 11-06) were red on other personas, see the report notes. #335 closed 2026-10-19."
+   "note": "`DefaultArt` by kind (still rendered by `ShopPublicPage`, `BrowseResultCard`, `PagePosts`, `WithheldAnnouncementCard` on 2026-11-06 [V grep]) (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`, now photo-led, #931) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Since #969 (change #335, 2026-10-19) the signed-out withheld card gets the kind too: `announcements_withheld` returns `kind` and `mapWithheldRow` passes it as `groupKind`, so a no-photo or hidden-photo card draws the kind's art rather than a plain tile, the same for every anonymous reader [V src/lib/feed/withheld-announcements.ts, WithheldAnnouncementCard.tsx]. Checked no: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the withheld card's kind (red before the migration, #969 body); `DefaultArt.test.tsx` and the Page and card tests are unmarked; nothing marks F070.4 (#598). Reviewed no: #312 and #364 carry no `Reviewed by:`; #969 has `Reviewed by: Claude (Explore lane)` [V]. Shipped: deploy-health green on 19e90a05, c006495f, bfbbd619 [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap. Since #1278 (F134) the signed-out withheld card is deleted, so the signed-out Page and Explore cards draw `DefaultArt` the same way a member's do [A]."
   },
   {
    "id": "5a",
@@ -112,7 +112,7 @@
    "issues": [
     842
    ],
-   "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts]. Built by #508 (#491): `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. Smoked: run 41328585318 (2026-11-01, main 3df92600) opened admin-reports as the operator, green, after #508; it loads the queue, it does not purge [V]. Open #842."
+   "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts]. Built by #508 (#491): `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. Smoked: run 41328585318 (2026-11-01, main 3df92600) opened admin-reports as the operator, green, after #508; it loads the queue, it does not purge [V]. Open #842. Rechecked 2026-11-20 [V]: no merge since 2026-11-06 touches the photo path; still no `[guards F070.n]` marker."
   }
  ]
 }

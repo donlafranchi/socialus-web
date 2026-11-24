@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -20,12 +20,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo, Page words, featured item: `reports-queue.ts`, #820, #920) [V] Checked: `[guards F101.1]` in `criteria.test.tsx:51` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 (66a346a) deploy-health was cancelled and cannot be rerun against that commit; every merge since, #820, #920 and #691 (cd70380) included, is green [V] Smoked: `admin-reports` green as operator 2026-10-26 (dc65fac), after #691's wording change [V]"
+   "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo, Page words, featured item: `reports-queue.ts`, #820, #920) [V] Checked: `[guards F101.1]` in `criteria.test.tsx:51` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 (66a346a) deploy-health was cancelled and cannot be rerun against that commit; every merge since, #820, #920 and #691 (cd70380) included, is green [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "2",
@@ -38,12 +38,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V]; #691 (2026-10-26) dropped the em dash from the AI line and reworded the error line [V] Checked: `[guards F101.2]` in `criteria.test.tsx:62`, green on main after #691 [V] Reviewed: #380 none, #771 and #691 `review-skipped` [V] Shipped: #380 cancelled; #691 (cd70380) green [V] Smoked: `admin-reports` green 2026-10-26 [V]"
+   "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V]; #691 (2026-10-26) dropped the em dash from the AI line and reworded the error line [V] Checked: `[guards F101.2]` in `criteria.test.tsx:62`, green on main after #691 [V] Reviewed: #380 none, #771 and #691 `review-skipped` [V] Shipped: #380 cancelled; #691 (cd70380) green [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "3",
@@ -56,12 +56,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "`review-subjects.ts` tier map; `ai_mode` data flag (#513) [V] Checked: `[guards F101.3]` in `ReviewQueue.test.tsx:249` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]"
+   "note": "`review-subjects.ts` tier map; `ai_mode` data flag (#513) [V] Checked: `[guards F101.3]` in `ReviewQueue.test.tsx:249` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "4",
@@ -74,12 +74,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "Sort has all three; filter has waiting, hidden, appeal, restored, removed; header counts by severity [V] Checked: `[guards F101.4]` in `criteria.test.tsx:102` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]"
+   "note": "Sort has all three; filter has waiting, hidden, appeal, restored, removed; header counts by severity [V] Checked: `[guards F101.4]` in `criteria.test.tsx:102` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "5",
@@ -92,12 +92,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "`min-h-12` buttons in the row footer; the words Approve and Remove are untouched by #691 [V] Checked: `[guards F101.5]` in `criteria.test.tsx:131` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]"
+   "note": "`min-h-12` buttons in the row footer; the words Approve and Remove are untouched by #691 [V] Checked: `[guards F101.5]` in `criteria.test.tsx:131` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "6",
@@ -110,12 +110,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "Pointer handlers with a green and red reveal in `ReviewQueue.tsx` [V] Checked: `[guards F101.6]` in `criteria.test.tsx:165` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; the smoke swipes nothing [V]"
+   "note": "Pointer handlers with a green and red reveal in `ReviewQueue.tsx` [V] Checked: `[guards F101.6]` in `criteria.test.tsx:165` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "7",
@@ -128,12 +128,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "Severity-1 confirm in the row [V] Checked: `[guards F101.7]` in `criteria.test.tsx:195` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]"
+   "note": "Severity-1 confirm in the row [V] Checked: `[guards F101.7]` in `criteria.test.tsx:195` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "8",
@@ -147,12 +147,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "Decision held client-side five seconds before the server call [V] Checked: `[guards F101.8]` in `criteria.test.tsx:215` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]"
+   "note": "Decision held client-side five seconds before the server call [V] Checked: `[guards F101.8]` in `criteria.test.tsx:215` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "9",
@@ -165,12 +165,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "The decided row leaves the list [V] Checked: `[guards F101.9]` in `criteria.test.tsx:239` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]"
+   "note": "The decided row leaves the list [V] Checked: `[guards F101.9]` in `criteria.test.tsx:239` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "10",
@@ -183,12 +183,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "`DEFAULT_REASON` and category reason codes (#513, migration 20261008005836); the reason pickers' titles read \"Approve. Why?\" / \"Reject. Why?\" since #691 [V] Checked: `[guards F101.10]` in `criteria.test.tsx:250` [V] Reviewed: #380 none; #691 `review-skipped` [V] Shipped: #380 cancelled; #691 green [V] Smoked: the page opens; no decision is made [V]"
+   "note": "`DEFAULT_REASON` and category reason codes (#513, migration 20261008005836); the reason pickers' titles read \"Approve. Why?\" / \"Reject. Why?\" since #691 [V] Checked: `[guards F101.10]` in `criteria.test.tsx:250` [V] Reviewed: #380 none; #691 `review-skipped` [V] Shipped: #380 cancelled; #691 green [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "11",
@@ -201,12 +201,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "`decideReportAction` per open report id [V] Checked: `[guards F101.11]` in `tests/f101-decisions-db.test.ts:80` (database rows) [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]"
+   "note": "`decideReportAction` per open report id [V] Checked: `[guards F101.11]` in `tests/f101-decisions-db.test.ts:80` (database rows) [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "12",
@@ -219,12 +219,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     634
    ],
-   "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx:422`; the order is also checked in `review-subjects.test.ts:64` (partial) [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 (d7cea3a) green [V] Smoked: `admin-reports` green 2026-10-26; the detail is not opened [V]"
+   "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx:422`; the order is also checked in `review-subjects.test.ts:64` (partial) [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 (d7cea3a) green [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "13",
@@ -237,12 +237,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     635
    ],
-   "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx:179` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 green [V] Smoked: `admin-reports` green 2026-10-26; nothing is pressed [V]"
+   "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx:179` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 green [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "14",
@@ -255,12 +255,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     636
    ],
-   "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx:276`; its focus wait was lengthened in #900 after a timing flake [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green at 1280px 2026-10-26; no key is pressed [V]"
+   "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx:276`; its focus wait was lengthened in #900 after a timing flake [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "15",

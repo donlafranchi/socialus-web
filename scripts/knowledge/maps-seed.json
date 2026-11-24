@@ -107,6 +107,347 @@
           ]
         }
       ]
+    },
+    {
+      "id": "JY-BRING",
+      "answer": "Members bring something to life together that wasn't here before",
+      "why": "The PM, 2026-11-15: \"I like that name and theme bring it to life. And it's crucial that the search [will] bring this about.\" Patrons and producers connect to make something exist that didn't. It is the second half of the soul line two-halves (PRINCIPLES.md, 2026-11-15): discovery is the way in; bringing things to life together is where SocialUs is headed. Hyper-specific search (F136, CO-0063) is the main way it happens. It draws on social capital (CO-0016), reciprocity (CO-0013) and rising tide (CO-0015).",
+      "activities": [
+        {
+          "answer": "Ask for it",
+          "tasks": [
+            {
+              "answer": "Search for something and find it isn't here yet",
+              "details": [
+                "Nothing found says so and offers ways forward",
+                "You're not the only one looking, once ten have searched",
+                "Remind me when one joins",
+                "Ask in plain words (the Ask bar)"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Bring it here",
+          "tasks": [
+            {
+              "answer": "Bring a place you love here, and welcome it",
+              "details": [
+                "Add a place you love; the owner claims it",
+                "The market welcomes its first of a kind",
+                "Brought in by, if you opted in"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Make it together",
+          "tasks": [
+            {
+              "answer": "Partner with a local maker to make one thing",
+              "details": [
+                "Post the idea",
+                "A local maker takes it on",
+                "Work it out together",
+                "It gets made, with no shop or business"
+              ]
+            },
+            {
+              "answer": "An artist makes original art for a Page",
+              "details": [
+                "The owner invites a local artist",
+                "Credited and linked"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Grow it into something shared",
+          "tasks": [
+            {
+              "answer": "Members pool effort and share what comes of it",
+              "details": [
+                "Many say I'm in (Wonders)",
+                "Pooled buying",
+                "Recognition for taking part"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "JY-VALUES",
+      "answer": "Members who care shop by their values, and find the owners who share them",
+      "why": "The PM, 2026-11-21: \"those who think it's important can opt in and those who don't think it's important don't ever have to think about it.\" Working name Shop by your values. Its heart is the blue dot: a Page shows it only to a viewer when both took the values survey and align enough; everyone else sees nothing. Opt-in on both sides, never inferred, never ranking anyone down; no stalking (PRINCIPLES.md, 2026-11-15). Related: Badges vs values (CO-0029), Locally Made badge (CO-0008), Reciprocity & goodwill (CO-0013), Discovery that knows what a person is optimizing for (CO-0025), hyper-specific search (F136), the two-halves soul line, Bring it to life (JY-BRING), The town before it opens (CO-0065).",
+      "activities": [
+        {
+          "answer": "Find out it's there",
+          "tasks": [
+            {
+              "answer": "Come across the invitation without being interrupted",
+              "details": [
+                "A quiet entry in You",
+                "Tap a wink to learn what it is",
+                "Ask the chat who shares my values",
+                "Never on the main path, never a nag"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Say what matters to you",
+          "tasks": [
+            {
+              "answer": "Take the values survey, privately",
+              "details": [
+                "Broad values first; the political part only if you choose",
+                "Members and Page owners take the same survey",
+                "Change or delete any time"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Find who shares it",
+          "tasks": [
+            {
+              "answer": "See the blue dot where you and a Page align",
+              "details": [
+                "Only the two who both took it see it",
+                "Aligned enough, not identical",
+                "Filter to blue-dot Pages, if you took it"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Support each other",
+          "tasks": [
+            {
+              "answer": "Spend with owners who share your values",
+              "details": [
+                "Never ranks anyone down for not taking it",
+                "Counts only at ten or more, never per person"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "JY-LAUNCH",
+      "answer": "Sacramento opens: people hear about SocialUs, learn what it's for, find out their town is open, and join",
+      "why": "The PM, 2026-11-22: \"the launch campaign is going to comprise of the new chat search, oriented homepage, and it will also include some sample prompts that teach the users how they can use the site teach the users what the site is intended to be for and tells users whether their market is open or not and this will also include emails that go out to vendors and [patrons] to let them know what we're about and where to find us and why they would want to use us and then I'm also thinking about some kind of outreach campaign alongside this that includes some kind of stickers for businesses to put up to say find us here and there may be more things\". Then: \"this is the town launch. I'm thinking the sacramento area and for January 1 or so.\" The Sacramento launch campaign. Room for more: a new step joins as an activity or task here. What each step waits on is a condition (CN-0001 and its parts, CN-0002 to CN-0016). Brief and cut line: socialus-plan planning/briefs/sacramento-launch-campaign-2026-11-22.md. Related: The town before it opens (CO-0065), hyper-specific search (F136), the waitlist (F076), phone sign-up (F081).",
+      "activities": [
+        {
+          "answer": "Hear about it",
+          "tasks": [
+            {
+              "answer": "Get an email from SocialUs: what we're about, where to find us, why use us",
+              "details": [
+                "Vendors: why their business belongs here (waits on CN-0012)",
+                "Patrons: what they can find and do here (waits on CN-0012)",
+                "Sent only to people who asked or to public business contacts, with a one-click opt-out"
+              ]
+            },
+            {
+              "answer": "See a \"Find us here\" sticker at a local business",
+              "details": [
+                "Scan it to land on the front door (waits on CN-0013)",
+                "The business is on SocialUs when you arrive"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Ask the front door",
+          "tasks": [
+            {
+              "answer": "Type a question into the homepage in plain words",
+              "details": [
+                "Chat-search, rules only, no AI model: the first slice (waits on CN-0010)",
+                "Words from the PM's 2026-11-21 draft copy brief and intent brief (waits on CN-0011)",
+                "Item tags sharpen the answers (waits on CN-0014)"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Learn what it's for",
+          "tasks": [
+            {
+              "answer": "Tap a sample prompt that shows what SocialUs is for and how to use it",
+              "details": [
+                "A few prompts, each opening a real answer from real local Pages (waits on CN-0011)",
+                "Prompts for both sides: finding locals, and being found"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Find out if my town is open",
+          "tasks": [
+            {
+              "answer": "Ask \"is my town open?\" and get a straight answer",
+              "details": [
+                "Open: go straight to sign-up",
+                "Not yet: join the waitlist, and see why it's waiting",
+                "Decided by the zip; the Sacramento area as the market stands"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Join",
+          "tasks": [
+            {
+              "answer": "Sign up with a mobile number",
+              "details": [
+                "A texted code, real mobiles only, bots kept out (waits on CN-0002, CN-0003)",
+                "Waitlisted people invited by email (waits on CN-0006)",
+                "New accounts start small for their first week (waits on CN-0004)",
+                "Every post screened before it shows (waits on CN-0005)",
+                "Google or Apple to sign in next time (waits on CN-0015)"
+              ]
+            }
+          ]
+        }
+      ],
+      "slices": [
+        {
+          "id": "JY-LAUNCH-S1",
+          "outcome": "Sacramento opens as a beta on Wednesday 2027-01-06, after a private dry run the week of 2026-12-28",
+          "horizon": "next",
+          "rank": 1,
+          "why": "Launch B, the PM, 2026-11-23: \"B.\" then \"Approve launch B\". Must-haves only: the first email wave, the rules-only homepage with its words and sample prompts, \"is my town open?\", and phone sign-up with its protections.",
+          "takes": [
+            "JY-LAUNCH.A1.T1.D1",
+            "JY-LAUNCH.A1.T1.D2",
+            "JY-LAUNCH.A1.T1.D3",
+            "JY-LAUNCH.A2.T1.D1",
+            "JY-LAUNCH.A2.T1.D2",
+            "JY-LAUNCH.A3.T1.D1",
+            "JY-LAUNCH.A3.T1.D2",
+            "JY-LAUNCH.A4.T1.D1",
+            "JY-LAUNCH.A4.T1.D2",
+            "JY-LAUNCH.A4.T1.D3",
+            "JY-LAUNCH.A5.T1.D1",
+            "JY-LAUNCH.A5.T1.D2",
+            "JY-LAUNCH.A5.T1.D3",
+            "JY-LAUNCH.A5.T1.D4"
+          ]
+        },
+        {
+          "id": "JY-LAUNCH-S2",
+          "outcome": "In January, stickers lead people in, item tags sharpen answers, and Google or Apple sign-in arrives",
+          "horizon": "next",
+          "rank": 2,
+          "why": "Follows the opening (launch B, 2026-11-23). AI chat, values and the blue dot, the pulse map and floating wishes come later, after opening, and have no step on this map yet.",
+          "takes": [
+            "JY-LAUNCH.A1.T2.D1",
+            "JY-LAUNCH.A1.T2.D2",
+            "JY-LAUNCH.A2.T1.D3",
+            "JY-LAUNCH.A5.T1.D5"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "JY-LOCAL",
+      "answer": "People find out who is local here, know the person they're supporting, and see their place get better",
+      "why": "The PM, 2026-11-23: \"It's about the person behind the business or the page that's the [know] your seller or know your page owner\". Then: \"this is going to be bigger than a one time thing this kinda needs to be a big part of owning a page and that for people to communicate that a person's patronage is supporting someone nearby a neighbor or a local if the person is traveling, and that is going to help. This also ties into a page creator identifying which community that they rebate or refunds or money goes to, and although that is just an idea it is the one that we wanna explore down the road and the all tie into who is local here? Who can I support when my money stays local and where my community gets better\". Then: \"I'm kind of hoping that the Instagram posts and TikTok videos can help support this and that they can be used to say who the seller is with their business is about … I'm hoping that we can help Paige creators [Page owners], easily import those reels or videos or posts in some shape or form\". Working name Who is local here? (others: Know your neighbor; The people behind it). Three parts: know your Page owner; your patronage supports a neighbor; where the money goes (explore later, money questions with socialus-legal). The owner's story is public and theirs to write; values answers stay private and light the blue dot only for aligned viewers (CO-0068, JY-VALUES). No stalking (PRINCIPLES.md, 2026-11-15). Related: \"Locals, finding and supporting locals\", a business is the people doing its work, the two-halves soul line, Bring it to life (JY-BRING), the launch campaign's vendor emails (CO-0070, JY-LAUNCH), F105, F106, CO-0019, CO-0040, CO-0031, CO-0039, CO-0027. Brief: socialus-plan planning/briefs/who-is-local-here-2026-11-23.md.",
+      "activities": [
+        {
+          "answer": "Wonder who is local here",
+          "tasks": [
+            {
+              "answer": "Ask who I can support, at home or where I'm visiting",
+              "details": [
+                "The people who live here are easy to find, never by distance",
+                "Looking from another town shows that town's locals"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Meet the person",
+          "tasks": [
+            {
+              "answer": "See who is behind a Page, in their own words",
+              "details": [
+                "The name they go by, a photo if they like, their town, since when",
+                "Why they do this, in a few short answers",
+                "Inside the Page only, never on result cards",
+                "An owner who adds nothing changes nothing"
+              ]
+            },
+            {
+              "answer": "Keep telling the story as a Page owner",
+              "details": [
+                "A quiet prompt a few times a year",
+                "Each co-owner writes only about themself",
+                "Off in one step"
+              ]
+            },
+            {
+              "answer": "Find you share values",
+              "details": [
+                "A blue dot by the name, only for the two who align",
+                "The story is public; the answers never are"
+              ]
+            },
+            {
+              "answer": "Bring your own Instagram posts, reels and TikTok videos onto your Page",
+              "details": [
+                "Paste a link; a tap plays it, nothing loads before",
+                "Up to three, with your own still picture, screened before it shows",
+                "Say who you are and what your business is about with what you already made",
+                "Yours, brought by you, removable in one tap; never added for you, never by seeding",
+                "Connect an account and pick from your latest, where the platforms allow it (later)"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Know who you're supporting",
+          "tasks": [
+            {
+              "answer": "See that buying here supports a neighbor",
+              "details": [
+                "Said as the owner's own fact, the same from anywhere",
+                "For a traveller, a local where they are",
+                "No money claim until it is true"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "See where the money goes",
+          "tasks": [
+            {
+              "answer": "See which community a Page owner's give-back goes to",
+              "details": [
+                "The owner names it; their own town earns the local badge (F106)",
+                "A community's legal entity receives it; structure is socialus-legal's",
+                "Explored later; nothing decided"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Make the place better",
+          "tasks": [
+            {
+              "answer": "See a place improve from what its people spend and make",
+              "details": [
+                "Places keep more of their spending (CO-0027)",
+                "People who met make something together (JY-BRING)"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "features": {
@@ -168,7 +509,11 @@
     "F129": null,
     "F130": null,
     "F131": null,
-    "F132": null
+    "F132": null,
+    "F133": null,
+    "F134": "JY-WEEKEND.A1.T1",
+    "F135": null,
+    "F136": "JY-BRING.A1.T1"
   },
   "ideas": {
     "CO-0003": {
@@ -224,11 +569,11 @@
     },
     "CO-0015": {
       "name": "Rising tide",
-      "on": null
+      "on": "JY-BRING.A4.T1"
     },
     "CO-0016": {
       "name": "Social capital",
-      "on": null
+      "on": "JY-BRING.A4.T1.D3"
     },
     "CO-0017": {
       "name": "A scored community-health rubric",
@@ -236,7 +581,10 @@
     },
     "CO-0018": {
       "name": "The cooperative engine",
-      "on": null
+      "on": "JY-BRING.A4.T1",
+      "stands_on": [
+        "F117"
+      ]
     },
     "CO-0019": {
       "name": "Short video and photos on Pages",
@@ -244,7 +592,7 @@
     },
     "CO-0020": {
       "name": "Artist collaborations on Pages",
-      "on": null
+      "on": "JY-BRING.A3.T2"
     },
     "CO-0021": {
       "name": "Follow an artist across venues",
@@ -339,7 +687,11 @@
     },
     "CO-0041": {
       "name": "Chat-first SocialUs",
-      "on": null
+      "on": "JY-BRING.A1.T1.D4",
+      "stands_on": [
+        "F119",
+        "F136"
+      ]
     },
     "CO-0042": {
       "name": "Vouching",
@@ -347,9 +699,21 @@
     },
     "CO-0043": {
       "name": "Asked for, not here yet",
-      "on": "JY-WEEKEND.A1.T1",
+      "on": "JY-BRING.A1.T1",
       "stands_on": [
+        "F136",
         "F119"
+      ]
+    },
+    "CO-0064": {
+      "name": "One-off creations",
+      "on": "JY-BRING.A3.T1",
+      "stands_on": [
+        "CO-0020",
+        "CO-0043",
+        "CO-0018",
+        "F117",
+        "F060"
       ]
     }
   }

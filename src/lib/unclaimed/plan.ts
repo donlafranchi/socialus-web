@@ -16,6 +16,8 @@ export interface MakerRow {
   address?: string | null
   /** TikTok and Instagram first: the profiles its own site links (Don, 2026-10-16). Links only. */
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
+  /** #1318 — what it carries, from the PM's item list (2026-11-13); data only, no Page field yet. */
+  carries?: string[]
   /** #909 — 3–6 things it sells or offers, each from a page on its own site. Price in dollars, optional. */
   products?: { name: string; url: string; price?: number; kind?: 'product' | 'service' }[]
   /** A market whose own site states its day and hours: real Market day posts instead of Samples (Don, 2026-10-19). */
@@ -191,7 +193,13 @@ const INTERESTS_BY_POOL: Record<string, string[]> = {
 }
 export function interestsFor(pool: string, what: string): string[] {
   const base = INTERESTS_BY_POOL[pool] ?? ['Local business']
+  // Categories brief (plan #350): one primary label, no filler second.
+  if (/^toy shop/i.test(what)) return ['Kids & family']
+  if (/^makers' shop/i.test(what)) return ['Crafts & makers']
+  if (/^gift shop/i.test(what)) return ['Local business']
+  if (/^skate shop/i.test(what)) return ['Local business']
   if (/band|music|choir|chorale|chorus|orchestra|symphony/i.test(what)) return ['Live music', 'Arts & culture']
+  if (/fitness|zumba|rebound|trampoline|aerobic/i.test(what)) return ['Fitness & outdoors', 'Neighborhood life']
   if (/garden|nursery|plant/i.test(what)) return ['Gardening', 'Sustainability']
   if (/farmers.? market/i.test(what)) return ['Farmers markets', 'Food & drink']
   return base

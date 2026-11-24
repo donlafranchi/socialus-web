@@ -4,9 +4,10 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
+import { importedFeatureReaders } from './support/imported-features'
 import { enterStore } from '../scripts/knowledge/import'
 import {
-  readMapSeed, readRollup, readWalkthroughs, rollupStatus, walkthroughJourney, inferPlace, loadMaps,
+  readMapSeed, readRollup, readWalkthroughs, rollupStatus, walkthroughShipped, walkthroughJourney, inferPlace, loadMaps,
   type Walkthrough, type MapSummary, type RollupFeature,
 } from '../scripts/knowledge/maps'
 import { runTool } from '@/lib/knowledge/tools'
@@ -54,6 +55,15 @@ describe('reading the sources', () => {
     expect(rollupStatus(f(5, 5, true))).toBe('dropped')
   })
 
+  it('counts a walk-through shipped by the criteria it names: retired ones out, missing ones as not shipped (bug #1340)', () => {
+    const f = { feature: 'F072', title: 't', retired: false, n: 2, totals: { shipped: { yes: 1 } },
+                criteria: [{ id: '1', text: '', shipped: 'yes', status: 'active' }, { id: '2b', text: '', shipped: 'no', status: 'retired' },
+                           { id: '3', text: '', shipped: 'yes', status: 'active' }] } as RollupFeature
+    const walk = { id: 'J99', title: 't', role: 'r', look: ['x'], criteria: ['F072.1', 'F072.2b', 'F072.3', 'F134.1'] }
+    expect(walkthroughShipped(walk, new Map([['F072', f]]))).toEqual({ shipped: 2, total: 3 })
+    expect(walkthroughShipped({ ...walk, criteria: [] }, new Map())).toBeNull()
+  })
+
   it('places a walk-through feature on the line that shares most words with its criteria', () => {
     const f = { feature: 'F058', title: 'a member reports something', retired: false, n: 1, totals: { shipped: { yes: 1 } },
                 criteria: [{ id: '1', text: 'Report is on the menu of every post' }] } as RollupFeature
@@ -64,7 +74,9 @@ describe('reading the sources', () => {
   // [guards F132.6 partial: the seed's coverage; that each lands in the store is the database test below]
   it('the seed places every built feature in the roll-up that no walk-through names, and every IMAGINE idea', () => {
     const ids = Object.keys(seed.ideas)
-    expect(ids).toEqual(Array.from({ length: 41 }, (_, i) => `CO-${String(i + 3).padStart(4, '0')}`))
+    expect(ids.slice(0, 41)).toEqual(Array.from({ length: 41 }, (_, i) => `CO-${String(i + 3).padStart(4, '0')}`))
+    // Ideas added after the first load keep their minted ids.
+    for (const id of ids.slice(41)) expect(id).toMatch(/^CO-\d{4}$/)
     for (const [id, idea] of Object.entries(seed.ideas)) expect(idea.name, id).toBeTruthy()
     for (const f of ['F063', 'F064', 'F104', 'F105', 'F114', 'F119']) expect(f in seed.features, f).toBe(true)
   })
@@ -122,6 +134,9 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 },
     }
     // A planned feature from today's scenarios, which no map holds yet.
     await db.query(`select knowledge.record('{"id":"F995","kind":"feature","answer":"Something planned","status":"approved","audience":"department","departments":["building"]}', 't')`)
+    // As the plan import leaves it: a feature whose scenario is still open is
+    // ruled approved, whatever has shipped (bug #1340).
+    await db.query(`select knowledge.record('{"id":"F072","kind":"feature","answer":"A Page owner announces something, with a time on it","status":"approved","audience":"department","departments":["building"]}', 't')`)
     first = await loadMaps(db, { seed, walkthroughs: WALKS, rollup })
     second = await loadMaps(db, { seed, walkthroughs: WALKS, rollup })
     if (HAVE_WALKS) real = await loadMaps(db, { seed, walkthroughs: walks, rollup })
@@ -170,14 +185,18 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 },
       `select count(*)::int as n, count(*) filter (where p.on_id is null)::int as none
          from knowledge.current_placements p join knowledge.records c on c.id = p.item_id where c.kind = 'concept'`,
     )
-    expect(ideas[0].n).toBe(41)
+    expect(ideas[0].n).toBe(Object.keys(seed.ideas).length)
     expect(ideas[0].none).toBeGreaterThan(0)
     // A planned feature no map holds is listed, not guessed.
     expect(first.unplaced).toContain('F995')
+    // Every department reads the features an import makes, later departments too (the PM, 2026-11-17).
+    const imported = await importedFeatureReaders(db)
+    expect(imported.n).toBeGreaterThan(0)
+    expect(imported.hidden, 'an imported feature is not readable by every department').toBe(0)
   })
 
   it('records nothing the second time', () => {
-    expect(second.items + second.slices + second.features + second.placed).toBe(0)
+    expect(second.items + second.slices + second.features + second.shipped + second.placed).toBe(0)
   })
 
   // [guards F132.2]
@@ -214,7 +233,8 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 },
     const t = await tool('fits', { idea: 'holiday specials' })
     const lines = t.split('\n')
     expect(lines[0]).toBe('"Holiday specials up front" fits under "Find out" in the journey "A neighbour finds something happening this weekend and goes", next to "Open the app and see this weekend nearby".')
-    expect(lines[1]).toMatch(/^Stands on: a Page owner announces something, with a time on it \(/)
+    // F072 is ruled approved here; it reads part built by what has shipped (bug #1340).
+    expect(lines[1]).toMatch(/^Stands on: A Page owner announces something, with a time on it \(part built\)/)
     expect(lines[2]).toBe('Must be built first: A "special" kind of post')
     expect(lines[3]).toBe('Clashes with: nothing, as judged when it was placed')
     const none = await tool('fits', { idea: 'a chess ladder for retirees' })

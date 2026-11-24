@@ -23,7 +23,7 @@ export interface PlaceMatch {
 export function placeKindLabel(kind: string): string {
   switch (kind) {
     case 'neighborhood':
-      return 'Neighbourhood'
+      return 'Neighborhood'
     case 'city':
       return 'City'
     case 'county':

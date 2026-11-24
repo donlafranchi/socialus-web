@@ -8,15 +8,23 @@
 //     build (.github/workflows/preview-on-label.yml). Reads labels with
 //     GITHUB_READ_TOKEN (Pull requests: read); without it, #386's rule (skip
 //     docs- and test-only pushes); if GitHub can't be asked, it builds.
+// Bot data branches (notify-history, perf-history, pr-assets-*, *-screenshots)
+// never build. They carry no vercel.json, so Vercel runs the project's own
+// Ignored Build Step there instead: PROJECT_IGNORE_COMMAND, set in Settings →
+// Git (2026-11-16), skips any branch without this script.
 
 import { execFileSync } from 'node:child_process'
 
 export const REVIEW_LABELS = ['human-review', 'needs-don']
+export const PROJECT_IGNORE_COMMAND =
+  'if [ -f scripts/vercel-ignore.mjs ]; then node scripts/vercel-ignore.mjs; else echo "vercel-ignore: skip (no app on this branch)"; exit 0; fi'
+const DATA_BRANCH = /^(notify-history|perf-history|pr-assets-.+|.+-screenshots)$/
 const QUIET = [/^docs\//, /^build-log\//, /^\.github\//, /^tests\//, /^evals\//, /\.md$/, /\.test\.tsx?$/]
 
 /** Pure: 'build' or 'skip', and why. `labels` is null when GitHub wasn't asked or couldn't answer. */
 export function decide({ env, changed, labels, asked }) {
   if (env.VERCEL_ENV === 'production') return ['build', 'production always builds']
+  if (DATA_BRANCH.test(env.VERCEL_GIT_COMMIT_REF ?? '')) return ['skip', 'a bot data branch: no app to build']
   if ((env.PREVIEWS_MODE ?? 'off') !== 'labelled') return ['skip', 'PREVIEWS_MODE is off: no previews until it is set to labelled']
   if (changed && changed.length > 0 && changed.every((f) => QUIET.some((r) => r.test(f))))
     return ['skip', 'only docs, tests, build-log, .github or markdown changed']

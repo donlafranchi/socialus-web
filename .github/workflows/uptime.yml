@@ -3,7 +3,11 @@ name: Uptime
 # Is socialus.org up? (#1260, INFRASTRUCTURE.md §12)
 #
 # Every 10 minutes, from outside our infrastructure: the home page and the login
-# page render their real content, and the deployment says its database answers.
+# page render their real content, the deployment says its database answers, and
+# a signed-in member can read (scripts/signed-in-check.ts). The signed-in read is
+# there because every signed-out check stayed green for three days in November
+# 2026 while the database API refused every signed-in token: Explore swallows
+# those errors and renders an empty page that still answers 200.
 # Keyword checks, not bare 200s — an error page answers 200 too. Three tries a
 # minute apart before anything counts as down (scripts/uptime-check.sh).
 #
@@ -32,6 +36,11 @@ concurrency:
   group: uptime
   cancel-in-progress: false
 
+# Public values: both ship in the browser bundle.
+env:
+  SUPABASE_URL: https://khghdkdsicoeafyuvewl.supabase.co
+  SUPABASE_PUBLISHABLE_KEY: sb_publishable_oGXZYtwnBKbOiuxS35GDKA_R3NogCQh
+
 jobs:
   check:
     name: socialus.org is up
@@ -54,16 +63,33 @@ jobs:
           fi
           echo "Self-test: the check reported the page down, as it must."
 
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+
+      # [guard-proves-itself]: a wrong password must report down.
+      - name: The signed-in check can fail (self-test)
+        env:
+          BUILDER_SEED: this-seed-is-wrong-on-purpose-7f3a
+        run: |
+          if npx tsx scripts/signed-in-check.ts; then
+            echo "::error::The signed-in check passed with a wrong password. It is not catching anything."
+            exit 1
+          fi
+          echo "Self-test: the signed-in check reported down, as it must."
+
       - name: Check the site
         id: check
         env:
           UPTIME_OUT: ${{ runner.temp }}/down.txt
+          BUILDER_SEED: ${{ secrets.BUILDER_SEED }}
         run: |
-          if bash scripts/uptime-check.sh; then
-            echo "down=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "down=true" >> "$GITHUB_OUTPUT"
-          fi
+          down=false
+          bash scripts/uptime-check.sh || down=true
+          npx tsx scripts/signed-in-check.ts || down=true
+          echo "down=$down" >> "$GITHUB_OUTPUT"
 
       - name: Open, or close, the outage Issue
         env:

@@ -1,0 +1,183 @@
+{
+ "schema": 1,
+ "feature": "F130",
+ "title": "a concept keeps one identity from first idea to what got built",
+ "area": "ops",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-20",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "One identity: a concept's id never changes; names are listed with dates and the ruling behind each; a refused name stays refused",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`concept`, `concept_names` (#1233) [V]. Checked: `[guards F130.1]` in `supabase/tests/knowledge_concepts.sql`."
+  },
+  {
+   "id": "2",
+   "text": "Typed events: ten event types, each with a date, evidence and the PM's words in their own field",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`concept_events`, append-only (#1233) [V]. Checked: `[guards F130.2]` in `supabase/tests/knowledge_concepts.sql`."
+  },
+  {
+   "id": "3",
+   "text": "Lineage holds: split, merged and became links between concepts, scenarios and ideas still resolve after a file is deleted",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Four lineage link types (#1233) [V]. Checked: `[guards F130.3]` in `supabase/tests/knowledge_concepts.sql`."
+  },
+  {
+   "id": "4",
+   "text": "Proven on real history: Posts (from Bulletins) and Open your town load with the brief's timelines, entry for entry",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`concepts-seed.json` holds both timelines (#1233; the test reads the real brief in CI) [V]. Checked: `[guards F130.4]` in `tests/knowledge-concepts.test.ts`."
+  },
+  {
+   "id": "5a",
+   "text": "Ideas move in: each of IMAGINE.md's ideas becomes a concept with status idea",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1393
+   ],
+   "note": "Import creates the ideas (#1233; story-map placement #1331) [V]. Checked: only `[guards F130.5 partial]` in `tests/knowledge-concepts.test.ts`."
+  },
+  {
+   "id": "5b",
+   "text": "Ideas leave IMAGINE.md once loaded",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1394
+   ],
+   "note": "Not built [V]: socialus-plan `IMAGINE.md` still lists its ideas (42 `CO-` lines on 2026-11-20); #1233 PR body: 'removal ... socialus-plan's half, done by the parent session'. This is socialus-plan work."
+  },
+  {
+   "id": "6a",
+   "text": "Scenarios join their concept: a scenario names its concept in frontmatter and the import links them",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1395
+   ],
+   "note": "Import reads `concept:` frontmatter (#1233; `concept: new` #1251) [V]. Checked: only `[guards F130.6 partial]` in `tests/knowledge-concepts.test.ts`."
+  },
+  {
+   "id": "6b",
+   "text": "A scenario touched after this ships without a concept fails lint",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1396
+   ],
+   "note": "Not built [V]: no concept check in socialus-plan `scripts/*.py`; #1233 PR body leaves it to socialus-plan."
+  },
+  {
+   "id": "7",
+   "text": "One call answers it: \"how did this concept change and why\" is one lookup call",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`concept` verb and `concept_timeline` (#1233) [V]. Checked: `[guards F130.7]` in `tests/knowledge-concepts.test.ts`."
+  },
+  {
+   "id": "8",
+   "text": "Drift is found: a weekly check lists concepts whose built and ruled states disagree and docs that still call something cut after it came back",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1345,
+    1397
+   ],
+   "note": "`knowledge-drift.yml` opens one Issue (#1345 is its latest, open; it lists 3 stale 'Bulletins, cut' lines in socialus-plan) [V]. Checked: only `[guards F130.8 partial]`."
+  }
+ ]
+}

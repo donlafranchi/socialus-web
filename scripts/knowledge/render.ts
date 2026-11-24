@@ -39,7 +39,7 @@ export function renderConstraints(tier: string, rows: ConstraintRow[]): string {
     '>',
     `> Every ratified decision whose tag binds the **${tier}** tier, newest first. The rulings hold`,
     '> only live decisions — a superseded one is deleted — so nothing below conflicts with anything',
-    '> else here. If two lines ever seem to, the newer wins (`[newer-decision-wins]`).',
+    '> else here. If two lines ever seem to conflict, one is retired in the knowledge store.',
     `> **${untagged} older decisions carry no tag yet and are not listed** — tagging is required from`,
     `> ${BINDS_FROM} onward. Absent here is not the same as not binding.`,
     '',

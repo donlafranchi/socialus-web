@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Help open your town — SocialUs',
-  description: 'A town opens on SocialUs when 100 makers and 1,000 neighbours sign up. The first 3 to get there open.',
+  description: 'A town opens on SocialUs when 100 makers and 1,000 neighbors sign up. The first 3 to get there open.',
 }
 
 export default async function OpenPage() {
@@ -24,7 +24,7 @@ export default async function OpenPage() {
     <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="open-page">
       <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Help open your town</h1>
       <p className="mt-2 text-body text-[var(--color-fg-muted)]">
-        SocialUs is open in Sacramento. These towns are next. A town opens when 100 makers and 1,000 neighbours sign up.
+        SocialUs is open in Sacramento. These towns are next. A town opens when 100 makers and 1,000 neighbors sign up.
       </p>
       <RoundBanner left={placesLeft(towns)} size={ROUND_SIZE} />
       <TownFinder towns={towns} />

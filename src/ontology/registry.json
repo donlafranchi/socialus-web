@@ -530,6 +530,7 @@
     "member_post.withdraw",
     "metro.waitlist_join",
     "metro.waitlist_join_anonymous",
+    "metro.waitlist_journey_join",
     "origin.record",
     "problem.report",
     "report.answer",

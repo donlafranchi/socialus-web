@@ -1,0 +1,240 @@
+[
+  {
+    "name": "Boarding On The Lake",
+    "category": "Ranch",
+    "makes": "A family-run horse facility on Auburn-Folsom Road that leads guided two-hour trail rides on the Folsom Lake trails and offers horse boarding, lessons and training.",
+    "area": "Granite Bay (Placer)",
+    "address": "9095 Auburn Folsom Road, Granite Bay, CA 95746",
+    "site": "https://www.boardingonthelake.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/boardingonthelake/",
+      "facebook": "https://www.facebook.com/profile.php?id=100057278806877"
+    },
+    "products": [
+      {
+        "name": "Guided 2-hour trail ride",
+        "url": "https://www.boardingonthelake.com/trail-rides",
+        "price": 105,
+        "kind": "service"
+      },
+      {
+        "name": "Lessons & Training",
+        "url": "https://www.boardingonthelake.com/lessons-training",
+        "kind": "service"
+      },
+      {
+        "name": "Boarding & Facilities",
+        "url": "https://www.boardingonthelake.com/boarding-facilitates",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site read 2026-11-10 (ok): trail rides $105 one rider / $100 each for 2+, Mon-Thu 9am and Fri-Sun 9am and 12pm, online booking via FareHarbor, no closure notice; trail-ride, lessons and boarding pages all load. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "PT Ranch",
+    "category": "Farm stay & agritourism",
+    "makes": "A regenerative pastured ranch near Ione raising heritage pork, Dorper lamb, Freedom Ranger chicken, turkeys and olives, with a self-serve farm stand, a farmhouse stay (Casa Vieja) and ranch tours.",
+    "area": "Ione (Amador)",
+    "address": "1605 Cook Road, Ione, CA 95640",
+    "site": "https://www.ptranch.co/",
+    "social": {
+      "instagram": "https://www.instagram.com/pt.ranch/"
+    },
+    "products": [
+      {
+        "name": "Heritage Pork",
+        "url": "https://www.ptranch.co/products"
+      },
+      {
+        "name": "Dorper Lamb",
+        "url": "https://www.ptranch.co/products"
+      },
+      {
+        "name": "Broad Breasted White Turkeys (every November)",
+        "url": "https://www.ptranch.co/products"
+      },
+      {
+        "name": "Farm Stand (self-serve, daily in daylight)",
+        "url": "https://www.ptranch.co/farm-stand"
+      },
+      {
+        "name": "Casa Vieja farmhouse stay (sleeps 10)",
+        "url": "https://www.ptranch.co/casa-vieja",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site read 2026-11-10 (ok): home, products, farm-stand, tour and casa-vieja pages all load; turkeys listed as available every November, farm stand self-serve daily, school/group tours bookable. No prices or 2026 dates shown on site. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Long Dream Farm",
+    "category": "Farm stay & agritourism",
+    "makes": "A small family farm in the Lincoln foothills with heritage-breed cattle, free-range hens and an on-farm creamery, offering dairy, eggs, cheese, yogurt, farm tours and farm stays.",
+    "area": "Lincoln (Placer)",
+    "site": "https://longdreamfarm.com/",
+    "confidence": "Medium; own site read 2026-11-10 (ok): loads as a one-page overview (heritage cows, creamery, free-range hens, agritourism); no links, prices, social or dates on the page. Address not on own site, so none given. Fewer than 3 own-site products, so none. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Pine Valley Ranch",
+    "category": "Farm",
+    "makes": "A family Christmas tree ranch on Kemper Road in Auburn where visitors cut their own tree, with pre-cut trees, wreaths and a gift shop, opening the day after Thanksgiving.",
+    "area": "Auburn (Placer)",
+    "address": "10680 Kemper Road, Auburn, CA 95603",
+    "site": "https://sites.google.com/view/pinevalleyranchauburn/home",
+    "confidence": "Medium; own site read 2026-11-10 (ok): open daily 9-5 starting the day after Thanksgiving, cash or local check with CA ID, phone 530-885-3005. No 2026-specific dates or prices stated, one-page site (Instagram Pine.Valley.Ranch and Facebook Pine Valley Ranch Auburn named, no URLs), so no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Twin Lakes Food Bank",
+    "category": "Food bank (nonprofit)",
+    "makes": "Folsom food bank handing out groceries Tuesday to Thursday mornings plus a Friday session; volunteers bag food, handle produce, greet and register clients, work the warehouse or garden on weekday morning shifts after an orientation",
+    "area": "Folsom (Sacramento)",
+    "address": "327 Montrose Dr, Folsom, CA 95630",
+    "site": "https://twinlakesfoodbank.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/Twinlakesfoodbank",
+      "instagram": "https://www.instagram.com/twinlakesfoodbank_folsom"
+    },
+    "products": [
+      {
+        "name": "Get Food",
+        "url": "https://twinlakesfoodbank.org/get-food/",
+        "kind": "service"
+      },
+      {
+        "name": "Programs & Services",
+        "url": "https://twinlakesfoodbank.org/programs-services/",
+        "kind": "service"
+      },
+      {
+        "name": "Host a Food Drive",
+        "url": "https://twinlakesfoodbank.org/host-a-food-drive/",
+        "kind": "service"
+      },
+      {
+        "name": "Events",
+        "url": "https://twinlakesfoodbank.org/tlfb-events/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site read 2026-11-10 (ok): address, distribution hours, 2026 gala dates, volunteer page https://twinlakesfoodbank.org/volunteer/ (also /active-volunteers/). Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Seniors First (Meals on Wheels Placer County)",
+    "category": "Meal program (nonprofit)",
+    "makes": "Rocklin-based senior-services nonprofit that runs Meals on Wheels and Seniors Cafes, the Lincoln Senior Center and telephone check-ins; volunteers deliver hot weekday lunches to homebound seniors, make reassurance calls or help in the office",
+    "area": "Rocklin (Placer)",
+    "address": "2543 Warren Drive, Rocklin, CA 95677",
+    "site": "https://seniorsfirst.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/sfplacer/"
+    },
+    "products": [
+      {
+        "name": "Senior Nutrition (Meals on Wheels)",
+        "url": "https://seniorsfirst.org/senior-nutrition/",
+        "kind": "service"
+      },
+      {
+        "name": "AniMEALS",
+        "url": "https://seniorsfirst.org/animeals/",
+        "kind": "service"
+      },
+      {
+        "name": "Lincoln Senior Center",
+        "url": "https://seniorsfirst.org/lincoln-senior-center/",
+        "kind": "service"
+      },
+      {
+        "name": "Telephone Reassurance",
+        "url": "https://seniorsfirst.org/telephone-reassurance/",
+        "kind": "service"
+      },
+      {
+        "name": "Transportation Services",
+        "url": "https://seniorsfirst.org/transportation-services/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site read 2026-11-10 (ok): address, programs, volunteer page https://seniorsfirst.org/volunteer/ (driver roles, 21+), 2026 uploads and copyright; no dated event or drive stated, so none listed. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Sierra Senior Services (Meals on Wheels Tahoe-Truckee)",
+    "category": "Meal program (nonprofit)",
+    "makes": "Truckee nonprofit delivering weekday Meals on Wheels to homebound seniors around Truckee, the North Shore and Incline Village, with frozen weekend and holiday meals; volunteer drivers make the deliveries and daily check-ins",
+    "area": "Truckee (Nevada)",
+    "address": "10040 Estates Drive, Truckee, CA 96161",
+    "site": "https://www.sierraseniors.org/",
+    "confidence": "Medium; own site read 2026-11-10 (ok): blog posts dated through Sept 2026, volunteer info at /volunteer/ nav and the volunteering page above (the page itself is a 2019 article), phone 530-550-7600. Address is stated as the donation mailing address, so confirm it is the office. No holiday 2026 date stated. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Sustainable Solano",
+    "category": "Community garden (nonprofit)",
+    "makes": "Benicia-based grassroots nonprofit that runs community gardens, food forests and local-food projects across Solano County; volunteers join garden and orchard workdays, help at events or manage a CSA site, and its calendar lists a Vallejo tree-planting day on Sat Nov 7, 2026 and a Benicia worm-composting and Swenson Garden workday on Sat Nov 21, 2026",
+    "area": "Benicia (Solano)",
+    "address": "PO Box 1215, Benicia, CA 94510",
+    "site": "https://sustainablesolano.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/sustainablesolano/"
+    },
+    "products": [
+      {
+        "name": "Solano Gardens",
+        "url": "https://sustainablesolano.org/solano-gardens/",
+        "kind": "service"
+      },
+      {
+        "name": "Benicia Community Gardens",
+        "url": "https://sustainablesolano.org/benicia-community-gardens/",
+        "kind": "service"
+      },
+      {
+        "name": "Local Food",
+        "url": "https://sustainablesolano.org/local-food/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site read 2026-11-10 (ok): footer 2026, events page lists Nov 7 and Nov 21 2026, volunteer page https://sustainablesolano.org/volunteer/ live (recurring Saturday garden workdays, volunteer@ email); mailing address is a PO box from the contact page. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Solano-Napa Habitat for Humanity",
+    "category": "Volunteer building and ReStore (nonprofit)",
+    "makes": "Fairfield affiliate that builds and repairs homes with families in Solano and Napa counties and runs a ReStore of donated furniture and building materials; volunteers apply through its volunteer form for build sites, committees or the ReStore",
+    "area": "Fairfield (Solano)",
+    "address": "5130 Fulton Dr., Ste. R, Fairfield, CA 94534",
+    "site": "https://solanonapahabitat.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/solanonapahabitat",
+      "instagram": "https://www.instagram.com/solano_napa_hfh/"
+    },
+    "products": [
+      {
+        "name": "New Builds",
+        "url": "https://solanonapahabitat.org/new-builds/",
+        "kind": "service"
+      },
+      {
+        "name": "Homeownership",
+        "url": "https://solanonapahabitat.org/homeownership/",
+        "kind": "service"
+      },
+      {
+        "name": "ReStore",
+        "url": "https://solanonapahabitat.org/restore/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "Medium; own site read 2026-11-10 (ok): home page cites a May 2026 post but footer says 2023, no dated upcoming event, volunteer page https://solanonapahabitat.org/volunteer/ has no dates. ReStore address (104 Commerce Court, Fairfield) and hours differ between home page (Tue/Wed/Fri/Sat 10-4) and ReStore page (shop daily 10-5:30, drop-offs Tue-Sat 10-4), so omit hours. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "The Salvation Army Lodi Corps",
+    "category": "Meal program (nonprofit)",
+    "makes": "Lodi corps of the Salvation Army that serves a hot dinner nightly at 5 pm at Hope Harbor shelter, hands out weekly food bags and monthly emergency food boxes, and offers Friday showers and a clothing exchange; ways to help are listed on its ways-to-give page",
+    "area": "Lodi (San Joaquin)",
+    "address": "525 W. Lockeford St., Lodi, CA 95240",
+    "site": "https://lodi.salvationarmy.org/lodi/home/",
+    "social": {
+      "facebook": "https://www.facebook.com/LodiSalArmy/",
+      "instagram": "https://www.instagram.com/salvationarmylodi1889"
+    },
+    "confidence": "Medium; own site read 2026-11-10 (ok): 2026 items (Stuff the Bus 2026, May 2026 events) but kettle campaign still labeled 2025, events page empty for Nov-Dec 2026, no dedicated volunteer page (https://lodi.salvationarmy.org/lodi/ways-to-give/ only). Faith-based charity; shelter also houses single parents with children but is not child-centered. Photos not viewed: stock only. Lead: search, then own site."
+  }
+]

@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": true,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -30,18 +30,15 @@
    "kind": [
     "behavior"
    ],
-   "status": "active",
-   "built": "yes",
+   "status": "retired",
+   "built": "no",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
-   "issues": [
-    624,
-    652
-   ],
-   "note": "`ExploreSearchBar.tsx` is one `sticky top-0` row: the place (plain text with a pin since #956), search, and a sliders button labelled 'Open filters'; under 1024px the same four actions sit in `ExploreDock` [V]. Checked: unmarked: `ExploreSearchBar.test.tsx` ('shows no separate market, category or day buttons', 'sticks to the top of the viewport', 'offers the area, then search, then filters, in that order'); the invariant half is guard #624 (F092.1a) [V]. #652 asks for `[guards F045.N]` markers, which the plan lint rejects since #1069; a named test seen failing is what remains. Reviewed: T115 was a direct commit; #174 and #479 carry no `Reviewed by:` or are review-skipped; #881, #932, #911 and #956 carry `Reviewed by: Claude`; #1060 and #1069 are tests only, review-skipped [V]. Shipped: T115 had no deploy run (unknown); #174 9dde664f, #479 3c490272, #881 3da54545, #932 f8578fbb, #911 afcb9111, #956 546f0862, #1060 751f5ae5, #1069 c16d4f0b green [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. Open #624, #652."
+   "issues": [],
+   "note": "Overtaken by Don's 2026-11-01 asks, built in #1161 (2026-11-02): `ExploreSearchBar` and its filter icon are deleted; the filters open from 'More filters' inside the header search's full-screen panel (`HeaderSearch.tsx`) [V]. Shown, not counted."
   },
   {
    "id": "3a",
@@ -57,7 +54,7 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "`ExploreFilterSheet.tsx` on the shared `Sheet`: since #881 (Don, 2026-10-16) the groups are Type (Everything / Pages / Posts, the post kinds, Following only), Category (the 12 interest tags, multi-select, plus My interests #911) and Date (Any time / Today / This weekend / This week / a picked day), with How far (#932) between; 'Show results' commits, 'Clear all' shows only when something is set, the draft is discarded on dismiss, modal with focus trap [V]. The scenario's 'schedule' is the Date group. Checked: #1060 (2026-10-26, closed #825) added one test claiming the criterion whole in `ExploreFilterSheet.test.tsx` ('opens with a Date choice (any, this week, this weekend) and a multi-select Category, Show results last at the bottom, Clear all only once something is set'), seen failing with Clear all shown always; #1069 made its marker a plain comment (the plan lint rejects markers for a deleted scenario); read as checked [V]. Reviewed: T115 was a direct commit; #174 and #479 carry no `Reviewed by:` or are review-skipped; #881, #932, #911 and #956 carry `Reviewed by: Claude`; #1060 and #1069 are tests only, review-skipped [V]. Shipped: T115 had no deploy run (unknown); #174 9dde664f, #479 3c490272, #881 3da54545, #932 f8578fbb, #911 afcb9111, #956 546f0862, #1060 751f5ae5, #1069 c16d4f0b green [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "`ExploreFilterSheet.tsx` still groups Type, Category and Date (and How far) and commits with Show results, opened now from the header search's More filters (#1161) [V]. Checked yes: `ExploreFilterSheet.test.tsx` is unchanged and still asserts the groups, Show results and Clear all (#1060 claimed the criterion whole; its marker was dropped by #1069 with the retired scenario) [V ls]. Reviewed no. Shipped unknown. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "3b",
@@ -189,7 +186,7 @@
    "issues": [
     652
    ],
-   "note": "The box text is the state: `browseQueryString` writes `q` (the Type, Category and Date words, the free search), `metro`, `area` and, since #932, `reach`; `BrowseSurface` seeds the box from `?q=`, writes old `?view=updates` and `?schedule=` links into it as words, and since #942 writes the URL with `history.replaceState` [V]. Checked: unmarked: `query.test.ts` ('round-trips through parseBrowseFilters'), `BrowseSurface.test.tsx` ('the URL carries the words, not separate filter parameters', 'typing writes the words into the URL in place'); nothing asserts a cold `?q=` load lands on the same results [V]. Reviewed: #174 has no `Reviewed by:`, #750 is review-skipped; #881 and #942 carry `Reviewed by: Claude` [V]. Shipped: #174 9dde664f, #750 c16c86a7, #881 3da54545, #942 a6d4682e deploy-health green [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. Open #652 (its text names the old `?category=`, `?schedule=` params)."
+   "note": "The box text is the state: `browseQueryString` writes `q` (the Type, Category and Date words, the free search), `metro`, `area` and, since #932, `reach`; `BrowseSurface` seeds the box from `?q=`, writes old `?view=updates` and `?schedule=` links into it as words, and since #942 writes the URL with `history.replaceState` [V]. Checked: unmarked: `query.test.ts` ('round-trips through parseBrowseFilters'), `BrowseSurface.test.tsx` ('the URL carries the words, not separate filter parameters', 'typing writes the words into the URL in place'); nothing asserts a cold `?q=` load lands on the same results [V]. Reviewed: #174 has no `Reviewed by:`, #750 is review-skipped; #881 and #942 carry `Reviewed by: Claude` [V]. Shipped: #174 9dde664f, #750 c16c86a7, #881 3da54545, #942 a6d4682e deploy-health green [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "8",
@@ -223,7 +220,7 @@
    "issues": [
     652
    ],
-   "note": "`filter-active-dot` and an 'Open filters — filters applied' label driven by `filtersActive` in `ExploreSearchBar.tsx`; the dock's filter button carries the same dot and label [V]. Checked: unmarked: `ExploreSearchBar.test.tsx` ('carries a dot when secondary filters are active', 'carries no dot when no secondary filter is set'), `ExploreDock.test.tsx` ('marks active filters') [V]. Reviewed, Shipped: as criterion 2. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. Open #652."
+   "note": "The dot is `filter-active-dot` on the header search (`HeaderSearch.tsx:104`) and on More filters, driven by `filtersActive`; the filter icon at the right of a search bar it described is gone (#1161) [V]. Checked no: the `ExploreSearchBar.test.tsx` and `ExploreDock.test.tsx` tests that asserted it were deleted; no test of the dot is read in `HeaderSearch.test.tsx` [V grep]. Reviewed no. Shipped unknown. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   }
  ]
 }

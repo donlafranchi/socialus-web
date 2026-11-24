@@ -5,9 +5,10 @@ import { join, resolve } from 'node:path'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
+import { importedFeatureReaders } from './support/imported-features'
 import { enterStore } from '../scripts/knowledge/import'
 import {
-  readSeed, readImagine, readScenarios, frontmatter, loadConcepts, currentName, ideaSource, IDEAS_DISTILLED_ON,
+  readSeed, readImagine, readScenarios, readBriefs, frontmatter, loadConcepts, currentName, ideaSource, IDEAS_DISTILLED_ON,
   conceptReport, scenarioConceptSource, type ConceptSummary,
 } from '../scripts/knowledge/concepts'
 import { readDrift, staleDocs } from '../scripts/knowledge/drift'
@@ -93,6 +94,19 @@ describe('reading the plan side', () => {
     expect(readScenarios(dir).map((s) => [s.id, s.concept])).toEqual([
       ['F118', 'CO-0002'], ['F130', null], ['F131', 'CO-0001'], ['F132', 'Posts'], ['F133', 'new'],
     ])
+  })
+
+  it('reads a brief that names its concept, with its date, body and the PM\'s words; skips one that names none', () => {
+    writeFileSync(
+      join(dir, 'planning', 'briefs', 'town.md'),
+      '---\nid: brief-town\nconcept: CO-0065\n---\n\n# Town\n\n**As of 2026-11-21** · Source: x\n\n*The PM, 2026-11-21:* "one box"\n\n*Then, on the map:* "a pulse"\n\nWidgets: map, list.\n',
+    )
+    writeFileSync(join(dir, 'planning', 'briefs', 'bad.md'), '---\nconcept: Town\n---\nbody\n')
+    const briefs = readBriefs(dir)
+    expect(briefs.map((b) => [b.file, b.concept, b.on])).toEqual([['planning/briefs/town.md', 'CO-0065', '2026-11-21']])
+    expect(briefs[0].body.startsWith('# Town')).toBe(true)
+    expect(briefs[0].body).toContain('Widgets: map, list.')
+    expect(briefs[0].pmWords).toBe('"one box"\n\n"a pulse"')
   })
 
   it('transcribes each traced timeline with one id and every name it had', () => {
@@ -245,6 +259,10 @@ describe.skipIf(!RUNNABLE)('F130: concepts loaded into the store', () => {
     expect((await db.query(`select 1 from knowledge.records where id = 'F132'`)).rowCount).toBe(0)
     const f130 = await db.query(`select 1 from knowledge.records where id = 'F130'`)
     expect(f130.rowCount).toBe(0)
+    // Every department reads the features an import makes, later departments too (the PM, 2026-11-17).
+    const imported = await importedFeatureReaders(db)
+    expect(imported.n).toBeGreaterThan(0)
+    expect(imported.hidden, 'an imported feature is not readable by every department').toBe(0)
   })
 
   // #1250: a scenario written before it has a concept starts its own.

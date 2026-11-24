@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-06",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     575
    ],
-   "note": "`/create` asks one question, the kind, as four answers that are questions about the thing (sell, gather, offer, Be creative), with 'This just gets things started' [V WhatAreYouStarting.tsx]. Built by #326 (Reviewed by), #360, #364 and #382 (review-skipped). Checked: no `[guards F061.1]` marker anywhere; `WhatAreYouStarting.test.tsx` is unmarked (#575). Shipped: Deploy health green on a5eefa3, 8958e93, c006495, fae5d98. Smoked: no smoke route for /create"
+   "note": "`/create` asks one question, the kind, as four answers that are questions about the thing (sell, gather, offer, Be creative), with 'This just gets things started' [V WhatAreYouStarting.tsx]. Built by #326 (Reviewed by), #360, #364 and #382 (review-skipped). Checked: no `[guards F061.1]` marker anywhere; `WhatAreYouStarting.test.tsx` is unmarked (#575). Shipped: Deploy health green on a5eefa3, 8958e93, c006495, fae5d98. Smoked: no smoke route for /create Re-read 2026-11-20 [V]: no commit to src/app/create or src/components/create since 11-06; still no `[guards F061.n]` marker; no smoke route for /create."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     575
    ],
-   "note": "`startDraftAction` creates the draft and `redirect`s to the draft Page, where the name, place, description, tags and photo are filled in on the Page editor [V src/app/create/actions.ts]. Built by #326, #360, #364. Checked: unmarked `src/app/create/actions.test.ts` (#575). Smoked: no route for a fresh draft Page"
+   "note": "`startDraftAction` creates the draft and `redirect`s to the draft Page, where the name, place, description, tags and photo are filled in on the Page editor [V src/app/create/actions.ts]. Built by #326, #360, #364. Checked: unmarked `src/app/create/actions.test.ts` (#575). Smoked: no route for a fresh draft Page Re-read 2026-11-20 [V]: no commit to src/app/create or src/components/create since 11-06; still no `[guards F061.n]` marker; no smoke route for /create."
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     576
    ],
-   "note": "`resolvePagePlacements` in `src/lib/groups/resolve-page-placement.ts`, used by `resolveShop`; no placement column or cache in the migrations [V grep]. Built by T143 (commit f244852, direct, no PR, so no review, no Deploy health run); #1074 (10-26, review-skipped, green) later changed how a Page reads its place. `resolve-page-placement.test.ts` tests shape, not the absence of stored placement (#576)."
+   "note": "`resolvePagePlacements` in `src/lib/groups/resolve-page-placement.ts`, used by `resolveShop`; no placement column or cache in the migrations [V grep]. Built by T143 (commit f244852, direct, no PR, so no review, no Deploy health run); #1074 (10-26, review-skipped, green) later changed how a Page reads its place. `resolve-page-placement.test.ts` tests shape, not the absence of stored placement (#576). Re-read 2026-11-20 [V]: no commit to src/app/create or src/components/create since 11-06; still no `[guards F061.n]` marker; no smoke route for /create. #1302 changed one label string ('neighborhood') in `resolve-page-placement.ts`; same resolver, still no stored placement [V git diff]."
   }
  ]
 }

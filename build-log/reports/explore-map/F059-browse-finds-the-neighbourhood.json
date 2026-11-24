@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     589
    ],
-   "note": "Nav tab Explore (`BottomNav.tsx`), `/` redirects to `/explore` (`src/app/page.tsx`, Home paused, #138) [V]. Checked: unmarked `BottomNav.test.tsx` ('renders exactly two tabs: Explore, You'); nothing asserts Home is not merged in (#589) [V]. Reviewed no: #138 and #308 carry no `Reviewed by:`. Shipped: deploy-health green on 3d7b5974 and 78cdefbd [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. PM looked: #519 J10 ('Explore is its own screen') unticked [V]."
+   "note": "Explore is its own surface at `/explore`; there is no Home merge: `/` sends a signed-in visitor to `/explore` (`src/app/page.tsx`, Home paused, #138), and the header's SocialUs link goes to `/explore` (`AppHeader.tsx`). Since #1095 (2026-10-31) there is no bottom tab bar: the 'own tab' is now the header link plus the ➕ and the You avatar (Don's #1094 ask) [V]. Checked no: `BottomNav.test.tsx` ('renders exactly two tabs') was deleted with the bar; nothing asserts Home is not merged in (#589) [V]. Reviewed no: #138 and #308 carry no `Reviewed by:`. Shipped yes: deploy-health green on 3d7b5974, 78cdefbd and d987439 (#1095) [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap. PM looked: #519 J10 ('Find your way around Explore') unticked [V]."
   },
   {
    "id": "2",
@@ -43,7 +43,7 @@
     828,
     589
    ],
-   "note": "Built half [V]: since #881 (Don, 2026-10-16 on #796) the default view mixes Pages, posts and followed updates, with a megaphone or page icon on each card (#877) and never more than two of a category in a row (#902). Missing: completeness. The whole-area read is still capped at `BROWSE_LIMIT = 100` with no paging, Pages and posts sharing the slots (`load.ts:71`), and the default read is the nearest ring that holds about 24 things on this week, widened by 'Show more nearby' (Don, 2026-10-18 [for now, beta]); #1086 (2026-10-26, migration 20261026120000) keeps the winning ring's rows from the loop instead of running it twice, same rows, same limit of 100 [V]. Open #828 (the cap); check in #589."
+   "note": "Built half [V]: since #881 (Don, 2026-10-16 on #796) the default view mixes Pages, posts and followed updates, with a megaphone or page icon on each card (#877) and never more than two of a category in a row (#902). Missing: completeness. The whole-area read is still capped at `BROWSE_LIMIT = 100` with no paging, Pages and posts sharing the slots (`load.ts:71`), and the default read is the nearest ring that holds about 24 things on this week, widened by 'Show more nearby' (Don, 2026-10-18 [for now, beta]); #1086 (2026-10-26, migration 20261026120000) keeps the winning ring's rows from the loop instead of running it twice, same rows, same limit of 100 [V]. Open #828 (the cap); check in #589. Rechecked 2026-11-20 [V]: `BROWSE_LIMIT = 100` still caps the whole-area read (`load.ts:69`); #1278 (F134, 2026-11-12) opens every read signed out so a visitor no longer lacks what a stranger may read. The 2026-11-06 ruling (F091) orders the main list timely posts first, then Pages; whether the list now does is not read [A]. Open #828."
   },
   {
    "id": "2b",
@@ -62,7 +62,7 @@
     589,
     828
    ],
-   "note": "#881 merges the followed Pages' feed into the default mix, flagged `followed`, and dated posts sit in the same list; the 'What's happening' rows (F091) show at the top of the posts-only Type view; signed out, `followedFeed` is never called and only withheld cards stand for posts (`load.ts:180-187`) [V]. Checked: unmarked `load.test.ts` (the loader mixes and dedupes, flags followed) (#589). Reviewed no: #204 has no `Reviewed by:`, #505 is review-skipped; #881 carries `Reviewed by: Claude`. Shipped: deploy-health green on 70190413, 79db7a89, 24891b70, 3da54545 [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "#881 merges the followed Pages' feed into the default mix, flagged `followed`, and dated posts sit in the same list; the 'What's happening' rows (F091) show at the top of the posts-only Type view; signed out, `followedFeed` is never called and only withheld cards stand for posts (`load.ts:180-187`) [V]. Checked: unmarked `load.test.ts` (the loader mixes and dedupes, flags followed) (#589). Reviewed no: #204 has no `Reviewed by:`, #505 is review-skipped; #881 carries `Reviewed by: Claude`. Shipped: deploy-health green on 70190413, 79db7a89, 24891b70, 3da54545 [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "2c",
@@ -80,7 +80,7 @@
    "issues": [
     589
    ],
-   "note": "`followedFeed` runs only with a `userId`; the SQL predicate on `p_following` withholds; signed out resolves no follow set (`load.ts`); a filtered read goes through `browse_feed` (#881) [V]. Reviewed no (#204 carries no `Reviewed by:`). Shipped: green on 70190413, 3da54545. Checked: unmarked `load.test.ts` ('never asks for it at all'), `load-withheld.test.ts` ('never calls the withheld path' signed in); no standing guard (#589) [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "`followedFeed` runs only with a `userId`; the SQL predicate on `p_following` withholds; signed out resolves no follow set (`load.ts`); a filtered read goes through `browse_feed` (#881) [V]. Reviewed no (#204 carries no `Reviewed by:`). Shipped: green on 70190413, 3da54545. Checked: unmarked `load.test.ts` ('never asks for it at all'), `load-withheld.test.ts` ('never calls the withheld path' signed in); no standing guard (#589) [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "3",
@@ -98,7 +98,7 @@
    "issues": [
     590
    ],
-   "note": "`browse_feed` orders by recency inside the scope; the scope is the nearest reach ring from the member's home town (#932; Don, 2026-10-18, locality first), and since #1086 `browse_nearby` keeps the ring that met the target instead of re-running it, same order [V]; `session-shuffle.ts` reshuffles only inside recency bands; `mixRuns` (#902) breaks runs of one category and moves no dated post; searching orders by text rank (#924) [V]. Hood, town and adjacency order is F104, not built (#697). No guard scans for payment, size, follower count or engagement columns (#590). Under review (2026-10-12, [for now], Find only): the 'doesn't favour a member because of payment' clause. Reviewed no (#161 no line; #558, #815, #902, #1086 review-skipped; #932 reviewed). Shipped: green on 56404a51, f7782d6f, 24891b70, b7766901, 17734c4a, f8578fbb, eafc0e71 [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "`browse_feed` orders by recency inside the scope; the scope is the nearest reach ring from the member's home town (#932; Don, 2026-10-18, locality first), and since #1086 `browse_nearby` keeps the ring that met the target instead of re-running it, same order [V]; `session-shuffle.ts` reshuffles only inside recency bands; `mixRuns` (#902) breaks runs of one category and moves no dated post; searching orders by text rank (#924) [V]. Hood, town and adjacency order is F104, not built (#697). No guard scans for payment, size, follower count or engagement columns (#590). Under review (2026-10-12, [for now], Find only): the 'doesn't favour a member because of payment' clause. Reviewed no (#161 no line; #558, #815, #902, #1086 review-skipped; #932 reviewed). Shipped: green on 56404a51, f7782d6f, 24891b70, b7766901, 17734c4a, f8578fbb, eafc0e71 [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "4a",
@@ -135,7 +135,7 @@
    "issues": [
     590
    ],
-   "note": "No pill or chip row on Browse: `BrowseSurface.tsx` renders the search row, the reach line and cards; search is the box, server-side over the whole market (#924) [V]. Don's 2026-10-16 ruling on #796 put a Type group and a Category group inside the F092 panel (#881); read here as the panel F092 permits, not the results-surface kind picker the 2026-09-17 ruling refused [A]. `tests/no-chips.test.ts` (#956) keeps chip and pill shapes out but does not scan for a kind picker; no guard for this clause (#590) [V]. Reviewed no (#174 has no `Reviewed by:`; #881 reviewed). Shipped: green on 9dde664f, 3da54545. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "No pill or chip row on Browse: `BrowseSurface.tsx` renders the search row, the reach line and cards; search is the box, server-side over the whole market (#924) [V]. Don's 2026-10-16 ruling on #796 put a Type group and a Category group inside the F092 panel (#881); read here as the panel F092 permits, not the results-surface kind picker the 2026-09-17 ruling refused [A]. `tests/no-chips.test.ts` (#956) keeps chip and pill shapes out but does not scan for a kind picker; no guard for this clause (#590) [V]. Reviewed no (#174 has no `Reviewed by:`; #881 reviewed). Shipped: green on 9dde664f, 3da54545. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "5a",
@@ -151,7 +151,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "As written, not built: #479 (Don's #328) put one expanding control at the bottom right (`ExploreDock.tsx`: search, filter, area, List/Map), and #956 made it a rounded-rectangle bar under Don's 2026-10-18 [always] no-chips rule, noting 'newer wins' over the word pill [V]. The scenario's 2026-10-01 ruling still says a pill at bottom centre; neither #328 nor the no-chips rule is a dated line in its Rulings. Routed to `scope-scenario`; nothing built or filed until it is ruled. The dock is covered by `BrowseSurface.layout.test.tsx` (#328 block) and `ExploreDock.test.tsx`, unmarked."
+   "note": "As written, not built [V 2026-11-20]: there is no floating Map/List pill at bottom centre. `ExploreDock` (the #328 bottom-right control) was deleted by #1161 (2026-11-02, Don's 11-01 asks); under 1024px the map opens from a 'Show on map' text link in the results header (`BrowseSurface.tsx:488`) and, signed in, the ➕ menu's 'Show the map / Show the list'. The scenario's 2026-10-01 ruling still says a pill at bottom centre; Don's 11-01 asks are not a dated line in its Rulings. Routed to `scope-scenario`; nothing built or filed until it is ruled. `BrowseSurface.layout.test.tsx` covers the link, unmarked."
   },
   {
    "id": "5b",
@@ -169,7 +169,7 @@
    "issues": [
     589
    ],
-   "note": "`layout === 'split'` from 1024px for a member (`BrowseSurface.tsx:102`), with the 'map-collapse-handle' button (#279); pins load after the list (#553); a Page's map opens here zoomed on that Page with a way back (#944) [V]. Reviewed no: #279 carries no `Reviewed by:`, #553 skipped; #944 reviewed. Shipped: green on 18948ae7, 238a19f5, 00832944 [V]. Checked: partial marker only (`BrowseSurface.layout.test.tsx:99`, `evals/features/F059-explore-list-and-map-by-width.spec.ts:6`) (#589) [V]. Smoked: smoke-live run 40202440782 on main 46be4037 (2026-10-25) was green on explore-map at 390 and 1280 for every persona, after the last PR that built this; the 10-30 run 41093000135 on 09ffba30 covered explore only [V]."
+   "note": "`layout === 'split'` from 1024px for a member (`BrowseSurface.tsx:102`), with the 'map-collapse-handle' button (#279); pins load after the list (#553); a Page's map opens here zoomed on that Page with a way back (#944) [V]. Reviewed no: #279 carries no `Reviewed by:`, #553 skipped; #944 reviewed. Shipped: green on 18948ae7, 238a19f5, 00832944 [V]. Checked: partial marker only (`BrowseSurface.layout.test.tsx:99`, `evals/features/F059-explore-list-and-map-by-width.spec.ts:6`) (#589) [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap. Since #1278 (reviewed, deploy-health green on def1e35b) the split layout also applies signed out [V]."
   },
   {
    "id": "5c",
@@ -187,25 +187,23 @@
    "issues": [
     831
    ],
-   "note": "Built half [V]: the docked layout exists behind `ownerPanelOpen`, which nothing sets (`BrowseSurface.tsx:76`, open question owner=cowork, 2026-10-01), and it tests 1024-1439px, not the ruled 1280-1439px; #956 restyled the docked tabs as underlined text. Missing: an owner panel on Explore. Open #831 (needs-pm: build the panel or drop the clause)."
+   "note": "Built half [V 2026-11-20]: the docked layout exists behind `ownerPanelOpen`, which nothing sets (`BrowseSurface.tsx:79`, open question owner=cowork, 2026-10-01), and it tests 1024-1439px, not the ruled 1280-1439px; the List|Map tabs that docked into the filter bar were retired by #1161. Missing: an owner panel on Explore. Open #831 (needs-pm: build the panel or drop the clause)."
   },
   {
    "id": "5d",
-   "text": "Signed out, Explore is list only; the Map control opens sign-up",
+   "text": "Signed out, Explore is list only; the Map control opens sign-in",
    "kind": [
     "behavior"
    ],
-   "status": "active",
-   "built": "yes",
+   "status": "retired",
+   "built": "no",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "yes",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
-   "issues": [
-    589
-   ],
-   "note": "`layout` is 'single' signed out at every width (`BrowseSurface.tsx:102`); the dock's Map opens `SignInPrompt` (#496, #334); `?view=map&focus=` (#944) opens the map only `initial.signedIn`; `loadMemberMap` returns no pins signed out [V]. Reviewed no (#496 review-skipped; #944 reviewed). Shipped: green on 0cee585a, 00832944. Checked: the '#334' describe in `BrowseSurface.layout.test.tsx` and the F059 eval are unmarked or partial (#589) [V]. Smoked: the 2026-10-30 run (41093000135) opened explore signed out at 390 and 1280, and the 10-25 run (40202440782) explore-map signed out, green [V]. PM looked: #519 J07 ('Look at Explore as a visitor who has not signed in', launch) unticked [V]."
+   "issues": [],
+   "note": "Overtaken by the 2026-11-12 ruling in scenario F134 ([replaces F059: Signed-out Explore is list only, and the Map pill opens sign-in]): signed out, Explore lays out as signed in and the map opens with its pins (#1278: `BrowseSurface.tsx` 'signed out lays out as signed in'; test 'signed out, the link opens the map, not sign-in'). The newer one wins. `sync-roadmap` should amend the scenario. Shown, not counted."
   },
   {
    "id": "5e",
@@ -223,7 +221,7 @@
    "issues": [
     590
    ],
-   "note": "`CardGrid` renders only result cards; the reach line (#932) and the first look sit above the grid, outside the results region, and the toggle left the rows in #279 [V]. `BrowseSurface.layout.test.tsx` ('the card grid holds only cards') sits under a partial marker; no standing guard (#590) [V]. Reviewed no (#279 no line). Shipped: green on 18948ae7, f8578fbb. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "`CardGrid` renders only result cards; the reach line and the first-look block were retired by #1161 (2026-11-02) and the toggle left the rows in #279 [V]. `BrowseSurface.layout.test.tsx` ('the card grid holds only cards') sits under a partial marker; no standing guard (#590) [V]. Reviewed no (#279 no line). Shipped: green on 18948ae7, f8578fbb. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "6",
@@ -243,7 +241,7 @@
     698,
     588
    ],
-   "note": "Restated 2026-10-11 (F104, F105). Not built [V]: scope is still a metro chosen by `?metro=`, the area picker, the device cookie or the member's default; since #1025 (2026-10-24, bug #978) the metro list is read once anonymously and cached for 5 minutes and the scope is picked from it by `pickFeedMetro` (`feed-metro.ts:120-130`) with the same precedence, requested slug, then member metro, then `DEFAULT_METRO_SLUG` (Sacramento), so a visitor with nothing still gets one picked [V]. #1038 (2026-10-24, F103.4) dropped the MSA from neighbourhood search and the outlines and says 'area' everywhere a visitor reads; the market model is unchanged. No typed place, no waiting-market absence. Open #696 (market scoping) and #698 (place control), both `deferred` to the fortnight after beta; #588 (no-metro visitor) is answered by F105 criterion 5 and is stale."
+   "note": "Restated 2026-10-11 (F104, F105). Not built [V]: scope is still a metro chosen by `?metro=`, the area picker, the device cookie or the member's default; since #1025 (2026-10-24, bug #978) the metro list is read once anonymously and cached for 5 minutes and the scope is picked from it by `pickFeedMetro` (`feed-metro.ts:120-130`) with the same precedence, requested slug, then member metro, then `DEFAULT_METRO_SLUG` (Sacramento), so a visitor with nothing still gets one picked [V]. #1038 (2026-10-24, F103.4) dropped the MSA from neighbourhood search and the outlines and says 'area' everywhere a visitor reads; the market model is unchanged. No typed place, no waiting-market absence. Open #696 (market scoping) and #698 (place control), both `deferred` to the fortnight after beta; #588 (no-metro visitor) is answered by F105 criterion 5 and is stale. Rechecked 2026-11-20 [V]: `DEFAULT_METRO_SLUG` and `pickFeedMetro` still pick the scope (`feed-metro.ts:18`); nothing merged since 11-06 changes it."
   },
   {
    "id": "7",
@@ -261,7 +259,7 @@
    "issues": [
     698
    ],
-   "note": "Restated 2026-10-11 (F105 place control). Built half [V]: the area picker and a neighbourhood search (#479, #476) move a member's results and save the pick as their default; since #1038 the neighbourhood search takes the query alone (`searchAreasAction(query)`, no metro, no MSA filter); the reach line and the sheet's How far group (#932) move how far they reach. Missing: the place control that takes any typed town, county or market, as session state only; F105 replaces the saved default. Open #698."
+   "note": "Restated 2026-10-11 (F105 place control). Built half [V]: the area picker and a neighbourhood search (#479, #476) move a member's results and save the pick as their default; since #1038 the neighbourhood search takes the query alone (`searchAreasAction(query)`, no metro, no MSA filter); the reach line and the sheet's How far group (#932) move how far they reach. Missing: the place control that takes any typed town, county or market, as session state only; F105 replaces the saved default. Open #698. Rechecked 2026-11-20 [V]: no typed-place control; the area picker is opened from the header search's Where (#1161)."
   },
   {
    "id": "8",
@@ -279,7 +277,7 @@
    "issues": [
     589
    ],
-   "note": "`post_current_until` (#914, migration 20261018170000): a dated post stays until it ends (#815), an undated one for 14 days or until the owner's `show_until` (Don, 2026-10-02 on #314); `browse_feed` and `announcements_withheld` both call it [V]. Reviewed no (#161 no line, #815 review-skipped; #914 reviewed). Shipped: green on 56404a51, b7766901, 1fc06c8b [V]. Checked: unmarked `tests/migrations-browse-feed.test.ts` ('drops a past-dated post on its own, and never drops an undated one') and `tests/undated-posts-expire-db.test.ts` (#589) [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "`post_current_until` (#914, migration 20261018170000): a dated post stays until it ends (#815), an undated one for 14 days or until the owner's `show_until` (Don, 2026-10-02 on #314); `browse_feed` and `announcements_withheld` both call it [V]. Reviewed no (#161 no line, #815 review-skipped; #914 reviewed). Shipped: green on 56404a51, b7766901, 1fc06c8b [V]. Checked: unmarked `tests/migrations-browse-feed.test.ts` ('drops a past-dated post on its own, and never drops an undated one') and `tests/undated-posts-expire-db.test.ts` (#589) [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "9",
@@ -297,7 +295,7 @@
    "issues": [
     589
    ],
-   "note": "A Page card leads with its photo and name; a post card (#931) leads with the post's first line and carries the Page's name and avatar beneath; cards show no seller (#254) and no hashtags (#748) [V]. Whether a label conceals ownership is a Page-content question not checked here [A]. Reviewed no (#174 no line, #748 review-skipped; #931 reviewed). Shipped: green on 9dde664f, 87daab2f, 9437cf9a, 0ebfaa1e. Checked: unmarked `BrowseResultCard.cards.test.tsx`, `BrowseResultCard.test.tsx` (#589) [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "A Page card leads with its photo and name; a post card (#931) leads with the post's first line and carries the Page's name and avatar beneath; cards show no seller (#254) and no hashtags (#748) [V]. Whether a label conceals ownership is a Page-content question not checked here [A]. Reviewed no (#174 no line, #748 review-skipped; #931 reviewed). Shipped: green on 9dde664f, 87daab2f, 9437cf9a, 0ebfaa1e. Checked: unmarked `BrowseResultCard.cards.test.tsx`, `BrowseResultCard.test.tsx` (#589) [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   },
   {
    "id": "10",
@@ -316,7 +314,7 @@
     54,
     589
    ],
-   "note": "`?metro=`, `?area=`, `?q=` and `?reach=` round-trip (`query.ts`); the sheet's words live in the box so a link carries them (#750); #942 writes the URL with `history.replaceState`; #885 keeps how deep the visitor scrolled; scroll is restored once per mount under the literal key `'explore'` (open #54) [V]. Reviewed no: the scroll hook landed by direct commit 06bc333; #942 and #885 carry `Reviewed by: Claude`. Shipped unknown: no run for 06bc333; a6d4682e and 9ac96f26 green. Checked: unmarked `query.test.ts`, `useScrollRestoration.test.ts`, `BrowseSurface.test.tsx` ('a shared link reopens the same metro and search' describe, 'typing writes the words into the URL in place'); nothing asserts metro plus search reopen together (#589) [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
+   "note": "`?metro=`, `?area=`, `?q=` and `?reach=` round-trip (`query.ts`); the sheet's words live in the box so a link carries them (#750); #942 writes the URL with `history.replaceState`; #885 keeps how deep the visitor scrolled; scroll is restored once per mount under the literal key `'explore'` (open #54) [V]. Reviewed no: the scroll hook landed by direct commit 06bc333; #942 and #885 carry `Reviewed by: Claude`. Shipped unknown: no run for 06bc333; a6d4682e and 9ac96f26 green. Checked: unmarked `query.test.ts`, `useScrollRestoration.test.ts`, `BrowseSurface.test.tsx` ('a shared link reopens the same metro and search' describe, 'typing writes the words into the URL in place'); nothing asserts metro plus search reopen together (#589) [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, 15 passed) opened explore, page and you as signed-out, stranger, member, owner and operator, green, as was 44375353553 (11-18), after the last merge touching this (#1278, 11-12); the runs of 11-12 to 11-17 were red, I did not read why [V gh run list]; it loads the route, it does not tap."
   }
  ]
 }

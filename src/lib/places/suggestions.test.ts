@@ -56,7 +56,7 @@ describe('what each row is called', () => {
     // is unit-tested in search.test.ts. This pins the pairing.
     const rows = [place('Oak Park', 'neighborhood', 'Sacramento'), place('Oakdale', 'city'), addr('Oak St')]
     const labels = rows.map((r) => (r.source === 'address' ? 'Address' : placeKindLabel(r.kind)))
-    expect(labels).toEqual(['Neighbourhood', 'City', 'Address'])
+    expect(labels).toEqual(['Neighborhood', 'City', 'Address'])
     expect(labels.join(' ')).not.toContain('neighborhood')
   })
 

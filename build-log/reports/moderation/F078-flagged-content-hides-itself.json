@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
     625,
     1005
    ],
-   "note": "Six subject kinds go through `report.create`: Page photo, Page picture, post, post photo, the Page's own words (`page_words`, #820, closed #625) and a featured product or service (`page_item`, #920); the checks on `reports`, `member_notices` and `legal_holds` carry all six (migration 20261019013909); `run-assessment.ts` joins each kind's text and photo for the shadow read [V] Checked: `[guards F078.1]` in `f078-reportable-everything.test.ts:163` (#1036, closed #1005): every registered action is classified as a poster or as posting nothing, every poster's kind is accepted and stored and queued for the AI read, and no other kind is accepted; seen failing against eight mutants; F117 (#1081) and F118 (#1093) added their new actions to its classification [V] Reviewed: #820 `review-skipped`; #499, #513 clean; #920 carries `Reviewed by:` [V] Shipped: deploy-health green on #820 (e82442f), #920 (0aa3c68) and #1036 (3e5020d) [V] Smoked: `page` and `page-business` green 2026-10-27 (dccf21c); the menu entries render, no report is sent [A]"
+   "note": "Six subject kinds go through `report.create`: Page photo, Page picture, post, post photo, the Page's own words (`page_words`, #820, closed #625) and a featured product or service (`page_item`, #920); the checks on `reports`, `member_notices` and `legal_holds` carry all six (migration 20261019013909); `run-assessment.ts` joins each kind's text and photo for the shadow read [V] Checked: `[guards F078.1]` in `f078-reportable-everything.test.ts:163` (#1036, closed #1005): every registered action is classified as a poster or as posting nothing, every poster's kind is accepted and stored and queued for the AI read, and no other kind is accepted; seen failing against eight mutants; F117 (#1081) and F118 (#1093) added their new actions to its classification [V] Reviewed: #820 `review-skipped`; #499, #513 clean; #920 carries `Reviewed by:` [V] Shipped: deploy-health green on #820 (e82442f), #920 (0aa3c68) and #1036 (3e5020d) [V] Smoked: yes. `smoke-live` on `main` 2026-11-19 (05178ea, the current head) was green on `page` for the signed-out and signed-in personas, after every merge that touched it; the run opens the screen and sends no report; the menu entries render [V gh run view 2026-11-20]."
   },
   {
    "id": "2",
@@ -63,7 +63,7 @@
     628,
     629
    ],
-   "note": "`member_notices` row written in the hide transaction; `YouNotices` on `/you`; child content sends none by ruling (F078 criterion 8) [V] Checked: `[guards F078.3]` in `f078-criteria.test.ts:72`; the never-email guard in `f078-guards.test.ts:21` is partial on purpose (the in-app write is the handler's check) [V] Reviewed: #494, #706 `review-skipped` [V] Shipped: green [V] Smoked: `you` green 2026-10-27 (dccf21c); the notices list renders, none is seeded [A]"
+   "note": "`member_notices` row written in the hide transaction; `YouNotices` on `/you`; child content sends none by ruling (F078 criterion 8) [V] Checked: `[guards F078.3]` in `f078-criteria.test.ts:72`; the never-email guard in `f078-guards.test.ts:21` is partial on purpose (the in-app write is the handler's check) [V] Reviewed: #494, #706 `review-skipped` [V] Shipped: green [V] Smoked: yes. `smoke-live` on `main` 2026-11-19 (05178ea) was green on `you`, after #1172 changed it; the notices list renders and none is seeded, so no answer is tapped [A]."
   },
   {
    "id": "4a",
@@ -106,7 +106,7 @@
   },
   {
    "id": "5",
-   "text": "Threat of harm or children texts Don at once; everything else queues in a mobile review view",
+   "text": "Threat-of-harm or children-category flags alert the PM at once by email (2026-11-12); everything else queues in a mobile review view",
    "kind": [
     "behavior",
     "external"
@@ -116,12 +116,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     628
    ],
-   "note": "`alertOperator` after commit: SMS when Twilio values exist, email through Resend today (#751); the mobile queue is `/admin/reports` [V]. Nobody is texted yet: no Twilio number (#707 open, unchanged this week) [V]. The alert text says \"hid a Page photo\" for a picture, post photo, words or item too (#901's note) [V] Checked: `[guards F078.5]` in `f078-criteria.test.ts:95` [V] Reviewed: #483 `review-skipped`; #751 no `Reviewed by:` [V] Smoked: `admin-reports` green as operator 2026-10-26 (dc65fac) [V]"
+   "note": "`alertOperator` after commit: email through Resend, which is what the 2026-11-12 ruling in F078 `## Rulings` settles for now (\"the urgent-report alert reaches the PM by email for now\", [for now]); it sends SMS instead when Twilio values exist [V reread 2026-11-20, `src/actions/report/create.ts:691`, `src/lib/notify/email.ts`]. The mobile queue is `/admin/reports`. #707 (Twilio) stays open for sign-in codes and no longer gates this criterion. The alert text says \"hid a Page photo\" for a picture, post photo, words or item too (#901's note) [V] Checked: `[guards F078.5]` in `f078-criteria.test.ts:95`, which carries `partial` notes only about SMS once Twilio exists [V] Reviewed: #483 `review-skipped`; #751 no `Reviewed by:` [V] Shipped: green on #483 and #751 [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "6",
@@ -134,12 +134,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     628
    ],
-   "note": "A report is always stored and queued; hiding is separate (`create.ts`) [V] Checked: `[guards F078.6]` in `f078-criteria.test.ts:120` [V] Reviewed: #706 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-26 (dc65fac) [V]"
+   "note": "A report is always stored and queued; hiding is separate (`create.ts`) [V] Checked: `[guards F078.6]` in `f078-criteria.test.ts:120` [V] Reviewed: #706 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
   },
   {
    "id": "7",

@@ -106,6 +106,27 @@ describe.skipIf(!RUNNABLE)('A venue Page\'s imported shows', () => {
     expect((await q(`select photo_url from public.page_posts where group_id = $1`, [PAGE])).rows[0].photo_url).toBe('https://media.test/arena.webp')
   })
 
+  it('#1358 — a show on stock takes the venue\'s own picture once its listing has one; with none it keeps stock untouched', async () => {
+    const cover = 'https://media.test/page-cover.webp'
+    const stock = { url: 'https://media.test/stock.webp', credit: 'Unsplash (stock photo, not this business)' }
+    await q(`delete from public.page_posts where group_id = $1`, [PAGE])
+    await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [show('Agriculture', '2026-10-26T20:00:00')], cover, now, { photoFor: async () => stock })
+    const bare = vi.fn(async () => stock)
+    expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [show('Agriculture', '2026-10-26T20:00:00')], cover, now, { photoFor: bare })).toMatchObject({ updated: 0, kept: 1 })
+    expect(bare).not.toHaveBeenCalled()
+    const listed = show('Agriculture', '2026-10-26T20:00:00', { imageUrl: 'https://venue.test/agriculture.jpeg' })
+    const failing = vi.fn(async () => stock)
+    expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [listed], cover, now, { photoFor: failing })).toMatchObject({ updated: 0, kept: 1 })
+    const own = { url: 'https://media.test/agriculture.webp', credit: 'M997 Venue (from their website)' }
+    expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [listed], cover, now, { photoFor: async () => own })).toMatchObject({ updated: 1 })
+    const [row] = (await q(`select photo_url, body from public.page_posts where group_id = $1`, [PAGE])).rows
+    expect(row.photo_url).toBe(own.url)
+    expect(row.body).toMatch(/\n\nPhoto: M997 Venue \(from their website\)$/)
+    const after = vi.fn(async () => own)
+    expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [listed], cover, now, { photoFor: after })).toMatchObject({ updated: 0, kept: 1 })
+    expect(after).not.toHaveBeenCalled()
+  })
+
   it('a moved show is updated in place; a dropped or cancelled one comes off; a past one comes off', async () => {
     await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [show('Modest Mouse', '2026-10-23T21:00:00'), show('Second', '2026-10-24T20:00:00')], null, now)
     expect((await upcoming()).map((p) => [p.event_key, p.starts_at.toISOString()])).toEqual([['2026-10-23|modest mouse', '2026-10-24T04:00:00.000Z'], ['2026-10-24|second', '2026-10-25T03:00:00.000Z']])

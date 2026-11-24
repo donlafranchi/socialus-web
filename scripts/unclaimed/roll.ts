@@ -5,7 +5,7 @@
 //   tsx scripts/unclaimed/roll.ts            counts what it would move (writes nothing)
 //   tsx scripts/unclaimed/roll.ts --apply    moves them; needs DATABASE_URL
 //
-// Idempotent: a second run moves nothing. Run weekly by .github/workflows/unclaimed-roll.yml.
+// Idempotent: a second run moves nothing. Run daily by .github/workflows/unclaimed-roll.yml (#1357).
 import { appendFileSync } from 'node:fs'
 import { Client } from 'pg'
 import { redateSamples } from '../../src/lib/unclaimed/load'

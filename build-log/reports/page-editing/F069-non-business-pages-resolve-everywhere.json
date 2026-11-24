@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-20",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
     591,
     22
    ],
-   "note": "[V] /g/<id> uses resolvePageById and resolveShop, whose kinds filter is optional and defaults to every kind (resolve-shop.ts:177-217; T156, #174, no Reviewed by line; deploy-health green on 9dde664). #1025 and #1074 (bug #978, review-skipped, 'Reviewed by: build lane') reworked the same read for speed this week and kept no kind filter; deploy-health green on 264fa51 and 4d71a8c. Smoked: unknown, smoke-live opens the first Page Explore lists and does not pick a non-business one. unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description'). Check ticket #591"
+   "note": "[V] /g/<id> uses resolvePageById and resolveShop, whose kinds filter is optional and defaults to every kind (resolve-shop.ts:177-217; T156, #174, no Reviewed by line; deploy-health green on 9dde664). #1025 and #1074 (bug #978, review-skipped, 'Reviewed by: build lane') reworked the same read for speed this week and kept no kind filter; deploy-health green on 264fa51 and 4d71a8c. Smoked: unknown. `smoke-live` on `main` 2026-11-19 (05178ea) was green on `page` and `you`, but `page` opens the first Page Explore lists, never a non-business one [V gh run view 2026-11-20]. unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description'). Check ticket #591 Since 2026-10-30 #1146 (readable addresses, Reviewed by) and #1278 (F134) changed the read and the new `/[place]/[page]` route resolves through `resolveShop` with no kind filter, so a non-business Page still resolves [V reread 2026-11-20]."
   },
   {
    "id": "2",
@@ -44,7 +44,7 @@
     22,
     591
    ],
-   "note": "[V] gatherings: resolve-gathering.ts has no kind filter (built half). Products and services: resolve-product.ts:116 and resolve-service.ts:98 still `.eq('kind', 'business')` on the group lookup, so they 404 under any other Page; no commit touched src/lib/items since 2026-10-23. #920 lets any Page feature up to 12 products and services on the Page itself with no link to the item's own URL, so the gap is reachable but not visible from the Page. Tickets #22 (T134) and #591 (gathering half only)"
+   "note": "[V] gatherings: resolve-gathering.ts has no kind filter (built half). Products and services: resolve-product.ts:116 and resolve-service.ts:98 still `.eq('kind', 'business')` on the group lookup, so they 404 under any other Page; no commit touched src/lib/items since 2026-10-23. #920 lets any Page feature up to 12 products and services on the Page itself with no link to the item's own URL, so the gap is reachable but not visible from the Page. Tickets #22 (T134) and #591 (gathering half only) [V reread 2026-11-20] unchanged: `resolve-product.ts:116` and `resolve-service.ts:98` still filter `.eq('kind', 'business')`; nothing in `src/lib/items` changed since 2026-10-23."
   },
   {
    "id": "3",
@@ -63,7 +63,7 @@
     591,
     24
    ],
-   "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. First built in f19adc6, a direct commit with no PR and no deploy-health run (none for that sha); later edits #181, #254, #389, #424, #472 carry no Reviewed by except #472. #966's Following row is a finder surface, not a producer one. Smoked: unknown, the smoke accounts hold one Page each. No commit touched own-pages.ts or OwnPages.tsx since 2026-10-23 except the #1068 test file. unmarked: src/lib/member/own-pages.test.ts. Check ticket #591"
+   "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. First built in f19adc6, a direct commit with no PR and no deploy-health run (none for that sha); later edits #181, #254, #389, #424, #472 carry no Reviewed by except #472. #966's Following row is a finder surface, not a producer one. Smoked: unknown, `you` is green on `main` 2026-11-19 but the smoke accounts hold one Page each. unmarked: src/lib/member/own-pages.test.ts. Check ticket #591"
   },
   {
    "id": "4",
@@ -82,7 +82,7 @@
     24,
     846
    ],
-   "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). Checked: OwnPages.drafts.test.tsx `[guards F069.4]` (#1068, seen failing against a mutant that keeps only the first draft) runs the real getOwnPages and OwnPages over three drafts and finds all three, each with Continue and Delete. Smoked: unknown, /you is smoked (10-26, 10-27 runs) but the builder accounts hold no second draft. #846 is still open though its check merged"
+   "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). Checked: OwnPages.drafts.test.tsx `[guards F069.4]` (#1068, seen failing against a mutant that keeps only the first draft) runs the real getOwnPages and OwnPages over three drafts and finds all three, each with Continue and Delete. Smoked: unknown, `you` is green on `main` 2026-11-19 but the builder accounts hold no second draft. #846 is still open though its check merged."
   }
  ]
 }

@@ -1,13 +1,28 @@
-// #490 — error tracking, browser side. Off until NEXT_PUBLIC_SENTRY_DSN is set;
-// errors only; every event scrubbed. See docs/error-tracking.md.
+// This file configures the initialization of Sentry on the client.
+// The added config here will be used whenever a users loads a page in their browser.
+// https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import * as Sentry from '@sentry/nextjs'
-import { sentryOptions } from '@/lib/observability/options'
+import * as Sentry from "@sentry/nextjs";
+import { sentryOptions } from "@/lib/observability/sentry-options";
 
-const options = sentryOptions({
-  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
-})
-if (options) Sentry.init(options)
+Sentry.init({
+  dsn: "https://811834b36b11d184f31dcb0c4bf3c42f@o4512442541539328.ingest.us.sentry.io/4512442590363648",
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart
+  ...sentryOptions(),
+
+  // Turns off collection of data that could identify users. Adjust per category:
+  // https://docs.sentry.io/platforms/javascript/configuration/options/#dataCollection
+  dataCollection: {
+    userInfo: false,
+    graphQL: { document: false, variables: false },
+    genAI: { inputs: false, outputs: false },
+    databaseQueryData: false,
+    queues: false,
+    httpBodies: [],
+    httpHeaders: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+    cookies: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+    urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+  },
+});
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
