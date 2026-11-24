@@ -43,6 +43,7 @@ import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from '.
 import { loadPractices, readPracticeSeed, practiceSeedPath, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
 import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
 import { loadRuns, runsReport, type RunsSummary } from './runs'
+import { loadVersions, readVersionSeed, versionReport, type VersionSeed, type VersionSummary } from './versions'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -61,6 +62,8 @@ export interface Sources {
   maps?: MapSources
   /** F135: routines.json and runs-seed.json; false skips them. */
   runs?: false
+  /** #1431: the version plans. Left out, none is loaded (the fixtures' imports). */
+  versions?: VersionSeed
 }
 
 export interface Summary {
@@ -83,6 +86,8 @@ export interface Summary {
   maps?: MapSummary
   /** F135: routines, and the runs from before runs recorded themselves. */
   runs?: RunsSummary
+  /** #1431: versions and their plans. */
+  versions?: VersionSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
@@ -460,6 +465,8 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   }
   // F132: story maps, after plans and concepts, whose features and ideas they place.
   if (src.maps) summary.maps = await loadMaps(db, src.maps)
+  // #1431: version plans, after plans and maps, whose slices they name.
+  if (src.versions) summary.versions = await loadVersions(db, src.versions, src.commits?.web)
   // F135: which practices are routines, and run one (runs-seed.json), after
   // the practices they belong to. Later runs record themselves.
   if (src.runs !== false) summary.runs = await loadRuns(db)
@@ -487,6 +494,7 @@ async function main(): Promise<void> {
     registryPath: resolve(__dirname, '..', '..', 'src', 'ontology', 'registry.json'),
     commits: { plan: process.env.PLAN_COMMIT, ops: process.env.OPS_COMMIT, web: process.env.GITHUB_SHA },
     maps: { seed: readMapSeed(), walkthroughs: readWalkthroughs(planDir), rollup: readRollup() },
+    versions: readVersionSeed(),
   }
   const { exportConstraints } = await import('./export')
   const { readFileSync } = await import('node:fs')
@@ -516,6 +524,7 @@ async function main(): Promise<void> {
       ...(summary.plans ? planReport(summary.plans) : []),
       ...(summary.practices ? practiceReport(summary.practices) : []),
       ...(summary.maps ? mapReport(summary.maps) : []),
+      ...(summary.versions ? versionReport(summary.versions) : []),
       ...(summary.runs ? runsReport(summary.runs) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]

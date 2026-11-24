@@ -1,0 +1,41 @@
+{
+  "about": "#1431: the version plans the Knowledge import loads (scripts/knowledge/versions.ts). Hand-kept by agents, and only from what the PM has already ruled: what is in a version is the PM's, so every entry names the rulings it rests on (ruled_by). To change a plan, edit it here and add `changed` with the why and the outcome that changed; the import refuses a changed plan with no why.",
+  "versions": [
+    {
+      "id": "VN-0001",
+      "answer": "Sacramento beta",
+      "why": "Launch B, the PM, 2026-11-23: \"B.\" then \"Approve launch B\". Must-haves only, so the Sacramento area can open to real sign-ups on Wednesday 2027-01-06; what is not needed to open follows in January. The opening is a beta of one market, tested until about April or May 2027, with production after (D-0416).",
+      "due_on": "2027-01-06",
+      "outcomes": [
+        "Sacramento opens as a beta on Wednesday 2027-01-06, after a private dry run the week of 2026-12-28",
+        "The beta tests the Sacramento-area market until about April or May 2027"
+      ],
+      "appetite": "Must-haves only, by Wednesday 2027-01-06: nothing below the cut line holds the opening.",
+      "includes": [
+        "JY-LAUNCH-S1",
+        "F058-S1",
+        "F076-S1",
+        "F078-S1",
+        "F080-S1",
+        "F081-S1",
+        "F082-S1",
+        "F100-S1",
+        "F101-S1",
+        "F102-S1",
+        "F103-S1"
+      ],
+      "leaves_out": [
+        {
+          "slice": "JY-LAUNCH-S2",
+          "reason": "Launch B: stickers, item tags and Google or Apple sign-in are not needed to open and follow in January.",
+          "condition": "CN-0001"
+        }
+      ],
+      "ruled_by": [
+        "D-0416",
+        "launch B, the PM 2026-11-23 (socialus-plan planning/briefs/sacramento-launch-campaign-2026-11-22.md)",
+        "gates: launch in the frontmatter of F058, F076, F078, F080, F081, F082, F100, F101, F102 and F103"
+      ]
+    }
+  ]
+}
