@@ -66,7 +66,7 @@ export type BrowseSort = 'recent' | 'soonest' | 'newest'
  *
  * Both are ids, never slugs — `public.places` currently holds two rows sharing
  * the slug 'sacramento' (a recorded accepted risk), and resolving a slug is
- * `resolveFeedMetro` / `resolveFeedPlace`'s job, upstream of here.
+ * `resolveFeedMetro`'s job, upstream of here.
  */
 export type BrowseScope = { metroId: string } | { placeId: string }
 

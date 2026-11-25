@@ -1,7 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { ItemFeedCard } from './ItemFeedCard'
-import { FeedEmptyState } from './FeedEmptyState'
 import type { FeedItem } from '@/lib/feed/locality-feed'
 
 afterEach(() => cleanup())
@@ -132,20 +131,6 @@ describe('T118 — ItemFeedCard media block', () => {
     render(<ItemFeedCard item={{ ...baseItem, kind: 'product', title: 'Sourdough' }} />)
     const link = screen.getByTestId('feed-item-card') as HTMLAnchorElement
     expect(link.getAttribute('href')).toBe('/m/maya/p/sourdough-abcdef12')
-  })
-})
-
-describe('T088 — FeedEmptyState', () => {
-  it('widens to the parent Place when one exists', () => {
-    render(<FeedEmptyState parent={{ displayName: 'Sacramento', slug: 'sacramento' }} />)
-    const widen = screen.getByTestId('widen-locality') as HTMLAnchorElement
-    expect(widen.textContent).toContain('Sacramento')
-    expect(widen.getAttribute('href')).toBe('/?place=sacramento')
-  })
-
-  it('falls back to state copy at the root', () => {
-    render(<FeedEmptyState parent={null} />)
-    expect(screen.getByTestId('widen-locality').textContent).toContain('state')
   })
 })
 

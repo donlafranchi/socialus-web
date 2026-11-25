@@ -1,11 +1,5 @@
-// T087 — Locality feed read helper (F030).
-//
-// Supabase-client-shaped (calls the locality_feed_items RPC) so it runs from a
-// server component with the session-bound or anon client. Same convention as
-// src/lib/groups/resolve-shop.ts.
-
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { attachGroupPrefixes, filterBrowsable } from './group-prefixes'
+// The feed card's shape and the tag and page-size rules browse and venue pages share. The locality feed's own
+// reads left with the old home feed (#1302, #1363).
 
 export interface FeedItem {
   itemId: string
@@ -43,85 +37,4 @@ export function normalizeTags(tags: readonly string[] | null | undefined): strin
 export function clampLimit(n: number | null | undefined): number {
   if (n == null || Number.isNaN(n)) return 50
   return Math.max(1, Math.min(100, Math.floor(n)))
-}
-
-interface LocalityFeedRow {
-  item_id: string
-  member_handle: string | null
-  member_display_name: string | null
-  item_kind: string
-  title: string
-  category: string | null
-  brand_label: string | null
-  group_id: string | null
-  nearest_location_label: string | null
-  response_count: number | string
-  primary_tag: string | null
-  photo_url: string | null
-  published_at: string
-}
-
-type RpcClient = Pick<SupabaseClient, 'rpc'>
-
-export async function getLocalityFeed(
-  supabase: RpcClient,
-  opts: { placeId: string; interestTags?: readonly string[] | null; limit?: number | null },
-): Promise<FeedItem[]> {
-  const { data, error } = await supabase.rpc('locality_feed_items', {
-    p_place_id: opts.placeId,
-    p_tags: normalizeTags(opts.interestTags),
-    p_limit: clampLimit(opts.limit),
-  })
-  if (error) throw error
-  const rows = (data ?? []) as LocalityFeedRow[]
-  // T119 — withhold kinds with no detail page, then attach Group URL prefixes.
-  // The RPC applies its own limit before this filter, so a page can come back
-  // short; at b1 volumes it cannot under-fill (see T119 DEVIATIONS).
-  const mapped = rows.map((r) => ({
-    itemId: r.item_id,
-    kind: r.item_kind,
-    title: r.title,
-    category: r.category,
-    brandLabel: r.brand_label,
-    groupId: r.group_id,
-    ownerHandle: r.member_handle,
-    nearestLocationLabel: r.nearest_location_label,
-    responseCount: Number(r.response_count ?? 0),
-    primaryTag: r.primary_tag,
-    photoUrl: r.photo_url ?? null,
-    publishedAt: r.published_at,
-  }))
-  return attachGroupPrefixes(supabase, filterBrowsable(mapped))
-}
-
-type FromClient = Pick<SupabaseClient, 'from'>
-
-/**
- * Resolve the parent Place for the widen-locality empty-state CTA.
- * Returns null at the root (no parent) so the caller can fall back to
- * "any Place in your state".
- */
-export async function widenLocality(
-  supabase: FromClient,
-  placeId: string,
-): Promise<{ placeId: string; displayName: string; slug: string } | null> {
-  const { data: current, error: e1 } = await supabase
-    .from('places')
-    .select('parent_id')
-    .eq('id', placeId)
-    .maybeSingle()
-  if (e1) throw e1
-  const parentId = (current as { parent_id: string | null } | null)?.parent_id
-  if (!parentId) return null
-
-  const { data: parent, error: e2 } = await supabase
-    .from('places')
-    .select('id, display_name, slug')
-    .eq('id', parentId)
-    .is('deleted_at', null)
-    .maybeSingle()
-  if (e2) throw e2
-  if (!parent) return null
-  const p = parent as { id: string; display_name: string; slug: string }
-  return { placeId: p.id, displayName: p.display_name, slug: p.slug }
 }

@@ -95,11 +95,8 @@ function toMetro(row: MetroRow | null): FeedMetro | null {
  *
  * Precedence: **requestedSlug → memberMetroId → default metro.**
  *
- * Same precedence as `resolveFeedPlace`: requested → stored → default. That
- * used to be an inversion worth calling out — the Place resolver read the
- * stored value first, which is why the shipped scope picker did nothing. Fixed
- * 2026-09-17; the two now agree, and an explicit act by a person beats a stored
- * default in both.
+ * An explicit act by a person (a tapped switcher, a shared link) beats a
+ * stored default.
  */
 export async function resolveFeedMetro(
   supabase: FromClient,
