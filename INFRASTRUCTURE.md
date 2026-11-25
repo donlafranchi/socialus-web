@@ -158,7 +158,8 @@ finished page kept its whole render in memory, held through web streams'
 native transfer hook (heap snapshot, #1346: 1,939 closed page streams still
 reachable), so the heap filled under load and slower renders tipped it over.
 On Node 24 live memory stays near 150 MB at 200 viewers. The load run now uses
-Node 24 and records the app's memory per level.
+Node 24 and records the app's memory per level; every other workflow followed
+(#1438), held there by `tests/workflow-pins.test.ts`.
 
 What breaks first is still rendering at 200 viewers on one Node process. No
 result shows a Vercel or Supabase plan limit: the longest query stayed under

@@ -75,6 +75,22 @@ describe('every action targets a supported Node', () => {
   })
 })
 
+describe("every job runs production's Node", () => {
+  // Vercel's project setting is 24.x; a crash that existed only on Node 20 hid in the load run (#1346).
+  const NODE = '24'
+
+  it.each(files)('%s sets Node to production\'s version wherever it sets one up', (file) => {
+    const s = code(file)
+    const setups = s.match(/uses:\s*actions\/setup-node@/g) ?? []
+    const versions = [...s.matchAll(/node-version:\s*['"]?([^\s'"]+)/g)].map((m) => m[1])
+    expect(versions).toEqual(setups.map(() => NODE))
+  })
+
+  it.each(files)('%s names that version in any node_modules cache key', (file) => {
+    for (const m of code(file).matchAll(/key:\s*node-modules-.*/g)) expect(m[0]).toContain(`-node${NODE}-`)
+  })
+})
+
 describe('the production apply workflow keeps its safety properties', () => {
   const s = code('apply.yml')
 
