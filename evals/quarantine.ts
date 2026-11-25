@@ -6,9 +6,6 @@
 // tests/eval-quarantine.test.ts fails on an entry whose title no longer exists.
 
 export const QUARANTINE: { file: string; title: string; seen: string }[] = [
-  { file: "features/F030-newcomer-signs-up-and-lands-in-feed.spec.ts", title: "Given an anonymous visitor opens / scoped to the seeded locality | When the page loads | Then the feed shows nearby Items with a \"Make this yours\" CTA and a scope picker", seen: "Error: expect(locator).toBeVisible() failed" },
-  { file: "features/F030-newcomer-signs-up-and-lands-in-feed.spec.ts", title: "Given a locality with no Items | When the visitor lands there | Then a friendly empty-state offers a one-tap widen-the-locality affordance", seen: "Error: expect(locator).toBeVisible() failed" },
-  { file: "features/F030-newcomer-signs-up-and-lands-in-feed.spec.ts", title: "Given a new visitor signs up with email + password | When they set a display name | Then onboarding completes and they land on the feed", seen: "Test timeout of 30000ms exceeded." },
   { file: "features/F033-viewer-finds-venue-page.spec.ts", title: "Given an anon visitor | When /p/[\u2026place]/l/[slug] loads | Then header (name + address) and About render; no auth required", seen: "Error: expect(received).toBe(expected) // Object.is equality" },
   { file: "features/F033-viewer-finds-venue-page.spec.ts", title: "Given an anon visitor with no primary_home | When the venue page loads | Then no distance line renders; the rest of the page is intact", seen: "Error: expect(locator).toHaveText(expected) failed" },
   { file: "features/F033-viewer-finds-venue-page.spec.ts", title: "Given Drake's hosts Trivia (own Group), Run Club (other host), and a private party | When the page loads | Then only Trivia is in \"here\"", seen: "Error: expect(locator).toBeVisible() failed" },
