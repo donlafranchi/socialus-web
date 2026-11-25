@@ -93,6 +93,55 @@ describe('T155 — resolveFeedMetro precedence', () => {
   })
 })
 
+describe('T155 — a requested metro beats the stored one', () => {
+  it('returns the requested metro over the member\'s stored metro', async () => {
+    // Someone who taps the switcher or follows a shared link has stated an intent a stored preference should not override.
+    const m = await resolveFeedMetro(client(), { memberMetroId: SAC.id, requestedSlug: PDX.slug })
+    expect(m?.slug).toBe(PDX.slug)
+  })
+
+  it('falls back to the member metro when nothing was requested', async () => {
+    const m = await resolveFeedMetro(client(), { memberMetroId: PDX.id, requestedSlug: null })
+    expect(m?.slug).toBe(PDX.slug)
+  })
+
+  it('falls back to the default metro when neither resolves', async () => {
+    const m = await resolveFeedMetro(client(), { memberMetroId: null, requestedSlug: null })
+    expect(m?.slug).toBe(DEFAULT_METRO_SLUG)
+  })
+
+  it('lands on the default rather than a blank feed for a member with no home metro', async () => {
+    // `members.home_metro_id` is null outside every seeded CSA — the rural
+    // fallback. A blank feed is the wrong answer to it.
+    const m = await resolveFeedMetro(client(), { memberMetroId: null })
+    expect(m).not.toBeNull()
+    expect(m?.slug).toBe(DEFAULT_METRO_SLUG)
+  })
+
+  it('an unknown requested slug falls through rather than returning empty', async () => {
+    const m = await resolveFeedMetro(client(), { memberMetroId: PDX.id, requestedSlug: 'nowhere' })
+    expect(m?.slug).toBe(PDX.slug)
+  })
+
+  it('an unknown request and an unknown member metro both fall through to the default', async () => {
+    const m = await resolveFeedMetro(client(), { memberMetroId: 'gone', requestedSlug: 'nowhere' })
+    expect(m?.slug).toBe(DEFAULT_METRO_SLUG)
+  })
+
+  it('returns null only when even the default row is missing', async () => {
+    expect(await resolveFeedMetro(client([]), {})).toBeNull()
+  })
+
+  it('reads metro_polygons and nothing item-shaped', async () => {
+    // Guards the model-independence this ticket rests on: if a future edit
+    // reaches for discoverable_items here, this fails.
+    const c = client()
+    await resolveFeedMetro(c, { requestedSlug: SAC.slug })
+    const tables = (c as unknown as { from: { mock: { calls: string[][] } } }).from.mock.calls.map((a) => a[0])
+    expect(new Set(tables)).toEqual(new Set(['metro_polygons']))
+  })
+})
+
 describe('T155 — the precedence inversion is deliberate', () => {
   it('inverts resolveFeedPlace, which returns on the stored value first', async () => {
     // resolveFeedPlace checks memberPlaceId before requestedSlug, which is why
