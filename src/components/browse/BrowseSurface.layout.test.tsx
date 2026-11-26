@@ -1,11 +1,11 @@
-// T187 — Explore's list and map follow the screen width (F059 criterion 5,
-// restated 2026-10-01). Widths are driven through a stubbed matchMedia.
+// F059 criterion 5 (the PM, 2026-11-25) — Explore is a list at every width: no List | Map switch, no Map
+// pill. A map appears only as an answer: today, a Page's map (#896). Widths go through a stubbed matchMedia.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, cleanup, fireEvent, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
-import { renderExplore, searchBox, openArea, switchView } from './explore-harness'
+import { renderExplore, searchBox, openArea } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -87,7 +87,7 @@ const snapshot: BrowseSnapshot = {
 
 // Layout tests describe a member's Explore (list and map); the signed-out
 // ruling (F134, which replaced #334) has its own block below.
-const renderAt = (w: number, props: { ownerPanelOpen?: boolean; signedIn?: boolean } = {}) => {
+const renderAt = (w: number, props: { signedIn?: boolean } = {}) => {
   stubWidth(w)
   const { signedIn = true, ...rest } = props
   auth.user = signedIn ? { id: 'm1', email: 'a@b.c' } : null
@@ -99,8 +99,6 @@ beforeEach(() => {
   params = new URLSearchParams()
 })
 afterEach(cleanup)
-
-// [guards F059.5 partial: where things land on a real screen, which the F059 eval checks]
 
 describe('T187 — nothing sits between rows of results', () => {
   for (const w of [390, 1280]) {
@@ -114,7 +112,7 @@ describe('T187 — nothing sits between rows of results', () => {
   }
 })
 
-describe('Don, 2026-11-01 — no bottom bar: the search is the header pill, List/Map is in the ➕', () => {
+describe('Don, 2026-11-01 — no bottom bar: the search is the header pill', () => {
   it('has no bottom bar and no floating dock', () => {
     renderAt(390)
     expect(screen.queryByTestId('mobile-bar')).toBeNull()
@@ -134,163 +132,76 @@ describe('Don, 2026-11-01 — no bottom bar: the search is the header pill, List
     expect(screen.getByTestId('scope-sheet')).toBeInTheDocument()
   })
 
-  it('Show on map is a small text link under the results, counted per day (plan #258)', () => {
-    renderAt(390)
-    const link = screen.getByTestId('show-on-map')
-    expect(link.tagName).toBe('A')
-    expect(link).toHaveAttribute('data-map-tap', 'show_on_map')
-    expect(screen.queryByTestId('browse-map')).toBeNull()
-  })
+})
 
-  for (const w of [390, 744]) {
-    it(`the ➕ swaps list and map at ${w}px`, () => {
-      renderAt(w)
-      fireEvent.click(screen.getByTestId('create-menu'))
-      // plan #258 — Show the map is counted per day; Show the list is not.
-      expect(screen.getByTestId('create-menu-view')).toHaveAttribute('data-map-tap', 'show_on_map')
-      fireEvent.click(screen.getByTestId('create-menu'))
-      switchView()
-      expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-      fireEvent.click(screen.getByTestId('create-menu'))
-      expect(screen.getByTestId('create-menu-view')).toHaveTextContent('Show the list')
-    })
+/** A Page's map (#896): the one question Explore answers with a map today. */
+const PAGE_MAP = 'view=map&focus=k7x2m9&at=-121.47103,38.57271'
+
+// [guards F059.5]
+describe('F059.5 — a list at every width, and a map only as an answer', () => {
+  for (const signedIn of [true, false]) {
+    for (const w of [390, 744, 1024, 1280, 1440]) {
+      it(`${signedIn ? 'a member' : 'a visitor'} at ${w}px sees the list, no map and nothing that opens one`, () => {
+        renderAt(w, { signedIn })
+        expect(screen.getByTestId('card-grid')).toBeInTheDocument()
+        expect(screen.queryByTestId('browse-map')).toBeNull()
+        expect(screen.queryByTestId('browse-map-pane')).toBeNull()
+        expect(screen.queryByRole('link', { name: /on (the )?map/i })).toBeNull()
+        expect(screen.queryByRole('button', { name: /(show|hide) (the )?map/i })).toBeNull()
+        expect(screen.queryByRole('tablist')).toBeNull()
+        if (signedIn) {
+          fireEvent.click(screen.getByTestId('create-menu'))
+          expect(screen.queryByRole('menuitem', { name: /map|list/i })).toBeNull()
+        }
+      })
+    }
   }
-})
 
-// plan #230 — once the map is asked for (?view=map).
-describe('T187 — 1024px and up, side by side', () => {
-  beforeEach(() => {
+  it('an old ?view=map link with no Page opens the list, not a map', () => {
     params = new URLSearchParams('view=map')
-  })
-  it('shows list and map together, with no toggle', () => {
-    renderAt(1024)
-    fireEvent.click(screen.getByTestId('create-menu'))
-    expect(screen.queryByTestId('create-menu-view')).toBeNull()
+    renderAt(1280)
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
-    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-    expect(screen.queryByTestId('view-pill')).toBeNull()
-    expect(screen.queryByRole('tablist', { name: /view/i })).toBeNull()
+    expect(screen.queryByTestId('browse-map')).toBeNull()
   })
 
-  it('collapses and restores the map from the handle on the divider', () => {
-    renderAt(1440)
-    const handle = screen.getByRole('button', { name: 'Hide map' })
-    expect(handle).toHaveAttribute('aria-expanded', 'true')
-    expect(handle).not.toHaveAttribute('data-map-tap')
-    fireEvent.click(handle)
-    // plan #258 — reopening it is a Show on map tap.
-    expect(screen.getByRole('button', { name: 'Show map' })).toHaveAttribute('data-map-tap', 'show_on_map')
-    expect(screen.queryByTestId('browse-map')).toBeNull()
-    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Show map' }))
-    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-  })
-})
-
-describe('T187 — 1024–1439px with the owner panel open', () => {
-  it('collapses the map and the ➕ offers the List/Map switch', () => {
-    renderAt(1280, { ownerPanelOpen: true })
-    expect(screen.queryByTestId('browse-map')).toBeNull()
-    switchView()
+  it("a Page's map opens on that Page, with the way back", () => {
+    params = new URLSearchParams(PAGE_MAP)
+    renderAt(1280)
     expect(screen.getByTestId('browse-map')).toBeInTheDocument()
     expect(screen.queryByTestId('card-grid')).toBeNull()
-    expect(screen.queryByTestId('view-pill')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Back to the Page' })).toHaveAttribute('href', '/g/k7x2m9')
   })
 
-  it('stays side by side from 1440px, panel open or not', () => {
-    params = new URLSearchParams('view=map')
-    renderAt(1440, { ownerPanelOpen: true })
-    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
+  // [guards F134.2 partial: a Page's map opens signed out, not sign-in; the pins it shows are guarded over the wire]
+  it("signed out, a Page's map opens the map, not sign-in (F134)", () => {
+    params = new URLSearchParams(PAGE_MAP)
+    renderAt(390, { signedIn: false })
+    expect(screen.queryByTestId('sign-in-prompt')).toBeNull()
     expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-    expect(screen.queryByRole('tablist', { name: /view/i })).toBeNull()
   })
 })
 
-describe('#331 — the map shows the tunable mix, narrowed by search and filters', () => {
+describe("#331 — a Page's map shows the tunable mix, narrowed by search and filters", () => {
   const mix = [{ ...result(1), name: 'Bread class', bucket: 'dated' as const }, { ...result(2), name: 'Pottery', bucket: 'new' as const }]
   it('the map gets the mix, not the list', () => {
     stubWidth(1280)
-    params = new URLSearchParams('view=map')
+    params = new URLSearchParams(PAGE_MAP)
     renderExplore(<BrowseSurface initial={{ ...snapshot, signedIn: true, map: mix }} />)
     expect(screen.getByTestId('browse-map')).toHaveAttribute('data-names', 'Bread class|Pottery')
   })
 
   it('a search that empties the map offers to clear it', () => {
     stubWidth(1280)
-    params = new URLSearchParams('q=zzz-nothing&view=map')
+    params = new URLSearchParams(`q=zzz-nothing&${PAGE_MAP}`)
     renderExplore(<BrowseSurface initial={{ ...snapshot, signedIn: true, map: mix }} />)
     expect(screen.getByTestId('browse-map')).toHaveAttribute('data-names', '')
     expect(screen.getByTestId('map-empty')).toHaveTextContent('Clear filters')
   })
 })
 
-// F134 (the PM, 2026-11-12) — replaces #334: signed-out Explore lays out as signed in, and the map opens with pins.
 describe('F134 — signed out, Explore lays out as signed in', () => {
-  for (const w of [390, 1280]) {
-    it(`shows the list by default at ${w}px, as signed in`, () => {
-      renderAt(w, { signedIn: false })
-      expect(screen.getByTestId('card-grid')).toBeInTheDocument()
-      expect(screen.queryByTestId('browse-map')).toBeNull()
-    })
-  }
-
   it('signed out there is no ➕ (Don, 2026-11-01)', () => {
     renderAt(390, { signedIn: false })
     expect(screen.queryByTestId('create-menu')).toBeNull()
-  })
-
-  it('?view=map opens on the map signed out, beside the list at 1280', () => {
-    params = new URLSearchParams('view=map')
-    renderAt(1280, { signedIn: false })
-    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
-  })
-})
-
-// plan #230 (Don, 2026-10-31): "I also don't think the map helps here unless it's requested." Explore is a list;
-// a quiet "Show on map" link opens the map, and ?view=map carries it (Yelp, Airbnb, Google Maps).
-describe('plan #230 — the map on request', () => {
-  afterEach(() => vi.restoreAllMocks())
-
-  for (const w of [390, 1024, 1440]) {
-    it(`shows the list and no map by default at ${w}px, with a Show on map link`, () => {
-      renderAt(w)
-      expect(screen.getByTestId('card-grid')).toBeInTheDocument()
-      expect(screen.queryByTestId('browse-map')).toBeNull()
-      const link = screen.getByRole('link', { name: 'Show on map' })
-      expect(link.getAttribute('href')).toMatch(/view=map/)
-      expect(link.className).not.toMatch(/rounded-full|border/)
-    })
-  }
-
-  it('the link opens the map beside the list from 1024px, and writes ?view=map', () => {
-    const replace = vi.spyOn(window.history, 'replaceState')
-    renderAt(1280)
-    fireEvent.click(screen.getByRole('link', { name: 'Show on map' }))
-    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
-    expect(String(replace.mock.calls.at(-1)?.[2])).toMatch(/view=map/)
-    expect(screen.queryByRole('link', { name: 'Show on map' })).toBeNull()
-  })
-
-  it('the link opens the map in place of the list on a phone', () => {
-    renderAt(390)
-    fireEvent.click(screen.getByRole('link', { name: 'Show on map' }))
-    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-    expect(screen.queryByTestId('card-grid')).toBeNull()
-  })
-
-  it('?view=map opens on the map', () => {
-    params = new URLSearchParams('view=map')
-    renderAt(1280)
-    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-  })
-
-  // [guards F134.2 partial: the map control opens the map signed out, not sign-in; the pins it shows are guarded over the wire]
-  it('signed out, the link opens the map, not sign-in (F134)', () => {
-    renderAt(1280, { signedIn: false })
-    fireEvent.click(screen.getByRole('link', { name: 'Show on map' }))
-    expect(screen.queryByTestId('sign-in-prompt')).toBeNull()
-    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
   })
 })

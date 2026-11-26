@@ -344,16 +344,25 @@ describe('#476 — picking a neighbourhood', () => {
   })
 })
 
-describe('#549 — the pins come after the list', () => {
+describe('#549 — the pins come after the list, and only for a map that answers', () => {
   beforeEach(() => browseMapAction.mockReset().mockResolvedValue([]))
 
-  it('a member with no pins yet asks for them, for the metro on screen', async () => {
+  // F059.5 (the PM, 2026-11-25) — Explore is a list: no map, so no pin read.
+  it('the list alone reads no pins', async () => {
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, metro: SAC })} />)
+    await new Promise((r) => setTimeout(r, 20))
+    expect(browseMapAction).not.toHaveBeenCalled()
+  })
+
+  it("a Page's map asks for them, for the metro on screen", async () => {
+    search = 'view=map&focus=k7x2m9&at=-121.47103,38.57271'
     renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, metro: SAC })} />)
     await waitFor(() => expect(browseMapAction).toHaveBeenCalledWith(SAC.id, null))
   })
 
   // F134 — signed out, the pins come too.
-  it('a signed-out visitor asks too, for the metro on screen', async () => {
+  it("signed out, a Page's map asks too", async () => {
+    search = 'view=map&focus=k7x2m9&at=-121.47103,38.57271'
     renderExplore(<BrowseSurface initial={snapshot({ signedIn: false, metro: SAC })} />)
     await waitFor(() => expect(browseMapAction).toHaveBeenCalledWith(SAC.id, null))
   })

@@ -24,11 +24,10 @@ import { useSearchParams, unstable_isUnrecognizedActionError } from 'next/naviga
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { CardGrid } from '@/components/cards'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
-import { useLendExploreSearch, type ExploreView } from '@/components/shell/explore-search'
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLendExploreSearch } from '@/components/shell/explore-search'
+import { ArrowLeft } from 'lucide-react'
 import { shelvesFitScope } from '@/lib/shelves/shelves'
 import { mapFocusFrom } from '@/lib/browse/map-focus'
-import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import { AreaPicker, type AreaOption } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
@@ -63,10 +62,6 @@ import type { FeedMetro } from '@/lib/feed/feed-metro'
 const loadBrowseMap = () => import('./BrowseMap')
 const BrowseMap = dynamic(() => loadBrowseMap().then((m) => m.BrowseMap), { ssr: false })
 
-/** T187 — the map column sits under the top row, which holds the search (Don, 2026-11-01). */
-const SPLIT_TOP = 'top-nav-top'
-const SPLIT_HEIGHT = 'h-[calc(100dvh-var(--nav-top-h))]'
-const MAP_PANE_ID = 'browse-map-pane'
 /** #555 — how many cards from the top read their Page ahead of the tap. Each is a server render, so not the whole list. */
 const PREFETCH_TOP = 3
 
@@ -77,12 +72,9 @@ const SEARCH_DEBOUNCE_MS = 250
 
 export function BrowseSurface({
   initial,
-  // [open-question owner=cowork raised=2026-10-01] Nothing opens an owner panel on Explore yet; what should, if anything?
-  ownerPanelOpen = false,
   shelves = null,
 }: {
   initial: BrowseSnapshot
-  ownerPanelOpen?: boolean
   /** F121 — Explore's shelves, streamed in by the page; shown on the default view only. */
   shelves?: ReactNode
 }) {
@@ -95,41 +87,13 @@ export function BrowseSurface({
   const [query, setQuery] = useState(() => writeBox(parseBrowseFilters(params), params.get('q') ?? ''))
   // #922 — the member's reach (a ring, or the whole area); null while the database picks a full screen nearby.
   const [reach, setReach] = useState<Reach | null>(() => parseReach(params.get('reach')))
-  // #896 — a Page's map opens here, on that Page (?view=map&focus=…&at=…).
+  // F059 criterion 5 (the PM, 2026-11-25): Explore is a list at every width — no List | Map switch, no Map
+  // pill. A map appears only as the answer to a question a map answers. Today that is one question:
+  // "where is this?", asked from a Page's map (#896, ?view=map&focus=…&at=…), and the map opens on that Page.
   const [focus] = useState(() => (params.get('view') === 'map' ? mapFocusFrom(params) : null))
-  // plan #230 (Don, 2026-10-31): "the map [doesn't help] unless it's requested." A list at every width; the map
-  // opens on request and ?view=map carries it, as Yelp, Airbnb and Google Maps carry theirs.
-  const wantsMap = params.get('view') === 'map'
-  const [view, setView] = useState<ExploreView>(wantsMap ? 'map' : 'list')
-  const [mapCollapsed, setMapCollapsed] = useState(!wantsMap)
-  // T187 — F059 criterion 5. Under 1024px one view at a time behind a floating
-  // pill; from 1024px list and map side by side; at 1024–1439px with the owner
-  // panel open, one view at a time behind a switch docked in the search row.
-  const wide = useMediaQuery('(min-width: 1024px)')
-  const extraWide = useMediaQuery('(min-width: 1440px)')
-  // F134 — signed out lays out as signed in: the map opens with its pins.
-  const layout = !wide ? 'single' : ownerPanelOpen && !extraWide ? 'docked' : 'split'
-  const showList = layout === 'split' || view === 'list'
-  const showMap = layout === 'split' ? !mapCollapsed : view === 'map'
+  const showMap = focus !== null
   const [sheetOpen, setSheetOpen] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
-  /** Opens or closes the map, keeping ?view=map in step so the address says what the screen shows. */
-  const showMapView = useCallback(
-    (open: boolean) => {
-      setView(open ? 'map' : 'list')
-      setMapCollapsed(!open)
-      const u = new URL(window.location.href)
-      if (open) u.searchParams.set('view', 'map')
-      else if (u.searchParams.get('view') === 'map') u.searchParams.delete('view')
-      window.history.replaceState(window.history.state, '', u.toString())
-    },
-    [],
-  )
-  const mapHref = (() => {
-    const q = new URLSearchParams(params.toString())
-    q.set('view', 'map')
-    return `/explore?${q.toString()}`
-  })()
   const [searchRequest, setSearchRequest] = useState(0)
   const [, startTransition] = useTransition()
   // One clock per mount, so the week/weekend boundaries stay stable across
@@ -219,11 +183,10 @@ export function BrowseSurface({
     if (window.location.pathname + window.location.search !== url) window.history.replaceState(window.history.state, '', url)
   }, [metroSlug, snapshot.area, query, reach])
 
-  // #549 — the pins arrive after the list: the server leaves them out of the first
-  // response (a phone opens on the list) and this fetches them once it has painted.
+  // #549 — the pins arrive after the first paint, and only when a map is the answer (a Page's map).
   const mapMetroId = snapshot.metro?.id ?? null
   const mapAreaId = snapshot.area?.id ?? null
-  const mapWanted = snapshot.map.length === 0
+  const mapWanted = showMap && snapshot.map.length === 0
   useEffect(() => {
     if (!mapWanted || !mapMetroId) return
     let live = true
@@ -393,8 +356,6 @@ export function BrowseSurface({
     // With no area there is no filter sheet: the search offers none.
     onOpenFilters: snapshot.metro ? () => setSheetOpen(true) : undefined,
     focusRequest: searchRequest,
-    view: snapshot.metro && layout !== 'split' ? view : undefined,
-    onViewChange: (v) => showMapView(v === 'map'),
   })
 
   // Nothing resolvable to browse. The controls are suppressed rather than
@@ -449,11 +410,9 @@ export function BrowseSurface({
         role="region"
         aria-label={`Results in ${metroName}`}
         data-testid="browse-results"
-        data-layout={layout}
-        className="lg:flex lg:items-start"
       >
-        {showList && (
-          <div key={`list-${layout}`} data-testid="browse-list-pane" className="explore-fade-in min-w-0 flex-1">
+        {!showMap && (
+          <div data-testid="browse-list-pane" className="explore-fade-in min-w-0">
             <section className="px-3 py-4 md:px-6">
               <div className="mb-3 flex items-baseline justify-between gap-3">
               <p className="text-sm text-neutral-600" data-testid="result-count">
@@ -476,21 +435,6 @@ export function BrowseSurface({
                 >
                   {flat ? 'Show in groups' : 'Show as one list'}
                 </button>
-              )}
-              {/* plan #230 — the map only on request: a quiet text link, never a chip. Draft copy (human-review). */}
-              {!showMap && visible.length > 0 && (
-                <a
-                  href={mapHref}
-                  data-testid="show-on-map"
-                  data-map-tap="show_on_map"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    showMapView(true)
-                  }}
-                  className="press inline-flex min-h-tap shrink-0 items-center text-sm font-medium text-[var(--color-charcoal-900)] underline underline-offset-4"
-                >
-                  Show on map
-                </a>
               )}
               </div>
 
@@ -584,42 +528,9 @@ export function BrowseSurface({
           </div>
         )}
 
-        {layout === 'split' && (
-          <div className={`sticky ${SPLIT_TOP} ${SPLIT_HEIGHT} flex shrink-0 items-center border-l border-[var(--color-charcoal-100)]`}>
-            <button
-              type="button"
-              onClick={() => showMapView(mapCollapsed)}
-              aria-label={mapCollapsed ? 'Show map' : 'Hide map'}
-              aria-expanded={!mapCollapsed}
-              aria-controls={MAP_PANE_ID}
-              data-testid="map-collapse-handle"
-              {...(mapCollapsed ? { 'data-map-tap': 'show_on_map' } : {})}
-              className="press -ml-3 inline-flex h-11 w-6 items-center justify-center rounded-full border border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)] shadow-sm outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2"
-            >
-              {mapCollapsed ? <ChevronLeft size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
-            </button>
-          </div>
-        )}
-
         {showMap && (
-          <div
-            key={`map-${layout}`}
-            id={MAP_PANE_ID}
-            data-testid="browse-map-pane"
-            className={
-              layout === 'split'
-                ? `explore-fade-in sticky ${SPLIT_TOP} ${SPLIT_HEIGHT} w-[45%] shrink-0 py-4 pr-6`
-                : 'explore-fade-in min-w-0 flex-1 px-3 py-4 md:px-6'
-            }
-          >
-            {/* Under 1024px the height leaves the floating pill clear of the map's bottom edge. */}
-            <div
-              className={
-                layout === 'split'
-                  ? 'h-full overflow-hidden rounded-md'
-                  : 'h-[calc(100dvh-var(--nav-top-h)-var(--dock-clearance))] overflow-hidden rounded-md'
-              }
-            >
+          <div data-testid="browse-map-pane" className="explore-fade-in min-w-0 px-3 py-4 md:px-6">
+            <div className="h-[calc(100dvh-var(--nav-top-h)-var(--dock-clearance))] overflow-hidden rounded-md">
               <div className="relative h-full">
                 <BrowseMap results={mapVisible} center={snapshot.metro?.center} focus={focus ?? undefined} />
                 {focus && (

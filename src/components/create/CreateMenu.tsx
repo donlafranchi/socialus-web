@@ -12,7 +12,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase'
 import { getOwnPages } from '@/lib/member/own-pages'
 import { Sheet } from '@/components/ui/Sheet'
-import { useExploreSearch } from '@/components/shell/explore-search'
 import { composerHref, createChoices, type CreatePage } from '@/lib/create/create-targets'
 
 const ITEM = 'press flex min-h-11 w-full items-center rounded-md px-3 text-left text-body-sm font-medium text-[var(--color-fg)] hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none'
@@ -21,7 +20,6 @@ const ROW = 'press flex min-h-14 w-full items-center rounded-md px-3 py-2 text-b
 export function CreateMenu() {
   const { user } = useAuth()
   const router = useRouter()
-  const explore = useExploreSearch()
   const [open, setOpen] = useState(false)
   const [which, setWhich] = useState<CreatePage[] | null>(null)
   const button = useRef<HTMLButtonElement>(null)
@@ -117,24 +115,6 @@ export function CreateMenu() {
           <Link role="menuitem" href="/neighbors/new" onClick={() => setOpen(false)} data-testid="create-neighbor" className={ITEM}>
             Post to the neighborhood
           </Link>
-          {explore?.view && explore.onViewChange && (
-            <>
-              <div role="separator" className="my-1 border-t border-neutral-200" />
-              <button
-                role="menuitem"
-                type="button"
-                data-testid="create-menu-view"
-                {...(explore.view === 'list' ? { 'data-map-tap': 'show_on_map' } : {})}
-                onClick={() => {
-                  close()
-                  explore.onViewChange!(explore.view === 'list' ? 'map' : 'list')
-                }}
-                className={ITEM}
-              >
-                {explore.view === 'list' ? 'Show the map' : 'Show the list'}
-              </button>
-            </>
-          )}
         </div>
       )}
 

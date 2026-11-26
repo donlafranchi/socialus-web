@@ -21,6 +21,8 @@ describe('PageMap', () => {
     const map = screen.getByRole('link', { name: `Show ${view.text} on the map` })
     expect(map).toHaveAttribute('href', '/explore?view=map&focus=k7x2m9&at=-121.47103%2C38.57271')
     expect(map).not.toHaveAttribute('target')
+    // plan #258 — since F059.5 (2026-11-25) a Page's map is the one way onto a map, so it alone feeds the Show on map count.
+    expect(map).toHaveAttribute('data-map-tap', 'show_on_map')
   })
 
   it('no "Open in Maps": nothing but Directions leaves the app', () => {

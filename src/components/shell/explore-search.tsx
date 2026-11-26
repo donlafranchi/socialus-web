@@ -5,8 +5,6 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
-export type ExploreView = 'list' | 'map'
-
 export interface ExploreSearch {
   /** The box text (F092): words plus the kind, tag and date words. */
   query: string
@@ -19,9 +17,6 @@ export interface ExploreSearch {
   onOpenFilters?: () => void
   /** Bump to open the panel on the box (the filter sheet wrote it). */
   focusRequest: number
-  /** Only where the layout shows one at a time; the ➕ menu offers the switch. */
-  view?: ExploreView
-  onViewChange?: (v: ExploreView) => void
 }
 
 // Two contexts: the lender subscribes only to the setter, so lending does not re-render Explore.
@@ -46,9 +41,8 @@ export function useLendExploreSearch(search: ExploreSearch) {
   useEffect(() => {
     latest.current = search
   })
-  const { query, knownTags, areaLabel, filtersActive, focusRequest, view } = search
+  const { query, knownTags, areaLabel, filtersActive, focusRequest } = search
   const canFilter = Boolean(search.onOpenFilters)
-  const canSwitch = Boolean(search.onViewChange)
   const lent = useMemo<ExploreSearch>(
     () => ({
       query,
@@ -56,13 +50,11 @@ export function useLendExploreSearch(search: ExploreSearch) {
       areaLabel,
       filtersActive,
       focusRequest,
-      view,
       onQueryChange: (q) => latest.current.onQueryChange(q),
       onOpenScope: () => latest.current.onOpenScope(),
       onOpenFilters: canFilter ? () => latest.current.onOpenFilters?.() : undefined,
-      onViewChange: canSwitch ? (v) => latest.current.onViewChange?.(v) : undefined,
     }),
-    [query, knownTags, areaLabel, filtersActive, focusRequest, view, canFilter, canSwitch],
+    [query, knownTags, areaLabel, filtersActive, focusRequest, canFilter],
   )
   useEffect(() => set(lent), [set, lent])
   useEffect(() => () => set(null), [set])

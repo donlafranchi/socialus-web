@@ -33,9 +33,3 @@ export function openFilters() {
   openPanel()
   fireEvent.click(screen.getByTestId('search-filters'))
 }
-
-/** The List/Map switch, in the ➕ menu. */
-export function switchView() {
-  fireEvent.click(screen.getByTestId('create-menu'))
-  fireEvent.click(screen.getByTestId('create-menu-view'))
-}

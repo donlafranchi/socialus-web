@@ -25,7 +25,7 @@ export function PageMap({ view, caption, publicId }: { view: PageMapView; captio
   return (
     <div data-testid="page-map" className="flex flex-col gap-3">
       {token && (
-        <Link href={mapFocusHref(publicId, view.centre)} aria-label={`Show ${view.text} on the map`} data-testid="page-map-ours" className="press block">
+        <Link href={mapFocusHref(publicId, view.centre)} aria-label={`Show ${view.text} on the map`} data-testid="page-map-ours" data-map-tap="show_on_map" className="press block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={staticMapUrl(view, token)}
