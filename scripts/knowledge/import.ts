@@ -1,5 +1,5 @@
 // F125 / T1017 (#1218) — the import: socialus-plan's live rulings and
-// principles, the two absolutes files, and the ontology registry, into the
+// principles and the ontology registry, into the
 // knowledge store (#1217).
 //
 // WRITES ONLY THROUGH THE STORE'S FUNCTIONS, as its own login. The admin
@@ -29,18 +29,15 @@ import { Client, type ClientBase } from 'pg'
 import { resolve } from 'node:path'
 import {
   readRulings,
-  readAbsolutes,
   readRegistry,
   slugOf,
   type Ruling,
-  type Absolute,
   type Registry,
 } from './plan-source'
-import { placeOf, ABSOLUTE_CONCERN, CONCERN_DEPARTMENT } from './concerns'
+import { placeOf, CONCERN_DEPARTMENT } from './concerns'
 import { inferApplies } from './infer'
 import { loadConcepts, readSeed, readImagine, readScenarios, readBriefs, conceptReport, type ConceptSummary, type Seed } from './concepts'
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
-import { loadPractices, readPracticeSeed, practiceSeedPath, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
 import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
 import { loadRuns, runsReport, type RunsSummary } from './runs'
 import { loadVersions, readVersionSeed, versionReport, type VersionSeed, type VersionSummary } from './versions'
@@ -48,7 +45,7 @@ import { loadVersions, readVersionSeed, versionReport, type VersionSeed, type Ve
 export interface Sources {
   /** A checkout of socialus-plan. */
   planDir: string
-  /** A checkout of socialus-ops, for process/ABSOLUTES.md. */
+  /** A checkout of socialus-ops (its commit goes in each change's evidence). */
   opsDir: string
   /** src/ontology/registry.json. */
   registryPath: string
@@ -56,8 +53,6 @@ export interface Sources {
   commits?: { plan?: string; ops?: string; web?: string }
   /** F130: the traced concept timelines; scripts/knowledge/concepts-seed.json unless given. */
   seed?: Seed
-  /** F128: how we work; socialus-ops packs/practices-seed.json unless given (null: skip). */
-  practices?: PracticeSeed | null
   /** F132: the story maps. Left out, no map is loaded (the fixtures' imports). */
   maps?: MapSources
   /** F135: routines.json and runs-seed.json; false skips them. */
@@ -80,8 +75,6 @@ export interface Summary {
   concepts?: ConceptSummary
   /** F127: each scenario as a feature with one slice, its horizon and rank. */
   plans?: PlanSummary
-  /** F128: practices and experiments. */
-  practices?: PracticeSummary
   /** F132: journeys, slices across them, and where features and ideas sit. */
   maps?: MapSummary
   /** F135: routines, and the runs from before runs recorded themselves. */
@@ -97,7 +90,7 @@ const PLAN_SOURCE = /^([^:#]+\.md):(\d+)$/
 
 /**
  * Whether a `[replaces …]` tag names a ruling gone from socialus-plan. The
- * method (socialus-ops process/ABSOLUTES.md § newer-decision-wins) allows two
+ * method (the store's newer-decision-wins rule) allows two
  * forms that name a ruling: `[replaces 2026-09-22: old text]`, by the old
  * ruling's date, and `[replaces F059: old text]`, by the scenario it sat in.
  * Either way the old text is the ruling's words, or a clause of them.
@@ -194,9 +187,8 @@ export function wantedFromRuling(r: Ruling, today: string, commit?: string): Wan
         r.rest ||
         `Ruled on ${r.date}; its reasons are in ${r.file}, where it was ruled, and git holds what it replaced.`,
       status: 'live',
-      // Absolutes come from the two absolutes files; product/ABSOLUTES.md
-      // names never-extractive as the product's one value absolute, kept in
-      // the charter rather than there. Everything else is a guideline.
+      // Absolutes live in the store, not in a file; the import only marks
+      // never-extractive. Everything else is a guideline.
       strength: neverExtractive ? 'absolute' : 'guideline',
       scope: principle ? 'product' : null,
       // The brief: philosophies start for operators. A ruling is read by the
@@ -212,35 +204,6 @@ export function wantedFromRuling(r: Ruling, today: string, commit?: string): Wan
     },
     effective: r.date <= today ? r.date : null,
     evidence: { repo: 'socialus-plan', commit: commit ?? null, file: r.file, line: r.line },
-  }
-}
-
-const ABSOLUTE_WHY =
-  'An absolute: breaking it once causes harm the next session cannot undo (the four-harms test, socialus-ops process/ABSOLUTES.md).'
-
-export function wantedFromAbsolute(a: Absolute, today: string, commit?: string): Wanted {
-  const concern = ABSOLUTE_CONCERN[a.slug] ?? null
-  const departments = concern ? [CONCERN_DEPARTMENT[concern]] : []
-  return {
-    id: a.slug,
-    key: a.slug,
-    fields: {
-      kind: 'decision',
-      concern,
-      answer: a.words,
-      why: a.rest ? `${ABSOLUTE_WHY}\n\n${a.rest}` : ABSOLUTE_WHY,
-      status: 'live',
-      strength: 'absolute',
-      scope: a.scope,
-      audience: departments.length ? 'department' : 'operators',
-      departments,
-      decided_by: PERSON,
-      holds: 'always',
-      source: `${a.file}#${a.slug}`,
-      tags: ['absolute'],
-    },
-    effective: null,
-    evidence: { repo: a.file.split('/')[0], commit: commit ?? null, file: a.file, slug: a.slug },
   }
 }
 
@@ -332,18 +295,10 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   }
   const rulings = readRulings(src.planDir)
   if (!rulings.length) throw new Error(`No rulings found under ${src.planDir}: is it a checkout of socialus-plan?`)
-  const absolutes = [
-    ...readAbsolutes(resolve(src.planDir, 'product/ABSOLUTES.md'), 'socialus-plan/product/ABSOLUTES.md', 'product'),
-    ...readAbsolutes(resolve(src.opsDir, 'process/ABSOLUTES.md'), 'socialus-ops/process/ABSOLUTES.md', 'process'),
-  ]
-  if (!absolutes.length) throw new Error('No absolutes found: check the socialus-plan and socialus-ops checkouts.')
   const registry = readRegistry(src.registryPath)
 
   const wanted: Wanted[] = [
     ...rulings.map((r) => wantedFromRuling(r, today, src.commits?.plan)),
-    ...absolutes.map((a) =>
-      wantedFromAbsolute(a, today, a.file.startsWith('socialus-ops') ? src.commits?.ops : src.commits?.plan),
-    ),
     ...wantedFromRegistry(registry, src.commits?.web),
   ]
 
@@ -452,17 +407,6 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   // F127: today's plan, after concepts so a scenario they made is not made twice.
   summary.plans = await loadPlans(db, readPlannedScenarios(src.planDir), src.commits?.plan)
 
-  // F128: how we work. The practices and experiments seed, and the
-  // review-a-method steps from socialus-ops.
-  const practices = src.practices === undefined ? readPracticeSeed(practiceSeedPath(src.opsDir)) : src.practices
-  if (practices) {
-    summary.practices = await loadPractices(db, {
-      seed: practices,
-      steps: readReviewSteps(src.opsDir),
-      commits: { ops: src.commits?.ops, web: src.commits?.web },
-      today,
-    })
-  }
   // F132: story maps, after plans and concepts, whose features and ideas they place.
   if (src.maps) summary.maps = await loadMaps(db, src.maps)
   // #1431: version plans, after plans and maps, whose slices they name.
@@ -522,7 +466,6 @@ async function main(): Promise<void> {
       `- The store's constraints/code.md matches socialus-plan's: ${matches ? 'yes' : 'NO'}`,
       ...(summary.concepts ? conceptReport(summary.concepts) : []),
       ...(summary.plans ? planReport(summary.plans) : []),
-      ...(summary.practices ? practiceReport(summary.practices) : []),
       ...(summary.maps ? mapReport(summary.maps) : []),
       ...(summary.versions ? versionReport(summary.versions) : []),
       ...(summary.runs ? runsReport(summary.runs) : []),
