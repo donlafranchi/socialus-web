@@ -166,9 +166,14 @@ jobs:
       #
       # A pinned version needs no API call and cannot be rate-limited. Bump it
       # deliberately; do not put `latest` back.
+      #
+      # 2.118.0, not 2.117.0 (#1443): 2.117.0 ships PostgREST v16.2, whose cached
+      # clock can read stale after an idle spell, so a token signed in the same
+      # second is refused "JWT issued at future" (PGRST303). PostgREST v16.3
+      # fixed it (PostgREST#5196); 2.118.0 is the first CLI that ships it.
       - uses: supabase/setup-cli@v2
         with:
-          version: 2.117.0
+          version: 2.118.0
 
       # Built from the migration files in this commit, thrown away with the
       # runner. `start` on a fresh runner applies every migration from empty,
@@ -281,7 +286,7 @@ jobs:
       # Pinned, for the reason the test job gives (#164).
       - uses: supabase/setup-cli@v2
         with:
-          version: 2.117.0
+          version: 2.118.0
 
       # First and in the background: the stack is the longest step (~1.5
       # minutes), and nothing before the seed needs it.
