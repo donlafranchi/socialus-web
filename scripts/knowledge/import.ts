@@ -323,7 +323,10 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   ]
 
   // D-0282: a ruling that moved out of the plan gets its new source first, so it is not judged gone below.
-  if (src.moves !== false) summary.moves = await loadMoves(db)
+  if (src.moves !== false) {
+    const wantedKeys = new Set(wanted.map((w) => w.key))
+    summary.moves = await loadMoves(db, (r) => !!r.source && PLAN_SOURCE.test(r.source) && !!r.decided_on && wantedKeys.has(rulingKey(r.decided_on, r.answer)))
+  }
 
   const { rows: existingRows } = await db.query<Existing>(
     `select id, kind, status, answer, to_char(decided_on, 'YYYY-MM-DD') as decided_on, source, settled,

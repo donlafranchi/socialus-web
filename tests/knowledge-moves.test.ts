@@ -23,4 +23,10 @@ describe('moved sources', () => {
     expect(m.find((x) => x.id === 'D-0282')?.source).toBe('socialus-web:docs/action-layer.md')
     for (const x of m) expect(x.why.trim().length).toBeGreaterThan(0)
   })
+  // CI, 2026-11-26: a test store's own D-0282 was a ruling still in its plan; moving it re-recorded it next run.
+  it('never moves a record that is still a ruling in socialus-plan', () => {
+    const row = { id: 'D-0282', source: 'planning/scenario-F001.md:12', status: 'live' }
+    expect(movesToApply([row], moves, (r) => r.id === 'D-0282')).toEqual([])
+    expect(movesToApply([row], moves, () => false)).toHaveLength(1)
+  })
 })
