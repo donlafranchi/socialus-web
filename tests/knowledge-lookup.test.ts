@@ -73,6 +73,17 @@ describe.skipIf(!RUNNABLE)('F125 — the lookup tool', () => {
     }
     await enterStore(db, 'lookup-test-import')
     await importAll(db, src)
+    // Absolutes live in the store, not in a file, so the import no longer brings them in: seed the one these tests read.
+    await db.query(
+      `select knowledge.record($1::jsonb, 'test seed', '{"signal":"a test"}'::jsonb)`,
+      [JSON.stringify({
+        id: 'member-content-takedown', kind: 'decision', concern: 'moderation-and-reports',
+        answer: 'Nothing a member contributes goes live without a report-and-takedown path.',
+        why: 'An absolute: breaking it once causes harm the next session cannot undo.',
+        status: 'live', strength: 'absolute', scope: 'product', audience: 'department',
+        departments: ['trust-and-safety'], decided_by: 'the PM', holds: 'always', tags: ['absolute'],
+      })],
+    )
     // Three agents, minted as the schema owner, the way the keys workflow does.
     await db.query('reset role')
     for (const [who, depts, op] of [
