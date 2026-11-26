@@ -52,6 +52,7 @@ jobs:
         with:
           repository: donlafranchi/socialus-plan
           path: .knowledge/socialus-plan
+          fetch-depth: 0   # the page branch merges main in, which needs the history
           token: ${{ secrets.KNOWLEDGE_WRITE_TOKEN || github.token }}
           persist-credentials: ${{ secrets.KNOWLEDGE_WRITE_TOKEN != '' }}
 
