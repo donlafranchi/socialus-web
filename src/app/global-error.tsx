@@ -4,6 +4,7 @@
 // member gets a plain page with a way to retry. Copy is a placeholder ([public-is-draft]).
 import { useEffect } from 'react'
 import * as Sentry from '@sentry/nextjs'
+import { STATUS_PAGE_URL } from '@/lib/status-page'
 
 export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
@@ -18,6 +19,12 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
           <button type="button" onClick={reset}>
             Try again
           </button>
+          <p>
+            Something&rsquo;s not working?{' '}
+            <a href={STATUS_PAGE_URL} target="_blank" rel="noopener noreferrer">
+              Check our status page
+            </a>
+          </p>
         </main>
       </body>
     </html>
