@@ -5,10 +5,9 @@
 // or two with its why, how strict it is and its ring. No history, no
 // evidence, no enforcing paths. Under 10,000 tokens, and it says its size.
 //
-// Pure: rows in, Markdown out. The pack writer (scripts/knowledge/pack.ts)
-// reads the rows from the store and writes the file to socialus-ops; the
-// lookup tool's review_method hands the same text to an agent, so a chat
-// review and an agent review read one thing.
+// Pure: rows in, Markdown out. The lookup tool's review_method hands the text
+// to an agent, read from the store, so a chat review and an agent review read
+// one thing.
 
 export interface PackPractice {
   id: string

@@ -15,7 +15,6 @@ import { Client, type ClientBase } from 'pg'
 import { existsSync, appendFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { enterStore, leaveStore } from './import'
-import { enforcers } from './practices'
 
 export interface Enforced {
   id: string
@@ -28,6 +27,16 @@ export interface PracticeDrift {
   answer: string
   repo: string
   path: string
+}
+
+/** The enforcing paths a practice names, out of its enforced_by ("repo:path (what); repo:path"). */
+export function enforcers(text: string | null): { repo: string; path: string }[] {
+  if (!text) return []
+  return text
+    .split(';')
+    .map((s) => /^\s*([a-z0-9-]+):([^\s(]+)/i.exec(s))
+    .filter((m): m is RegExpExecArray => m !== null)
+    .map((m) => ({ repo: m[1], path: m[2] }))
 }
 
 export async function readEnforced(db: ClientBase): Promise<Enforced[]> {
