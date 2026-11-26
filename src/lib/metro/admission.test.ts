@@ -9,7 +9,7 @@ const RENO_WAITING: FeedMetro = { id: 'reno', slug: 'reno-carson-city-nv', name:
 const NO_CENTRE: FeedMetro = { id: 'x', slug: 'x', name: 'X', isOpen: true }
 
 const DAVIS: [number, number] = [-121.7405, 38.5449] // ~14 mi from Sacramento's centre
-const VALLEJO: [number, number] = [-122.2566, 38.1041] // ~25 mi from Oakland, ~50 from Sacramento
+const VALLEJO: [number, number] = [-122.2566, 38.1041] // ~21 mi from Oakland, ~53 from Sacramento
 const VACAVILLE: [number, number] = [-121.9877, 38.3566] // ~31 mi from Sacramento, ~41 from Oakland
 const RENO: [number, number] = [-119.8138, 39.5296]
 const NEW_YORK: [number, number] = [-74.006, 40.7128]
@@ -30,7 +30,7 @@ describe('admitVisitor', () => {
   })
 
   it('inside a market’s boundary admits them, however far its centre', () => {
-    const farInside: [number, number] = [-120.0, 39.2]
+    const farInside: [number, number] = [-120.18, 39.33] // Truckee
     expect(milesBetween(farInside, SAC.center!)).toBeGreaterThan(ADMIT_REACH_MILES)
     expect(admitVisitor(farInside, [SAC], 'sac')).toEqual({ kind: 'one', metro: SAC })
   })

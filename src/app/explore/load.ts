@@ -117,9 +117,10 @@ export async function loadBrowse(
     requestedSlug,
     ...(rememberedSlug ? { rememberedSlug } : {}),
   }
-  // F081 (2026-11-25) — someone with no market of their own is admitted by where they are. Only then is the
-  // request's location read, and it is used for this answer alone.
-  const admission = hasOwnMarket(catalog, scopeOpts) ? undefined : await admissionFor(supabase, catalog)
+  // F081 (2026-11-25) — a visitor with no market of their own is admitted by where they are. Only then is the
+  // request's location read, and it is used for this answer alone. Never a member: their market is their zip's
+  // and nothing else (F081 criterion 3), so a member with none keeps the old precedence.
+  const admission = userId || hasOwnMarket(catalog, scopeOpts) ? undefined : await admissionFor(supabase, catalog)
   const scope = await resolveBrowseScope(supabase, { ...scopeOpts, admission })
   // The CACHED counts, merged here so the picker can order by them and the
   // popup can show one — the same figure in both places, which is the whole

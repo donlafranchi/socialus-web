@@ -504,6 +504,16 @@ describe('F081 — admission by where the visitor is', () => {
     expect(snap.admitted).toBe(true)
   })
 
+  // F081 criterion 3 — a member's market is their zip's and nothing else: never their location.
+  it('a signed-in member with no market is never placed by location', async () => {
+    signedIn()
+    listFeedMetros.mockResolvedValue([SAC_C])
+    headerGet.mockImplementation((k: string) => near[k] ?? null)
+    await loadBrowse(null, null, { withMap: false })
+    expect(headerGet).not.toHaveBeenCalled()
+    expect(resolveBrowseScope.mock.calls[0]![1].admission).toBeUndefined()
+  })
+
   it('a requested market is theirs: the location is never read', async () => {
     signedOut()
     listFeedMetros.mockResolvedValue([SAC_C])
