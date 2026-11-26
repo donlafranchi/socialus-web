@@ -59,9 +59,17 @@ describe('reading the sources', () => {
     const f = { feature: 'F072', title: 't', retired: false, n: 2, totals: { shipped: { yes: 1 } },
                 criteria: [{ id: '1', text: '', shipped: 'yes', status: 'active' }, { id: '2b', text: '', shipped: 'no', status: 'retired' },
                            { id: '3', text: '', shipped: 'yes', status: 'active' }] } as RollupFeature
-    const walk = { id: 'J99', title: 't', role: 'r', look: ['x'], criteria: ['F072.1', 'F072.2b', 'F072.3', 'F134.1'] }
-    expect(walkthroughShipped(walk, new Map([['F072', f]]))).toEqual({ shipped: 2, total: 3 })
-    expect(walkthroughShipped({ ...walk, criteria: [] }, new Map())).toBeNull()
+    const walk = { id: 'J99', title: 't', role: 'r', look: ['x'], criteria: [] as string[] }
+    const roll = new Map([['F072', f]])
+    // One behaviour per expectation (#1472): mixed in one fixture, a retired
+    // criterion counted and a missing one skipped cancel out.
+    // A retired criterion is left out of the total.
+    expect(walkthroughShipped({ ...walk, criteria: ['F072.1', 'F072.2b'] }, roll)).toEqual({ shipped: 1, total: 1 })
+    // A criterion the roll-up lacks counts as not shipped.
+    expect(walkthroughShipped({ ...walk, criteria: ['F072.1', 'F134.1'] }, roll)).toEqual({ shipped: 1, total: 2 })
+    // Together.
+    expect(walkthroughShipped({ ...walk, criteria: ['F072.1', 'F072.2b', 'F072.3', 'F134.1'] }, roll)).toEqual({ shipped: 2, total: 3 })
+    expect(walkthroughShipped(walk, new Map())).toBeNull()
   })
 
   it('places a walk-through feature on the line that shares most words with its criteria', () => {
