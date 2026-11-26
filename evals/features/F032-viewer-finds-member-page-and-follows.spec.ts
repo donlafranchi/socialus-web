@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { signIn } from '../helpers/auth'
 import { seedF032Fixture, NADIA, THEO, GHOST, VAULT } from '../fixtures/F032-member-page'
 
-// F032's public member page is retired (#303; Don, 2026-10-01: "You is
+// F032's public member page is retired (#303; the PM, 2026-10-01: "You is
 // private … You currently isn't visible to anyone else. There is currently no
 // public member profile"). What stays true is the privacy floor F032 guarded:
 // a member's URL never says whether they exist, to anyone but themself, who

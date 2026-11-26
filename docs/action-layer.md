@@ -1,6 +1,6 @@
 # Action layer
 
-**As of 2026-11-13** · Source: moved from socialus-plan `product/systems/action-layer.md` on 2026-11-13 (Don: it is architecture, not product) · Maintained by: hand
+**As of 2026-11-13** · Source: moved from socialus-plan `product/systems/action-layer.md` on 2026-11-13 (the PM: it is architecture, not product) · Maintained by: hand
 
 How every write reaches the database, and how agents (the in-app assistant, the MCP server, future federation peers) are given safe, short-lived permission to act. What the assistant is for a member is in socialus-plan `product/systems/assistant.md`; this file is only the mechanism. The stack is in `CLAUDE.md` and `INFRASTRUCTURE.md`; the PostGIS `spatial_ref_sys` RLS finding is an accepted risk in socialus-plan `accepted-risks/`.
 

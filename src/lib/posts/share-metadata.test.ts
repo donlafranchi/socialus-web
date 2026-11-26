@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { postShareMetadata } from './share-metadata'
 import { postPath, isPostId } from './post-path'
 
-// Don, 2026-10-31: "I can't share an anouncment?" — a shared post previews with its headline, its lead line and its
+// The PM, 2026-10-31: "I can't share an anouncment?" — a shared post previews with its headline, its lead line and its
 // one picture; a post that is not published, or that this reader may not read, previews with none of its words.
 
 const NOW = new Date('2026-10-29T18:00:00Z') // Thu 11am in the metro
@@ -85,7 +85,7 @@ describe('a published post previews when shared', () => {
   })
 })
 
-// Don, 2026-10-31 (B, #1126): a preview is fetched signed out, so it shows the headline, the lead line and the photo,
+// The PM, 2026-10-31 (B, #1126): a preview is fetched signed out, so it shows the headline, the lead line and the photo,
 // read without the body; the details stay for members.
 describe('signed out, a shared post previews with its headline and lead line, never its body', () => {
   const PREVIEW = { ...POST, body: undefined }

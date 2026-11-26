@@ -1,4 +1,4 @@
-// #1171 (plan #269, option A, Don 2026-11-02) — who hearted, for the poster: "Ana and 4 others hearted this", newest
+// #1171 (plan #269, option A, the PM 2026-11-02) — who hearted, for the poster: "Ana and 4 others hearted this", newest
 // first; a tap opens the list. Anyone else gets a tally only when public counts are on (the database's
 // heart_counts_public, off for now: counts are open for review), and then sees the number, never names.
 

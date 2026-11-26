@@ -1,6 +1,6 @@
 // Handles, not URLs.
 //
-// The first block is the bug Don hit, reproduced and then fixed. The rest is
+// The first block is the bug the PM hit, reproduced and then fixed. The rest is
 // the rule that matters: PERMISSIVE. We are not verifying accounts exist, and a
 // regex stricter than the platform's refuses real people with no way around it.
 
@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest'
 import { checkHandle, cleanHandle, handlesFromLinks, linksFromHandles, PLATFORM_FIELDS } from './social-handles'
 import { SOCIAL_PLATFORMS } from './social-links'
 
-describe('what Don typed now works', () => {
+describe('what the PM typed now works', () => {
   // Every one of these was refused before, with "these links are not https
   // URLs and were refused: instagram".
   it.each([

@@ -1,5 +1,5 @@
 // #316 — a Page's labels as links that open Explore filtered by that label. Shown only where labels are (signed
-// in: the front door has none). #896 — quiet text links, not pills (Don, 2026-10-18: no chips anywhere).
+// in: the front door has none). #896 — quiet text links, not pills (the PM, 2026-10-18: no chips anywhere).
 // #1180 — plain words from the shared list, no # (members never type hashtags, 2026-10-12).
 
 import Link from 'next/link'

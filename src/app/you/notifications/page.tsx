@@ -1,4 +1,4 @@
-// #904 (Don, 2026-10-18, option A) — the member's notifications, off until they turn each one on. Only they see it.
+// #904 (the PM, 2026-10-18, option A) — the member's notifications, off until they turn each one on. Only they see it.
 
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'

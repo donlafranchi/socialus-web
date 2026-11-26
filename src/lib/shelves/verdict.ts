@@ -1,7 +1,7 @@
 // F121 criteria 13–14 — a shelf is judged only with at least 200 impressions from at least 10 members over 14
 // days (this week and the one before; members are weekly distinct counts summed). Two judged weeks in a row at the
 // top save rate: move up. Two in a row under half the median: retire, unless it is seasonal (it ends by date).
-// Verdicts are proposals; Don rules on the list.
+// Verdicts are proposals; the PM rules on the list.
 
 export interface ScoreRow {
   shelfId: string

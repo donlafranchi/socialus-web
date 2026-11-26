@@ -6,7 +6,7 @@
 // several rows at one address must still produce one. The grouping itself is
 // `@/lib/browse/pins`, where it is tested without a map.
 //
-// Navy pins, the selected one gold (Don, 2026-10-05), drawn by the one
+// Navy pins, the selected one gold (the PM, 2026-10-05), drawn by the one
 // marker helper so the tokens decide the colour.
 
 import { useCallback, useEffect, useRef, useState } from 'react'

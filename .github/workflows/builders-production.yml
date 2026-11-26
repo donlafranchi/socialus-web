@@ -1,6 +1,6 @@
 name: Builder accounts (production)
 
-# #280 — builder accounts on the live app (Don, 2026-10-01). Manual only.
+# #280 — builder accounts on the live app (the PM, 2026-10-01). Manual only.
 # Passwords derive from the BUILDER_SEED secret and are never printed; the run
 # shows persona, member id, email and on/off.
 

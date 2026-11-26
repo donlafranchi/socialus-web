@@ -1,4 +1,4 @@
-// #363 — purpose first, type for listing (Don ruled A, 2026-10-05). Both are
+// #363 — purpose first, type for listing (the PM ruled A, 2026-10-05). Both are
 // changeable in settings; a new purpose brings its type unless the owner names
 // one, and the managing role follows the type.
 

@@ -64,7 +64,7 @@ export const groupUpdateDraftInput = z.object({
     .nullable()
     .optional(),
   businessStateOfFormation: z.string().max(80).nullable().optional(),
-  // Don, 2026-10-04 — hours and phone as a component (see group.update).
+  // The PM, 2026-10-04 — hours and phone as a component (see group.update).
   contactComponent: z.boolean().optional(),
   // #363 — Products & services, on by default for a business; any Page may add it.
   productsComponent: z.boolean().optional(),

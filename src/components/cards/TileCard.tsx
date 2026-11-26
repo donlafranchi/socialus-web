@@ -4,13 +4,13 @@
 // card's, the emoji empty state on the surface colour, the 15px medium name,
 // the 14px muted tagline, the action below the text outside the link.
 //
-// Changed for Don's review of the gallery, 2026-09-17:
+// Changed for the PM's review of the gallery, 2026-09-17:
 //
 //   1. UNIFORM HEIGHT. Every text row now reserves its space whether or not it
 //      has content — two lines for the title, two for the tagline, one for the
 //      location. Content no longer decides height: a one-word title and a
 //      wrapping one produce the same card. Reserving beats stretching, because
-//      `align-items: stretch` only equalises within a row and Don wants every
+//      `align-items: stretch` only equalises within a row and the PM wants every
 //      card the same.
 //   2. LOCATION IS REQUIRED. Not an optional line — the slot that is always
 //      there is what makes the height deterministic, and `online` is a value

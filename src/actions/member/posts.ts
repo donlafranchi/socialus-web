@@ -1,4 +1,4 @@
-// #1183 (plan #270, Don ruled B) — a member posts without a Page.
+// #1183 (plan #270, the PM ruled B) — a member posts without a Page.
 //   member_post.create    one of three kinds, in a neighborhood; the phone check first ([always], 2026-10-31)
 //   member_post.withdraw  the poster takes it down
 //   member_post.answer    "I'm interested" / "I saw it", in place of comments; only the poster sees who

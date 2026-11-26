@@ -1,5 +1,5 @@
-// #348 — where a Page is (Don, 2026-10-04): one question, three answers.
-// #896 — six answers (Don, 2026-10-18), and a Page's stops: its locations, or
+// #348 — where a Page is (the PM, 2026-10-04): one question, three answers.
+// #896 — six answers (the PM, 2026-10-18), and a Page's stops: its locations, or
 // its where-and-when list.
 // Shared by group.update and group.update_draft; written in the caller's
 // transaction. The location itself is anchor_location_id, set as before.

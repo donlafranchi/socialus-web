@@ -1,6 +1,6 @@
 'use client'
 
-// #1171 (socialus-plan #269, Don 2026-11-02) — the Saved list: what a member kept for later. Upcoming first; a dated
+// #1171 (socialus-plan #269, the PM 2026-11-02) — the Saved list: what a member kept for later. Upcoming first; a dated
 // one offers Remind me (the reminders that already exist, nothing new is sent); past ones drop to the end.
 
 import { useState } from 'react'

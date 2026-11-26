@@ -1,4 +1,4 @@
-// Don, 2026-10-31: "I can't share an anouncment?" — every post has its own address under its Page, and a shared
+// The PM, 2026-10-31: "I can't share an anouncment?" — every post has its own address under its Page, and a shared
 // link previews like the card: the headline, the lead line KIND · WHEN · WHERE, and the card's one picture.
 // Previews are fetched signed out, and since F134 a signed-out reader reads the post as a signed-in stranger does.
 // What the reader may not read at all previews with none of its words (`post: null`).

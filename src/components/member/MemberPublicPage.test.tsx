@@ -60,7 +60,7 @@ describe('T092 — MemberPublicPage', () => {
       'href',
       '/auth/login?next=/m/maya',
     )
-    // Don, 2026-10-04: nothing tells a signed-out visitor they can follow.
+    // The PM, 2026-10-04: nothing tells a signed-out visitor they can follow.
     expect(screen.getByTestId('follow-member-signin')).toHaveTextContent(/^Sign up to follow$/)
   })
 

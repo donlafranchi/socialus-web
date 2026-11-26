@@ -1,5 +1,5 @@
 name: preview-on-label
-# #394 — Don ruled C (2026-10-05): previews build only for PRs labelled for
+# #394 — the PM ruled C (2026-10-05): previews build only for PRs labelled for
 # review. Labelling one later pushes an empty commit to its branch, which is the
 # push Vercel builds from (scripts/vercel-ignore.mjs then sees the label). A
 # GITHUB_TOKEN push starts no workflows, so CI does not rerun for it.
@@ -10,7 +10,7 @@ permissions:
   contents: write
 jobs:
   build-preview:
-    # Dormant unless the repo variable PREVIEWS_MODE is `labelled` (Don, 2026-10-05:
+    # Dormant unless the repo variable PREVIEWS_MODE is `labelled` (the PM, 2026-10-05:
     # no previews until the freeze), so it spends no Actions minutes meanwhile.
     if: >-
       vars.PREVIEWS_MODE == 'labelled' &&

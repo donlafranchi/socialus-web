@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// #286 — Don, 2026-10-01: tags go on posts as well as Pages. A post carries
+// #286 — the PM, 2026-10-01: tags go on posts as well as Pages. A post carries
 // its own tags, or its Page's when it has none, and a tag lens matches either.
 // Signed out, no tags at all (F093 criterion 8).
 

@@ -68,7 +68,7 @@ void FIXTURE_RUTH;
 // only sound when these run in order — pin the block to a single worker.
 test.describe.configure({ mode: "serial" });
 
-// #336 — /you/sell and the walkthrough are retired to Create (Don, 2026-10-05); the flow is kept, unrouted,
+// #336 — /you/sell and the walkthrough are retired to Create (the PM, 2026-10-05); the flow is kept, unrouted,
 // for when product and service listings are due (socialus-plan ROADMAP § Later). Skipped, not deleted.
 test.describe.skip("F036 — Maya creates a business Group through the Sell walkthrough", () => {
   test.describe('"Sell" CTA visible on /you for any Member', () => {
@@ -219,7 +219,7 @@ test.describe.skip("F036 — Maya creates a business Group through the Sell walk
         page.locator(`a[href="/m/${MAYA.handle}"]`)
       ).toHaveCount(0);
 
-      // Then — empty Items section on the freshly-created Shop: #909 (Don, 2026-10-18) makes it the
+      // Then — empty Items section on the freshly-created Shop: #909 (the PM, 2026-10-18) makes it the
       // owner's "add your first" prompt, on the Page itself.
       await expect(page.getByTestId("featured-empty-owner")).toBeVisible();
     });

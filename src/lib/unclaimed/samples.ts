@@ -1,6 +1,6 @@
 // #556 — sample posts for an unclaimed Page: what a Page looks like with an event, a deal and a
 // last-minute opening on it, so a business and a local can see the point. EVERY one opens with
-// "Sample" (Don, 2026-10-10) so nobody shows up for a deal that does not exist; the column
+// "Sample" (the PM, 2026-10-10) so nobody shows up for a deal that does not exist; the column
 // `page_posts.sample_kind` marks them for the refresh and for removal once a real post exists.
 import { createHash } from 'node:crypto'
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'
@@ -151,7 +151,7 @@ const span = (kind: SampleKind, ymd: string, hour: number, slug: string): Window
     : { startsAt: wall(ymd, pad(hour)), endsAt: wall(ymd, pad(hour + (kind === 'event' ? 3 : 4))) }
 
 /**
- * Don, 2026-10-16 (cap-1, cap-5; replaces #816 a1's 14-day spread): each Page posts on one weekday, chosen by its slug,
+ * The PM, 2026-10-16 (cap-1, cap-5; replaces #816 a1's 14-day spread): each Page posts on one weekday, chosen by its slug,
  * in weeks 1, 2 and 3 from now — a regular weekly look. The order of the kinds and the hour vary by Page; a deal runs
  * 2–3 days. Days and hours are the metro's own.
  */

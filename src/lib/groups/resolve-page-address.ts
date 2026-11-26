@@ -1,4 +1,4 @@
-// Resolving a Page at its address. #1139 (Don, 2026-11-01; replaces #411's id-only ruling): the readable address
+// Resolving a Page at its address. #1139 (the PM, 2026-11-01; replaces #411's id-only ruling): the readable address
 // /<place>-<st>/<page-slug> is the Page's; /g/<id> still resolves, for a draft (which has no readable address yet)
 // and as what the proxy forwards to the readable one.
 

@@ -1,13 +1,13 @@
 'use client'
 
-// #348 — where a Page is (Don, 2026-10-04, "the most elegant"): one question,
+// #348 — where a Page is (the PM, 2026-10-04, "the most elegant"): one question,
 // then only the chosen answer's own fields. Google Business Profile's two
 // questions folded into one; Airbnb's confirm-the-pin and approximate location;
 // Google Maps' drop a pin; Meetup's "how to find us".
-// #896 — seven answers (Don, 2026-10-18: "We need more options for when there
+// #896 — seven answers (the PM, 2026-10-18: "We need more options for when there
 // isn't a street address"): Google's service-area and hide-address, a landmark,
 // more than one location, a market stall's where and when, online. A plain
-// radio list (Don, 2026-10-18: no chips or pills).
+// radio list (the PM, 2026-10-18: no chips or pills).
 
 import { useEffect, useState } from 'react'
 import { Plus, X } from 'lucide-react'

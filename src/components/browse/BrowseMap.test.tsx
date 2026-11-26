@@ -135,7 +135,7 @@ describe('#475 — BrowseMap draws pins and area discs', () => {
   })
 })
 
-// #896 — Don, 2026-10-18: a Page's map opens our own map, on that Page, with what's nearby around it.
+// #896 — the PM, 2026-10-18: a Page's map opens our own map, on that Page, with what's nearby around it.
 describe('#896 — BrowseMap opens on one Page', () => {
   const row = (over: Record<string, unknown>) =>
     ({

@@ -1,4 +1,4 @@
-// #997 (Don, 2026-10-22) — a venue's real shows, read from its own events page, become dated posts on its Page:
+// #997 (the PM, 2026-10-22) — a venue's real shows, read from its own events page, become dated posts on its Page:
 // the next 60 days, one post per venue + date + title, a ticket link and credit to the source. Never an aggregator.
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'
 import { metroDate } from '../metro/metro-week'

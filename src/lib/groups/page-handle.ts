@@ -1,6 +1,6 @@
 // A Page's canonical address — a cosmetic slug plus a short non-sequential ID.
 //
-// Ruled by Don, 2026-09-21 (ops-pattern planning/URL-IDENTITY.md; Issue #175).
+// Ruled by the PM, 2026-09-21 (ops-pattern planning/URL-IDENTITY.md; Issue #175).
 // Two constraints in his own words: "addresses/locations will evolve … right
 // now we're using metros but one day may use neighborhoods", and "I'm
 // concerned about a URL being downstream of a member." So: no geography in the
@@ -28,7 +28,7 @@ export const PUBLIC_ID_LENGTH = 6
 const ID_CHARS = new Set(PUBLIC_ID_ALPHABET)
 
 /** The id address, /g/<id>: what resolves inside, and the fallback for a Page with no readable address yet (a
- *  draft). #1139 (Don, 2026-11-01) replaced it as the shared address; the proxy forwards it to `pagePath`. */
+ *  draft). #1139 (the PM, 2026-11-01) replaced it as the shared address; the proxy forwards it to `pagePath`. */
 export function canonicalPagePath(publicId: string): string {
   return `/g/${publicId}`
 }
@@ -41,7 +41,7 @@ export interface PageAddressParts {
   wordsHidden?: boolean
 }
 
-/** #1139 (Don, 2026-11-01) — a Page's address: /<place>-<st>/<page-slug>, e.g. /sacramento-ca/plant-foundry, frozen
+/** #1139 (the PM, 2026-11-01) — a Page's address: /<place>-<st>/<page-slug>, e.g. /sacramento-ca/plant-foundry, frozen
  *  at first publish. The id address only while the Page has none. */
 export function pagePath(p: PageAddressParts): string {
   return p.placeUrlSlug && p.pageUrlSlug && !p.wordsHidden ? `/${p.placeUrlSlug}/${p.pageUrlSlug}` : canonicalPagePath(p.publicId)

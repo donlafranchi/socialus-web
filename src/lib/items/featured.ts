@@ -1,4 +1,4 @@
-// #909 — a Page's featured products and services (Don, 2026-10-18).
+// #909 — a Page's featured products and services (the PM, 2026-10-18).
 
 /** The most a Page features. A short shelf, not a catalogue: model.md has no catalogue of listings. */
 export const FEATURED_ITEMS_MAX = 12

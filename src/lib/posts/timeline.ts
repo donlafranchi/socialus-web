@@ -1,4 +1,4 @@
-// plan #230 (Don, 10-31) — a Page's posts as a timeline anchored at now. Past (ended, or undated past
+// plan #230 (the PM, 10-31) — a Page's posts as a timeline anchored at now. Past (ended, or undated past
 // its window) runs oldest first so the newest sits nearest now; at now, the latest and anything on
 // right now, newest first; coming up, soonest first. A dated post ends at its end, else its start (#814).
 type TimelinePost = { id: string; createdAt: string; startsAt: string | null; endsAt?: string | null; current?: boolean }

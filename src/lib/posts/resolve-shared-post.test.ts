@@ -33,7 +33,7 @@ describe('resolveSharedPost', () => {
   })
 })
 
-// #1139 (Don, 2026-11-01) — a post's readable address names it by its slug.
+// #1139 (the PM, 2026-11-01) — a post's readable address names it by its slug.
 describe('resolvePostIdBySlug', () => {
   const maybeSingle = vi.fn()
   const eq2 = vi.fn(() => ({ maybeSingle }))

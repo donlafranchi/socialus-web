@@ -1,11 +1,11 @@
 'use client'
 
-// Don (2026-11-01): a shelf should "not continue on a new line and instead scroll off the page", with arrows or a
+// The PM (2026-11-01): a shelf should "not continue on a new line and instead scroll off the page", with arrows or a
 // tap on the shelf to open "a longer list". The App Store's shelf (Apple HIG, Collections): one row that scrolls
 // sideways, its title and "See all" open the full list as its own screen. Arrows from 768px; a phone swipes.
 // One type per row (Pages or posts, never both) is the caller's job, and it says which with `size`. Draft copy (human-review).
 //
-// Don (2026-11-02): "our posts should be a little bit larger. Eg take up more screen space." A row of posts shows about
+// The PM (2026-11-02): "our posts should be a little bit larger. Eg take up more screen space." A row of posts shows about
 // one and a half cards on a phone, so the next one peeks (Airbnb's and Eventbrite's rows), and fewer, wider cards than
 // Pages from 768px, capped so a monitor never gets one enormous card.
 

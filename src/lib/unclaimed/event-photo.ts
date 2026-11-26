@@ -1,5 +1,5 @@
 // #1045 — the picture on an imported show's post. Eventbrite, Meetup and Google Events lead with the event's own image and fall back to
-// a picture that fits the kind of event; none shows the venue's cover for a game. Same here, with two limits (Don, 2026-10-24):
+// a picture that fits the kind of event; none shows the venue's cover for a game. Same here, with two limits (the PM, 2026-10-24):
 // no team or league logos, and no identifiable pro players except a venue's own promo for a concert, credited.
 import { createHash } from 'node:crypto'
 import { EVENT_POOL, type EventType } from './event-type'

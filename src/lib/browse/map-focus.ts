@@ -1,4 +1,4 @@
-// #896 — Don, 2026-10-18: "shouldn't the map open our own map? Do we want people
+// #896 — the PM, 2026-10-18: "shouldn't the map open our own map? Do we want people
 // leaving the app." A Page's map opens Explore's map, on that Page.
 
 export interface MapFocus {

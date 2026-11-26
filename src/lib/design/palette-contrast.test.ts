@@ -67,7 +67,7 @@ describe('#325 — Anodised colour pairings meet WCAG AA', () => {
 // Mapbox light-v11 (MAP_DEFAULTS.style), sampled: land, water, park, road.
 const MAP_BASE = ['#f5f5f3', '#cad2d4', '#e2ebdc', '#ffffff']
 
-describe('Don, 2026-10-05 — map pins: navy, the selected one gold, legible on the base map', () => {
+describe('the PM, 2026-10-05 — map pins: navy, the selected one gold, legible on the base map', () => {
   it.each(MAP_BASE)('a navy pin stands out on %s (3:1, WCAG 1.4.11)', (base) => {
     expect(ratio('pin', base)).toBeGreaterThanOrEqual(3)
     expect(ratio('cluster', base)).toBeGreaterThanOrEqual(3)

@@ -42,11 +42,11 @@ Distilled ${IDEAS_DISTILLED_ON}.
 
 ## Added under the house rules
 
-Open your town (Don, 2026-10-26): scenario F118, Next.
+Open your town (the PM, 2026-10-26): scenario F118, Next.
 
 ### Skill swaps
 
-*Don, 2026-10-02:* "I teach guitar, you fix my bike." *Analysis, agent:* Barter of time; needs no money to move. [lane: later] What would make it real: two members who each want what the other has.
+*The PM, 2026-10-02:* "I teach guitar, you fix my bike." *Analysis, agent:* Barter of time; needs no money to move. [lane: later] What would make it real: two members who each want what the other has.
 `
 
 const scenario = (id: string, extra: string) =>

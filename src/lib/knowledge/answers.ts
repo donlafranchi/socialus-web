@@ -247,7 +247,7 @@ export interface NextItem {
 
 /** A condition's owner as who does it: the PM is "You", anyone else is Code. */
 export function whoOf(owner: string | null | undefined): Who {
-  return owner && /\b(?:the PM|Don|PM)\b/i.test(owner) ? 'You' : 'Code'
+  return owner && /\b(?:the PM|The PM|PM)\b/i.test(owner) ? 'You' : 'Code'
 }
 
 export async function nextItems(db: ClientBase): Promise<NextItem[]> {

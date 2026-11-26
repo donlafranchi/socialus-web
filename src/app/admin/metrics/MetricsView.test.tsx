@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/vitest'
 import { MetricsView, type WeekRow } from './MetricsView'
 
 // #544 — plain numbers, this week beside last week. Real counts, no suppression
-// (Don, 2026-10-09); counts only, nothing about any one member.
+// (the PM, 2026-10-09); counts only, nothing about any one member.
 
 afterEach(cleanup)
 const week = (o: Partial<WeekRow> = {}): WeekRow => ({ week_start: '2026-10-05', gatherings: 7, venues: 4, new_members: 3, new_members_connected: 1, members_total: 9, members_unconnected: 2, ...o })

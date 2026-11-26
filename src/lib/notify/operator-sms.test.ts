@@ -10,7 +10,7 @@ const ENV = {
 
 afterEach(() => vi.restoreAllMocks())
 
-describe('F078 criterion 5 — texting Don', () => {
+describe('F078 criterion 5 — texting the PM', () => {
   it('sends one message through Twilio to the operator phone', async () => {
     const fetch = vi.fn(async () => new Response('{}', { status: 201 }))
     const res = await textOperator('hello', { env: ENV, fetch })

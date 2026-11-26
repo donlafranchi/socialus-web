@@ -31,7 +31,7 @@ export default async function AdminReportsPage() {
     fetchReviewQueue(200, { includeBuilders: isBuilderOperator(viewer) }),
     fetchWeekSummary(),
     fetchAiMode(),
-    // #640 — the numbers for Don's own go-live checklist; a failed read must not hide the queue.
+    // #640 — the numbers for the PM's own go-live checklist; a failed read must not hide the queue.
     fetchAiReadiness().catch(() => null),
   ])
 

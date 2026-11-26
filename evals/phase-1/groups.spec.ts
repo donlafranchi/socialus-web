@@ -80,7 +80,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
 
     // #363 — the family kind is gone (ruled 2026-10-05): a private group is
     // chosen, not implied by a type. A new Page with no purpose takes its
-    // type's (Don ruled A, 2026-10-05: purpose first, type for listing).
+    // type's (the PM ruled A, 2026-10-05: purpose first, type for listing).
     test("Given kind='group' is inserted with no purpose | When the trigger fires | Then purpose reads back as 'gather'", async () => {
       const ownerId = await seedMember("g-usecase");
 

@@ -128,7 +128,7 @@ describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
     expect(await as('anon', `select * from public.member_public_pages($1)`, [FOUNDER])).toEqual([])
   })
 
-  // #246 (Don, 2026-09-30): the signed-out front door carries no founder.
+  // #246 (the PM, 2026-09-30): the signed-out front door carries no founder.
   // tests/member-reads-db.test.ts covers the signed-in one, by display name.
   it('a signed-out Page names no founder', async () => {
     expect(await as('anon', `select * from public.page_founder_public($1)`, [PAGE])).toEqual([])

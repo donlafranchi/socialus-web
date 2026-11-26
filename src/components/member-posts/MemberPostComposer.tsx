@@ -2,7 +2,7 @@
 
 // #1183 — post without a Page (plan #270 B): pick a kind, write it, pick the neighborhood. A yard sale may add its
 // day and its street, shown only until that day ends. Listed under comes from the shared list (#1180). It is signed
-// with the member's display name and the neighborhood, never their own area. Every word is a draft for Don.
+// with the member's display name and the neighborhood, never their own area. Every word is a draft for the PM.
 
 import { useState } from 'react'
 import Link from 'next/link'

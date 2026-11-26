@@ -1,4 +1,4 @@
-// plan #230 (Don, 2026-10-31): "I need people to see exactly what's being offered or described." A post card
+// plan #230 (the PM, 2026-10-31): "I need people to see exactly what's being offered or described." A post card
 // opens with KIND · WHEN · WHERE, built from fields and never from the body, then a one-line headline.
 import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
 import { classifyEvent, type EventType } from '@/lib/unclaimed/event-type'
@@ -137,7 +137,7 @@ export function cardHeadline(p: { headline?: string | null; body: string | null;
   return (sentence ? sentence[1]! : s).trim()
 }
 
-// Don, 2026-11-02: "Also should show a line or two about the post". Paragraphs a card never shows: a sample's disclaimer
+// The PM, 2026-11-02: "Also should show a line or two about the post". Paragraphs a card never shows: a sample's disclaimer
 // (the lead line says Sample), and an imported show's calendar and photo-credit lines.
 const NOT_PREVIEW = /^(This is a sample post\b|From .+'s own calendar: |Photo: )/
 

@@ -139,7 +139,7 @@ describe('F070 · T145 — PagePhotoPicker', () => {
   })
 })
 
-// Bug — Don saw a bare file input on production with nothing to say it could
+// Bug — the PM saw a bare file input on production with nothing to say it could
 // be pressed. The control is a button that looks like one and says what it does.
 describe('the photo control looks and acts like a button', () => {
   it('is a button named for what it does, with a pointer and a visible focus ring', () => {

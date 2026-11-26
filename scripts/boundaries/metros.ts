@@ -21,7 +21,7 @@ export interface Metro {
   stateSlug: string
   counties: string[]
   /**
-   * Counties a 45–60 minute drive out from the anchor towns (Don, 2026-10-16, #787): their boundaries and
+   * Counties a 45–60 minute drive out from the anchor towns (the PM, 2026-10-16, #787): their boundaries and
    * places load, so unclaimed Pages can sit there, each under its own code and never in the ZIP crosswalk,
    * so nobody there counts as local to the metro. A county with no CBSA takes its state+county FIPS.
    */

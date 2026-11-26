@@ -45,7 +45,7 @@ const initial: EditorInitial = {
   where: emptyWhere,
 }
 
-// Don, 2026-10-05: each Add on the draft opens only its own fields, with
+// The PM, 2026-10-05: each Add on the draft opens only its own fields, with
 // pickers rather than long lists, and one primary button.
 function OpenOne({ section }: { section: Section }) {
   const ctx = usePageEditor()
@@ -160,7 +160,7 @@ describe('#302 — a section opens a sheet with only its own fields', () => {
   })
 })
 
-describe('hours hidden for now (Don, 2026-10-05)', () => {
+describe('hours hidden for now (the PM, 2026-10-05)', () => {
   it('the phone sheet has the phone, not hours, and leaves stored hours alone', async () => {
     render(<Page sections={['contact']} init={{ ...initial, contact: { phone: '+19165550142', hours: { mon: [{ open: '09:00', close: '17:00' }] } } }} />)
     fireEvent.click(screen.getByRole('button', { name: 'open contact' }))
@@ -172,7 +172,7 @@ describe('hours hidden for now (Don, 2026-10-05)', () => {
   })
 })
 
-describe('#363 — purpose first, type for listing (Don ruled A, 2026-10-05)', () => {
+describe('#363 — purpose first, type for listing (the PM ruled A, 2026-10-05)', () => {
   const open = () => {
     render(<Page sections={['kind']} />)
     fireEvent.click(screen.getByRole('button', { name: 'open kind' }))
@@ -202,7 +202,7 @@ const openOne = (section: Section) => {
   return screen.getByRole('dialog')
 }
 
-describe('Don, 2026-10-05 — one section per sheet', () => {
+describe('the PM, 2026-10-05 — one section per sheet', () => {
   it('Name asks for the name only', () => {
     const d = openOne('name')
     expect(d.querySelectorAll('input, textarea, select')).toHaveLength(1)

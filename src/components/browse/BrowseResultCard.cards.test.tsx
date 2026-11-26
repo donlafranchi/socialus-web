@@ -1,4 +1,4 @@
-// #922 (Don, 2026-10-18) — a Page card leads with its photo, a post card with its words; quick links on Page
+// #922 (the PM, 2026-10-18) — a Page card leads with its photo, a post card with its words; quick links on Page
 // cards only; no chips or pills anywhere [always].
 
 import { describe, it, expect, afterEach } from 'vitest'
@@ -79,7 +79,7 @@ describe('quick links: Page cards only', () => {
   })
 })
 
-// plan #230 (Don, 2026-10-31) — "I need people to see exactly what's being offered." KIND · WHEN · WHERE in
+// plan #230 (the PM, 2026-10-31) — "I need people to see exactly what's being offered." KIND · WHEN · WHERE in
 // small caps, built from fields; the headline in one line; the Page's avatar and name; the smaller photo.
 describe('the post card: what it is, first', () => {
   const NOW = new Date('2026-10-22T17:00:00Z') // Thu
@@ -140,7 +140,7 @@ describe('the post card: what it is, first', () => {
   })
 })
 
-// Don, 2026-11-02: "Also should show a line or two about the post or how does Fb do it?" Facebook's feed shows 3–5
+// The PM, 2026-11-02: "Also should show a line or two about the post or how does Fb do it?" Facebook's feed shows 3–5
 // lines and See more; Airbnb and Eventbrite one short line. Two lines, cut short, under the headline; the card opens the post.
 describe('the post card: a line or two about the post', () => {
   it('shows up to two lines of the post’s own words under the headline, before the Page name', () => {
@@ -185,7 +185,7 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     expect(where.className).toMatch(/basis-18/)
   })
 
-  // Don, 2026-11-02: "our posts should be a little bit larger." Eventbrite's and Airbnb's cards: the picture on top,
+  // The PM, 2026-11-02: "our posts should be a little bit larger." Eventbrite's and Airbnb's cards: the picture on top,
   // the card's full width, the words beneath it, at every width.
   it('puts a large photo above the words at every width, never a thumbnail beside them', () => {
     render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
@@ -233,7 +233,7 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
   })
 })
 
-// #1171 (plan #269, Don 2026-11-02) — ♡ and Save on every post card, under the picture (Instagram's place), outside the
+// #1171 (plan #269, the PM 2026-11-02) — ♡ and Save on every post card, under the picture (Instagram's place), outside the
 // card's link so a tap never opens the post. A sample has neither; signed out shows neither.
 describe('the post card: heart and save', () => {
   it('sits the heart and the save together under the picture, outside the card’s link', () => {

@@ -205,7 +205,7 @@ interface Props {
   onDelete?: (input: { postId: string }) => Promise<
     { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
   >
-  /** Don, 2026-10-31 — the Page's address: each post gets Share, to its own address under it. None on a draft. */
+  /** The PM, 2026-10-31 — the Page's address: each post gets Share, to its own address under it. None on a draft. */
   pagePath?: string | null
   /** The post a post's own address names: the list lands on it. */
   focusPostId?: string | null
@@ -310,7 +310,7 @@ export function PagePosts({
 
   // bug #211 — arrive on the announcement you tapped, not on the top of a Page
   // with a compose box where you expected it, signed in or out (F134.8).
-  // plan #230 (Don, 10-31) — a timeline anchored at now: the past a tap away above, coming up below.
+  // plan #230 (the PM, 10-31) — a timeline anchored at now: the past a tap away above, coming up below.
   const { past, latest, upcoming } = pageTimeline(items)
   const [showEarlier, setShowEarlier] = useState(false)
   const nowRef = useRef<HTMLDivElement>(null)
@@ -690,7 +690,7 @@ export function PagePosts({
                       its own photo, else the Page picture,
                       else the kind's placeholder. Alt: the owner's words (the
                       post's first line); the placeholder's is the Page's name. */}
-                  {/* Don, 2026-11-02: "a little bit larger" — Eventbrite's 2:1 at the card's full width, not a 128px strip. */}
+                  {/* the PM, 2026-11-02: "a little bit larger" — Eventbrite's 2:1 at the card's full width, not a 128px strip. */}
                   <div data-testid="page-post-image" className="relative mb-2 aspect-[2/1] w-full overflow-hidden rounded-md">
                     {post.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element

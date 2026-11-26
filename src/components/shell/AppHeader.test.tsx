@@ -57,7 +57,7 @@ describe('AppHeader (#1094)', () => {
     expect(router.back).toHaveBeenCalled()
   })
 
-  it('is one row: the mark, the search pill, the ➕ and You (Don, 2026-11-01)', () => {
+  it('is one row: the mark, the search pill, the ➕ and You (the PM, 2026-11-01)', () => {
     auth.user = { id: 'm', email: 'sam@example.com' }
     render(<AppHeader />)
     const row = screen.getByTestId('app-header')

@@ -33,7 +33,7 @@ export interface EditPageInput {
   /** #293 — null clears either. */
   contactPhone?: string | null
   openingHours?: unknown
-  /** Don, 2026-10-04 — hours and phone switched on or off. */
+  /** The PM, 2026-10-04 — hours and phone switched on or off. */
   contactComponent?: boolean
   /** Page types (ruled 2026-10-05). */
   pageKind?: 'business' | 'group'

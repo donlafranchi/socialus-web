@@ -28,7 +28,7 @@ BASE="http://127.0.0.1:$PORT"
 
 if [ "$(uname)" = Darwin ]; then
   if [ "$(docker context show 2>/dev/null)" != desktop-linux ]; then
-    docker context use desktop-linux || { echo "Docker Desktop's context is not available. Stopping: tell Don (never OrbStack)." >&2; exit 1; }
+    docker context use desktop-linux || { echo "Docker Desktop's context is not available. Stopping: tell the PM (never OrbStack)." >&2; exit 1; }
   fi
 fi
 for tool in docker supabase k6; do command -v "$tool" >/dev/null || { echo "$tool is not installed (k6: brew install k6)." >&2; exit 1; }; done

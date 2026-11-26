@@ -24,7 +24,7 @@ afterEach(() => {
 
 const openMenu = () => fireEvent.click(screen.getByTestId('create-menu'))
 
-describe('CreateMenu — the one ➕ (Don, 2026-11-01)', () => {
+describe('CreateMenu — the one ➕ (the PM, 2026-11-01)', () => {
   it('is an icon-only 44px button labelled Create', () => {
     render(<CreateMenu />)
     const btn = screen.getByRole('button', { name: 'Create' })

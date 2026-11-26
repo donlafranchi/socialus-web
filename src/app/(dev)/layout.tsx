@@ -8,7 +8,7 @@
 // The rule changed on 2026-09-17. It was `NODE_ENV !== 'development'`, which
 // meant these pages rendered on a laptop and 404'd on every Vercel preview —
 // every Vercel build, preview included, sets NODE_ENV=production. That is
-// backwards for what these pages are for: Don looks at them on his phone,
+// backwards for what these pages are for: the PM looks at them on his phone,
 // away from the machine. Now they render everywhere except production. See
 // gate.ts for why the test is equality rather than inequality.
 

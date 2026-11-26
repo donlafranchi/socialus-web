@@ -1,5 +1,5 @@
 // #280 — builder accounts on the live app. Every password derives from one
-// secret, BUILDER_SEED, held in GitHub secrets and Don's private env only;
+// secret, BUILDER_SEED, held in GitHub secrets and the PM's private env only;
 // nothing here or in the repo can produce one without it.
 
 import { createHmac } from 'node:crypto'

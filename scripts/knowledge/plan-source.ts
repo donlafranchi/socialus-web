@@ -170,7 +170,7 @@ export function readRulings(root: string): Ruling[] {
       const more: string[] = []
       for (let j = i + 1; j < lines.length && lines[j][1].startsWith('  '); j++) more.push(lines[j][1].trim())
       const rest = [liftTags(l.slice(head.length)), ...more].filter(Boolean).join('\n')
-      // A replaces tag names old text, tag included, so it never counts; a principle with no tag can change (Don, 2026-11-21).
+      // A replaces tag names old text, tag included, so it never counts; a principle with no tag can change (the PM, 2026-11-21).
       const tagged = (LASTS.exec(l.replace(REPLACES, ''))?.[1] as Holds | undefined) ?? null
       const lasts = file === PRINCIPLES ? tagged ?? 'for now' : tagged
       out.push({

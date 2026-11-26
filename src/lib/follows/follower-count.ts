@@ -1,7 +1,7 @@
 // How many people get updates from a Page.
 //
 // F072 criterion 4 — the count beside the restricted audience setting. A COUNT
-// AND NEVER A ROSTER: Don, 2026-09-07, a count is shown to the Page owner,
+// AND NEVER A ROSTER: the PM, 2026-09-07, a count is shown to the Page owner,
 // never a roster of who reacted. The open question in verbs.md about whether a
 // Page owner may see WHO their audience is stays open, and a count does not
 // answer it.

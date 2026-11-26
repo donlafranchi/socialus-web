@@ -1,4 +1,4 @@
-// 2026-10-02 (Don) — the apply workflow's name carries no emoji.
+// 2026-10-02 (the PM) — the apply workflow's name carries no emoji.
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 

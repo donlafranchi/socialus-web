@@ -1,5 +1,5 @@
 // #299 — default art when there is no photo: the kind's icon on a light
-// neutral tone, the same for every Page of that kind (Don, 2026-10-01).
+// neutral tone, the same for every Page of that kind (the PM, 2026-10-01).
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
@@ -16,7 +16,7 @@ describe('#299 — DefaultArt', () => {
   })
 
   // Path: well-worn — the design language's default-art rule, in the Anodised
-  // palette: the kind's icon in gold on a navy frame (Don, 2026-10-04).
+  // palette: the kind's icon in gold on a navy frame (the PM, 2026-10-04).
   it('is a navy tile with the kind in gold, the same for every kind', () => {
     for (const kind of ['shop', 'service', 'group'] as const) {
       cleanup()

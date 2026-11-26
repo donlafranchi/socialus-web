@@ -1,4 +1,4 @@
-// #303 — there is no public member profile (Don, 2026-10-01: "You is private
+// #303 — there is no public member profile (the PM, 2026-10-01: "You is private
 // … You currently isn't visible to anyone else"). /m/[handle] is retired: the
 // member themself lands on You, and everyone else, signed in or out, gets
 // not-found, so the URL never says whether a member exists. The item routes

@@ -1,4 +1,4 @@
-// Don's ruling, 2026-09-17: sample cards carry a mark — and the mark is the
+// The PM's ruling, 2026-09-17: sample cards carry a mark — and the mark is the
 // LAST line of defence, not the first. A stranger scrolling reads shapes, not
 // badges. These tests guard the two things that actually carry the weight:
 // separation and non-interactivity.

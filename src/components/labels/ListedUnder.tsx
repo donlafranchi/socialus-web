@@ -1,9 +1,9 @@
 'use client'
 
-// #1180 — "Listed under: X · Change", in place of the free tag box (plan #273, Don ruled B, 2026-11-05).
+// #1180 — "Listed under: X · Change", in place of the free tag box (plan #273, the PM ruled B, 2026-11-05).
 // Until the poster picks, it follows what they write (the word match, then the Page's labels, then Neighborhood
 // life). Change opens the 12 labels with their finer ones beneath; up to 3 picks, and a pick is pinned.
-// "Listed under" and "Change" are draft words for Don.
+// "Listed under" and "Change" are draft words for the PM.
 
 import { useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'

@@ -9,11 +9,11 @@
 //
 // DECIDED REPORTS STAY IN THE LIST, below the undecided ones. Every decision is
 // reversible, and you cannot reverse what you cannot see — hiding decided
-// reports would make undo a support request, which is exactly what Don ruled
+// reports would make undo a support request, which is exactly what the PM ruled
 // against.
 //
 // WHAT THE REVIEWER SEES, and why it names the poster:
-// Don's ruling, 2026-09-17 — "Anyone posting anything to the platform is
+// The PM's ruling, 2026-09-17 — "Anyone posting anything to the platform is
 // subject to review by the platform's staff." The member-to-member protections
 // are untouched; they govern what members learn about each other. This is the
 // platform reviewing content posted to it, which the 2026-09-14 line already
@@ -31,7 +31,7 @@
 // column.** The ruling of 2026-09-14 describes signup collecting a legal name;
 // the schema has `display_name` and `handle` and nothing else identifying. So
 // the reviewer sees the display name and the handle, which is all the platform
-// holds. If Don wants the legal name in this view, that is a schema change and
+// holds. If the PM wants the legal name in this view, that is a schema change and
 // a separate decision, not something to fake here.
 
 import { getPool } from '@/actions/_lib/db'

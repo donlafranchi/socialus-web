@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// #246 — what one member can read about another (Don, 2026-09-30). Nobody
+// #246 — what one member can read about another (the PM, 2026-09-30). Nobody
 // reads a member's fields, signed in or out: a Page may show its creator's
 // display name and avatar. Nobody sees who follows whom; a Page's owner sees
 // their own Page's followers. Interest tags are not public. A group Page's
@@ -220,7 +220,7 @@ describe.skipIf(!RUNNABLE)('what a member is, to anyone else', () => {
 })
 
 describe.skipIf(!RUNNABLE)("a Page's creator, on that Page", () => {
-  // Don, 2026-09-30: the front door is the same for every Page and shows no
+  // The PM, 2026-09-30: the front door is the same for every Page and shows no
   // founder. A member of the Page sees who founded it, by display name.
   it('names no founder on the front door: signed out, signed in, following, or party to an RSVP', async () => {
     for (const page of [GROUP, PRIV]) {
@@ -283,7 +283,7 @@ describe.skipIf(!RUNNABLE)('the follow graph', () => {
     expect(rows.map((r) => r.member_id)).toEqual([STRANGER])
   })
 
-  // Don, 2026-09-30: nothing is keyed on the kind of Page. A member of a
+  // The PM, 2026-09-30: nothing is keyed on the kind of Page. A member of a
   // business Page reads its roster exactly as a member of a run club does.
   it("any Page's members see each other, the business kind included", async () => {
     const q = `select member_id from public.group_memberships where group_id = $1 order by 1`
@@ -325,7 +325,7 @@ describe.skipIf(!RUNNABLE)('interest tags', () => {
   })
 })
 
-// Don, 2026-09-30: whoever is party to an RSVP sees it. Everyone who RSVP'd
+// The PM, 2026-09-30: whoever is party to an RSVP sees it. Everyone who RSVP'd
 // to a gathering, and its organiser, see the others; a one-on-one, the two
 // parties. Purchases are deferred: nobody buys in the app yet.
 describe.skipIf(!RUNNABLE)('who responded', () => {
@@ -368,7 +368,7 @@ describe.skipIf(!RUNNABLE)('who responded', () => {
   })
 })
 
-// Don, 2026-09-30: party to an RSVP is its own relation, keyed on the post,
+// The PM, 2026-09-30: party to an RSVP is its own relation, keyed on the post,
 // not the Page. It reads the post; it does not make anyone a member.
 describe.skipIf(!RUNNABLE)('party to an RSVP, and not a member', () => {
   it("reads the post they RSVP'd to, on a private Page too", async () => {

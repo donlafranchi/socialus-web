@@ -1,6 +1,6 @@
 'use client'
 
-// #922 (Don, 2026-10-18) — a Page card's quick links, Yelp-style: Directions, Website, Instagram, TikTok when
+// #922 (the PM, 2026-10-18) — a Page card's quick links, Yelp-style: Directions, Website, Instagram, TikTok when
 // the Page has them, as small icons with screen-reader labels and 44px targets. Never on a post. Directions
 // opens Apple Maps on iPhone and iPad, Google Maps elsewhere, and only for a Page at a fixed point.
 

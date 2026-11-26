@@ -11,7 +11,7 @@ export interface TapMeasure {
   readyMs: number | null
 }
 
-/** Consumer: Don's budgets. Creator: patient, so feedback is looser too. */
+/** Consumer: the PM's budgets. Creator: patient, so feedback is looser too. */
 export const BUDGETS = {
   consumer: { feedbackMs: 100, readyMs: 1000 },
   creator: { feedbackMs: 250, readyMs: 2500 },

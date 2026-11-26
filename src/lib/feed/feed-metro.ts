@@ -161,7 +161,7 @@ export function splitByOpen(metros: readonly FeedMetro[]): {
 } {
   return {
     open: metros.filter((m) => m.isOpen),
-    // MOST WANTED FIRST — Don asked for this: "it would be cool to sort those
+    // MOST WANTED FIRST — the PM asked for this: "it would be cool to sort those
     // metros by number of people signed up". It is a demand signal for where to
     // open next, and for a person it answers "is anyone else here?" before they
     // have to tap anything.

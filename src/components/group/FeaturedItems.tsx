@@ -1,6 +1,6 @@
 'use client'
 
-// #909 — a Page's featured products and services (Don, 2026-10-18). Visitors see a tidy grid; the people who
+// #909 — a Page's featured products and services (the PM, 2026-10-18). Visitors see a tidy grid; the people who
 // manage the Page tap one to edit it, or Add, in a sheet: a name and Save is enough. Up to 12.
 
 import { useState } from 'react'

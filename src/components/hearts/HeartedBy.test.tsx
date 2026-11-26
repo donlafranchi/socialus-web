@@ -5,7 +5,7 @@ import { HeartedBy } from './HeartedBy'
 
 afterEach(cleanup)
 
-// #1171 (plan #269, option A, Don 2026-11-02): the poster sees who hearted, by name ("Ana and 4 others"), newest
+// #1171 (plan #269, option A, the PM 2026-11-02): the poster sees who hearted, by name ("Ana and 4 others"), newest
 // first; tapping shows the list. No public count for now: a default, not a ruling, so it is one database switch.
 describe('who hearted', () => {
   it('shows the poster the newest name and how many others, and the list on a tap', () => {

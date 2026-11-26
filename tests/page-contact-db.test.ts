@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// #293 — a Page's business phone and opening hours (Don, 2026-10-01): shown
+// #293 — a Page's business phone and opening hours (the PM, 2026-10-01): shown
 // to signed-in visitors only, never through the front door (F093 criterion 8).
 
 const DATABASE_URL =

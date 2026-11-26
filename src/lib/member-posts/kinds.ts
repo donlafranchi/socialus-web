@@ -1,5 +1,5 @@
-// #1183 — posts from a member without a Page (plan #270, Don ruled B). Three fixed kinds, each with its own life
-// and its one answer. Words are drafts for Don.
+// #1183 — posts from a member without a Page (plan #270, the PM ruled B). Three fixed kinds, each with its own life
+// and its one answer. Words are drafts for the PM.
 
 export const MEMBER_POST_KINDS = ['lost_found', 'free_sale', 'ask'] as const
 export type MemberPostKind = (typeof MEMBER_POST_KINDS)[number]

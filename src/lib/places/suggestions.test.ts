@@ -1,6 +1,6 @@
 // One field for an address, a city, or a neighbourhood.
 //
-// Don's point: typing "Oak Park" should not require knowing which of the three
+// The PM's point: typing "Oak Park" should not require knowing which of the three
 // it is. So one search, one list, every row saying what it is.
 //
 // The half that runs on our own data must keep working when Mapbox does not —

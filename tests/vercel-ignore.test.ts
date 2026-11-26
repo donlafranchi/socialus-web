@@ -10,7 +10,7 @@ const SCRIPT = resolve('scripts/vercel-ignore.mjs')
 type In = { env: Record<string, string>; changed: string[] | null; labels: string[] | null; asked: boolean }
 const v = (o: In) => (decide(o) as [string, string])[0]
 
-describe('Don, 2026-10-05 — no previews until the freeze: PREVIEWS_MODE off by default', () => {
+describe('the PM, 2026-10-05 — no previews until the freeze: PREVIEWS_MODE off by default', () => {
   it('any branch skips, labelled or not, code or docs', () => {
     expect(v({ env: { VERCEL_ENV: 'preview' }, changed: ['src/app/page.tsx'], labels: ['human-review'], asked: true })).toBe('skip')
     expect(v({ env: { VERCEL_ENV: 'preview', PREVIEWS_MODE: 'off' }, changed: ['src/app/page.tsx'], labels: null, asked: false })).toBe('skip')
@@ -20,7 +20,7 @@ describe('Don, 2026-10-05 — no previews until the freeze: PREVIEWS_MODE off by
   })
 })
 
-describe('#394 — PREVIEWS_MODE=labelled: previews only for labelled PRs (Don ruled C, 2026-10-05)', () => {
+describe('#394 — PREVIEWS_MODE=labelled: previews only for labelled PRs (the PM ruled C, 2026-10-05)', () => {
   const preview = { VERCEL_ENV: 'preview', PREVIEWS_MODE: 'labelled' }
   const code = ['src/app/page.tsx']
 

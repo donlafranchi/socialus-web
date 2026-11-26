@@ -1,19 +1,19 @@
-# Research brief: an agent-driven SocialUs and generative UI (Don, 2026-11-18)
+# Research brief: an agent-driven SocialUs and generative UI (the PM, 2026-11-18)
 
 For Claude Desktop Projects doing research. No code access is assumed; this is what is built, how it is built, and what to find out. Facts below were read from the `socialus-web` code on 2026-11-18; anything marked *(unverified)* was not.
 
 ## What we want from you
-- **Output:** options as A/B/C, each with 2–3 named precedents with links, trade-offs in one line each, and one recommendation. That is how Don decides (his rule: he sets direction, you research, he decides).
-- **Not wanted:** an implementation plan, tickets, or code. Don is product manager and does not read code.
+- **Output:** options as A/B/C, each with 2–3 named precedents with links, trade-offs in one line each, and one recommendation. That is how the PM decides (his rule: he sets direction, you research, he decides).
+- **Not wanted:** an implementation plan, tickets, or code. The PM is product manager and does not read code.
 - **Say what you verified versus assumed**, and date your sources; this field moves monthly.
 
-## The direction (Don's words, condensed)
+## The direction (the PM's words, condensed)
 - SocialUs becomes **agent/assistant driven: agents work on behalf of the user.**
-- Don does not want to decide how the app's UI/UX is "organized"; **each user should interact however suits them** (chat, voice, browsing, a dashboard they shape).
+- The PM does not want to decide how the app's UI/UX is "organized"; **each user should interact however suits them** (chat, voice, browsing, a dashboard they shape).
 - He is **not sure "Generative UI" means that.** Part of your job is to say what the term covers (CopilotKit's "generative UI spectrum": https://www.copilotkit.ai/generative-ui-spectrum *(not yet read by us)*) and what it does not.
 
 ## What SocialUs is
-- **Two things:** local discovery, and an engine for cooperation, collaboration and community development. Discovery is the way in; bringing things to life together is where it is headed (Don, ruled 2026-11-15, `socialus-plan` `PRINCIPLES.md` § two-halves, also `product/charter.md`).
+- **Two things:** local discovery, and an engine for cooperation, collaboration and community development. Discovery is the way in; bringing things to life together is where it is headed (the PM, ruled 2026-11-15, `socialus-plan` `PRINCIPLES.md` § two-halves, also `product/charter.md`).
 - **Theme: "Bring it to life."** Search is the main way it happens: an unmet search becomes an ask, a welcome, a maker partnership (`socialus-plan` `planning/briefs/hyper-specific-search-2026-11-15.md`).
 - In practice today: a map and search over local people, Pages and posts; buy, sell, trade, teach, gather, hire, give; one metro first. Nobody uses production yet.
 - Money and help stay with local people; businesses are one kind of local among many.
@@ -32,14 +32,14 @@ For Claude Desktop Projects doing research. No code access is assumed; this is w
 - **Database:** ~170 migrations. Seed data bypasses RLS, so Pages made by real handlers are the real test.
 
 ## How we build (so your options fit)
-- **Roles:** Don is product manager (rulings, judgment on whether something is *right*); a planning agent owns scenarios and rulings (repo `socialus-plan`); a build agent owns the code (`socialus-web`). Method lives in `socialus-ops`.
+- **Roles:** the PM is product manager (rulings, judgment on whether something is *right*); a planning agent owns scenarios and rulings (repo `socialus-plan`); a build agent owns the code (`socialus-web`). Method lives in `socialus-ops`.
 - **Work kinds:** scenario (has pass/fail acceptance checks), change, bug, process, chore. One branch and one PR per ticket; PRs merge themselves when checks are green; merging to main deploys to production.
 - **Tests:** Vitest unit tests, Playwright journeys and evals, an action-layer conformance check, the visibility matrix, mutation testing (Stryker), speed budgets and a load run. A check counts only after it has been seen failing.
-- **Review:** a second session reviews any change to UI, actions or the database. Don reviews on the live site, not the code.
-- **Rule of thumb for anything new:** look at what established platforms do (2–3 precedents), pick the simplest fit; if it touches money, legal or privacy exposure, or member trust it is "new territory" and goes to Don as A/B/C **before** building. **An agent acting for a member touches member trust, so this whole topic is new territory.**
+- **Review:** a second session reviews any change to UI, actions or the database. The PM reviews on the live site, not the code.
+- **Rule of thumb for anything new:** look at what established platforms do (2–3 precedents), pick the simplest fit; if it touches money, legal or privacy exposure, or member trust it is "new territory" and goes to the PM as A/B/C **before** building. **An agent acting for a member touches member trust, so this whole topic is new territory.**
 - **Pace:** good enough under the deadline, not the best possible. Prefer an option that ships behind a flag in weeks over one that rebuilds the app.
 
-## Not in this brief (ask Don, don't guess)
+## Not in this brief (ask the PM, don't guess)
 - The product's soul and never-break rules (`socialus-plan` `PRINCIPLES.md`, `product/ABSOLUTES.md`). Any option must be checked against them; this repo's session could not read that repo.
 - Legal, payments, and money rules.
 

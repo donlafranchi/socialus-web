@@ -15,7 +15,7 @@
 // unreliable partly because a green every morning is indistinguishable from a
 // job that did not run. This prints nothing and exits 0 when there is no drift;
 // when there IS drift it prints the lists and exits 1, which is what turns the
-// workflow red and reaches Don.
+// workflow red and reaches the PM.
 //
 // List 1 is EXPECTED to be non-empty today: most handlers do not create a
 // relationship, and object types are deliberately deferred. It is reported as

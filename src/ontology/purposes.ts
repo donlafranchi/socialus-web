@@ -1,4 +1,4 @@
-// A Page's PURPOSE — what it mainly accomplishes (Don ruled A, 2026-10-05:
+// A Page's PURPOSE — what it mainly accomplishes (the PM ruled A, 2026-10-05:
 // purpose first, type for listing). Not a noun and not a column list: each
 // value points at the loops in socialus-plan product/needs/member-journey.md
 // it serves, so the purpose a Page is given stays tied to what a member does

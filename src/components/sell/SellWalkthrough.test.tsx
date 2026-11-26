@@ -115,7 +115,7 @@ describe('SellWalkthrough — the question comes first', () => {
     expect(progress).toHaveAttribute('aria-valuemax', '6')
   })
 
-  it('offers exactly the three Don named, none pre-selected', () => {
+  it('offers exactly the three the PM named, none pre-selected', () => {
     setup()
     const radios = screen.getAllByRole('radio')
     expect(radios).toHaveLength(3)
@@ -301,7 +301,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
     fireEvent.change(screen.getByTestId('sell-tag-input'), { target: { value } })
 
   it('prompts with farmers market examples rather than explaining what a tag is', async () => {
-    // Don's call: a creator knows what they offer and most already market
+    // The PM's call: a creator knows what they offer and most already market
     // elsewhere, so the register is the prompt. Examples are a placeholder,
     // never a default — nothing is prefilled and nothing is submitted.
     setup()
@@ -457,7 +457,7 @@ describe('SellWalkthrough — step 4 About (optional)', () => {
   })
 })
 
-// #110 — the Locality step is gone. Don ruled business fields out of Page
+// #110 — the Locality step is gone. The PM ruled business fields out of Page
 // creation; DECISIONS.md 2026-09-07 already said creation carries "no ZIP
 // prompt". The step was UI-only (onAdvance returned early, the ZIP was
 // discarded), so nothing it did is lost. Its tests go with it rather than

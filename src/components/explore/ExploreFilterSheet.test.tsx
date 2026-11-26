@@ -44,7 +44,7 @@ describe('T156 — what the sheet holds, and what it no longer does', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  // #876 (Don, 2026-10-16): "Target by type or category or date."
+  // #876 (the PM, 2026-10-16): "Target by type or category or date."
   it('holds three groups: Type, Category and Date', () => {
     renderSheet()
     for (const g of ['Type', 'Category', 'Date']) expect(within(sheet()).getByRole('group', { name: g })).toBeInTheDocument()

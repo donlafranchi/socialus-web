@@ -93,7 +93,7 @@ describe('completeOnboardingAction', () => {
     expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA', town: 'yuba' } })
   })
 
-  // Don, 2026-10-27 (web #1093): Open your town is flagged off until after soft launch; ring-county zips take the plain waiting path.
+  // The PM, 2026-10-27 (web #1093): Open your town is flagged off until after soft launch; ring-county zips take the plain waiting path.
   it('with Open your town off, a ring-county zip gets no town page, even when a town row exists', async () => {
     marketForZip.mockResolvedValue({ key: 'county-06115', name: 'Yuba County, CA', open: false, metroId: 'metro-yuba' })
     townRow.mockResolvedValue({ data: { slug: 'yuba' } })

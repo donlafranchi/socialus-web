@@ -1,7 +1,7 @@
 // `/` is the signed-out front door (2026-10-26). A signed-in member never sees
 // it: the proxy sends them to Explore, so this page reads no session and stays
-// static. Look: Don's concept (2026-10-31) — warm off-white, terracotta, sage,
-// a dark footer — set in Family Type's Aime, Don's pick (2026-10-31).
+// static. Look: the PM's concept (2026-10-31) — warm off-white, terracotta, sage,
+// a dark footer — set in Family Type's Aime, the PM's pick (2026-10-31).
 
 import Link from 'next/link'
 import { ART, CONSENT_LINE, HOME, HOME_TODO, JOIN_HREF } from '@/lib/home-landing'
@@ -135,7 +135,7 @@ export default function HomeLanding() {
             <Link href={CTA.href} className={`${BTN} mt-8 bg-white px-8 text-lede text-[var(--color-clay)] hover:bg-[var(--color-paper)]`}>
               {CTA.label}
             </Link>
-            {/* TODO(Don): consent line pending its final wording (see CONSENT_LINE). */}
+            {/* TODO(the PM): consent line pending its final wording (see CONSENT_LINE). */}
             {CONSENT_LINE && <p className="mt-4 text-body-sm text-[var(--color-paper)]">{CONSENT_LINE}</p>}
           </div>
         </section>

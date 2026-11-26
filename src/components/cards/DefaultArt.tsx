@@ -1,6 +1,6 @@
 // #299 — the art a card shows when there is no photo: its kind's icon in gold
 // on the navy frame (the design language's default-art rule, in the Anodised
-// palette). Per kind, the same for every Page of that kind (Don, 2026-10-01,
+// palette). Per kind, the same for every Page of that kind (the PM, 2026-10-01,
 // which replaced art derived from a Page's id). No emoji.
 
 import { Store, Wrench, Users } from 'lucide-react'

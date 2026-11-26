@@ -1,4 +1,4 @@
-// #1171 (socialus-plan #269, Don 2026-11-02) — a heart and a save, as separate things.
+// #1171 (socialus-plan #269, the PM 2026-11-02) — a heart and a save, as separate things.
 //   member.heart.set   ♡ on a post or a Page. The Page's managers see who, by name (heart_view); it subscribes no one.
 //   member.save.set    keep a post for later, on You's Saved list. Private.
 // Both toggle and are idempotent. Only a real, live post or Page the member may see; never a sample.

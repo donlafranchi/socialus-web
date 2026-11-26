@@ -13,7 +13,7 @@ const post = (over: Partial<SavedPost>): SavedPost => ({
 })
 const remind = { set: vi.fn(async () => ({ ok: true as const, reminderId: 'r' })), remove: vi.fn(async () => ({ ok: true })) }
 
-// #1171 (plan #269, Don 2026-11-02) — saved posts: upcoming first with Remind me; past ones at the end.
+// #1171 (plan #269, the PM 2026-11-02) — saved posts: upcoming first with Remind me; past ones at the end.
 describe('the Saved list', () => {
   it('offers Remind me on an upcoming dated post only, and drops past ones to the end under their own heading', () => {
     render(

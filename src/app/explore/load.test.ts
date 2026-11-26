@@ -374,7 +374,7 @@ describe('#796 — the first look', () => {
 })
 
 
-// #876 (Don, 2026-10-16, on #796): "We should mix everything on explore. Even updates from people you follow."
+// #876 (the PM, 2026-10-16, on #796): "We should mix everything on explore. Even updates from people you follow."
 describe('#876 — the default mixes everything', () => {
   const row = (kind: 'page' | 'post', id: string, groupId = `g-${id}`, at = '2026-10-15T00:00:00Z') =>
     ({ resultKind: kind, resultId: id, groupId, sortAt: at, postedAt: at, pageCreatedAt: at, startsAt: null, tags: [] })

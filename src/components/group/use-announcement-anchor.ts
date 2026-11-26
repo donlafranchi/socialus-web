@@ -14,7 +14,7 @@ import { announcementAnchor, announcementIdFromHash } from './announcement-ancho
  *
  * Returns the id to mark, or null.
  */
-/** `focusId` — the post a post's own address names (Don, 2026-10-31); a fragment still wins. */
+/** `focusId` — the post a post's own address names (the PM, 2026-10-31); a fragment still wins. */
 export function useAnnouncementAnchor(key?: unknown, focusId?: string | null): string | null {
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const arrived = useRef(false)

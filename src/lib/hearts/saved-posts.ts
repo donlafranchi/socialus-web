@@ -1,4 +1,4 @@
-// #1171 (socialus-plan #269, Don 2026-11-02) — the member's saved posts, for the Saved list on You. Runs as the member:
+// #1171 (socialus-plan #269, the PM 2026-11-02) — the member's saved posts, for the Saved list on You. Runs as the member:
 // saves are their own rows, and RLS on page_posts drops anything they can no longer see (deleted, hidden, a Page gone).
 
 import type { SupabaseClient } from '@supabase/supabase-js'

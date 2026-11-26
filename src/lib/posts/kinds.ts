@@ -1,4 +1,4 @@
-// plan #230 (Don, 2026-10-31) — what a post is, picked first. One home for the kind list, its words, which
+// plan #230 (the PM, 2026-10-31) — what a post is, picked first. One home for the kind list, its words, which
 // kinds need a date, and how long each stays current (post_current_until in the database is the enforcing copy).
 
 export const POST_KINDS = ['event', 'sale', 'limited', 'reminder', 'news', 'wonder', 'hiring'] as const

@@ -1,4 +1,4 @@
-// #640 (F100.11, the PM's call C, 2026-10-11) — for beta the live flip is Don's own checklist, with the
+// #640 (F100.11, the PM's call C, 2026-10-11) — for beta the live flip is the PM's own checklist, with the
 // numbers shown to him: each against its target, green / amber / red, and one "ready to go live" light.
 // Before production the software refuses the flip (a later step); this is the numbers.
 

@@ -1,5 +1,5 @@
 // F080 criterion 5 — wherever a member posts, the app asks them, for safety
-// reasons, to post nothing sensitive. The words are Don's, in src/lib/copy.ts.
+// reasons, to post nothing sensitive. The words are the PM's, in src/lib/copy.ts.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
@@ -56,7 +56,7 @@ describe('F080 — the safety message where a member posts', () => {
   const postProps = { groupId: 'g1', posts: [], followerCount: 0, onPost: asyncNoop, onEdit: asyncNoop,
     onCreateLocation: asyncNoop }
 
-  it("is Don's short placeholder at posting, word for word", () => {
+  it("is the PM's short placeholder at posting, word for word", () => {
     expect(COPY.postingSafety).toBe(
       "Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves."
     )

@@ -24,7 +24,7 @@ export async function geocode(query: string): Promise<GeocodingResult[]> {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
   if (!query.trim()) return []
   // #348 — no Mapbox key (a preview) or a refused one: the free Census lookup
-  // answers instead, for complete addresses. The provider is Don's call (A/B/C
+  // answers instead, for complete addresses. The provider is the PM's call (A/B/C
   // on #348); this function is the one place that changes.
   if (!token) return censusGeocodeAction(query)
 

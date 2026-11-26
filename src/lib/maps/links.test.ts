@@ -34,7 +34,7 @@ describe('mapsLinks — a place found by words only', () => {
   })
 })
 
-// #936 — Don, 2026-10-18: Open in Maps went to the town, not the business. Name plus full street address.
+// #936 — the PM, 2026-10-18: Open in Maps went to the town, not the business. Name plus full street address.
 describe('mapsLinks — a business by name and street address', () => {
   const vino = { name: 'Vino Tahoe', label: '15010 Ridge Road, Sutter Creek, CA', lng: -120.8401, lat: 38.3655, exact: true }
   it('Apple Maps: the name, at its address; directions to the address', () => {

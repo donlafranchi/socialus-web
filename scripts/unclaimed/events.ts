@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-// #997 (Don, 2026-10-22) — each venue Page's real shows, read daily from the venue's OWN events page or feed (never an
+// #997 (the PM, 2026-10-22) — each venue Page's real shows, read daily from the venue's OWN events page or feed (never an
 // aggregator), posted as dated posts for the next 60 days; over, cancelled and dropped shows come off.
 //
 //   tsx scripts/unclaimed/events.ts            reads every venue and prints what it found (writes nothing)

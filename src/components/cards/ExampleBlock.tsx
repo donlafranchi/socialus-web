@@ -2,7 +2,7 @@
 
 // The bounded block that example cards live in, and the reason they are safe.
 //
-// Ruled by Don, 2026-09-17. Three rules, and each answers a specific way a
+// Ruled by the PM, 2026-09-17. Three rules, and each answers a specific way a
 // reasonable person would otherwise be misled:
 //
 //   · ITS OWN BLOCK, never the results grid. A stranger scrolling reads shapes,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { stylePin, styleCluster, styleTeardrop, styleAreaMarker } from './map-pins'
 
-describe('Don, 2026-10-05 — one marker style, from the tokens', () => {
+describe('the PM, 2026-10-05 — one marker style, from the tokens', () => {
   it('a pin is navy with a white edge', () => {
     const el = document.createElement('div')
     stylePin(el)

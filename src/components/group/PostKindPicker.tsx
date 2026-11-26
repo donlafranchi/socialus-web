@@ -1,6 +1,6 @@
 'use client'
 
-// plan #230 (Don, 2026-10-31) — the kind is picked first. A radio list set in type, two columns on a phone,
+// plan #230 (the PM, 2026-10-31) — the kind is picked first. A radio list set in type, two columns on a phone,
 // with the picked kind's one-line hint beneath: no chips. Draft copy (human-review).
 import { POST_KINDS, POST_KIND_HINT, POST_KIND_WORD, type PostKind } from '@/lib/posts/kinds'
 

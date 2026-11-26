@@ -1,4 +1,4 @@
-// #922 (Don, 2026-10-18) — how far Explore reaches. The database picks the smallest 15-minute ring holding a
+// #922 (the PM, 2026-10-18) — how far Explore reaches. The database picks the smallest 15-minute ring holding a
 // full screen (browse_nearby); these are the member's choices on top of it and the line that says which one.
 
 /** The rings, in minutes' drive. The last is the cap the widening stops at. */

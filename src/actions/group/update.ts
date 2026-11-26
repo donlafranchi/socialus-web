@@ -1,6 +1,6 @@
 // group.update — the owner edits a Page that is already live.
 //
-// Don, 2026-09-18: "There is no way to edit a Page." Correct, and this is why:
+// The PM, 2026-09-18: "There is no way to edit a Page." Correct, and this is why:
 // `group.update_draft` refuses any row whose lifecycle_state is not 'draft'.
 // Every Page a member has finished creating is 'active', so the only update
 // handler in the project rejected it by design. Nothing he made was changeable.
@@ -59,10 +59,10 @@ export const groupUpdateInput = z.object({
   // #293 — shown to signed-in visitors only. Null clears either.
   contactPhone: z.string().max(40).nullable().optional(),
   openingHours: z.unknown().optional(),
-  // #285 — the whole set, replacing the old one (Don, 2026-10-01: editable any time).
+  // #285 — the whole set, replacing the old one (the PM, 2026-10-01: editable any time).
   tags: labelsInput,
   labelsPinned: labelsPinnedInput,
-  // Don, 2026-10-04 — hours and phone as a component: on by default for
+  // The PM, 2026-10-04 — hours and phone as a component: on by default for
   // shops and services, off for groups until the owner adds them.
   contactComponent: z.boolean().optional(),
   // #363 — Products & services, on by default for a business; any Page may add it.

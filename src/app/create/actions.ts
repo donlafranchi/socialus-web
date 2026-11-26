@@ -10,7 +10,7 @@ import { groupActivate, groupCreate, ActionError } from '@/actions'
 import { canonicalPagePath, pagePath } from '@/lib/groups/page-handle'
 import { PURPOSES, TYPE_FOR_PURPOSE, type Purpose } from '@/lib/groups/page-kind'
 
-// #363 — Create's answer is the Page's purpose; its type follows (Don, 2026-10-05).
+// #363 — Create's answer is the Page's purpose; its type follows (the PM, 2026-10-05).
 export async function startDraftAction(purpose: Purpose): Promise<void> {
   if (!PURPOSES.includes(purpose)) throw new Error('Choose what you are starting.')
   const supabase = await createClient()

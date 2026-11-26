@@ -178,7 +178,7 @@ export function SellWalkthrough({
   // Step definitions — kept inline so the captures (handlers above) bind
   // cleanly. The composer is generic over S; we instantiate with our state.
   const steps: StepDef<SellWalkthroughState>[] = [
-    // F087 — the question comes first. Don's words, 2026-09-15.
+    // F087 — the question comes first. The PM's words, 2026-09-15.
     // Nothing is pre-selected: F087 criterion 2, and the same reason the
     // metro step pre-selects nothing. A default here is an assumption about
     // what someone is making, which is the assumption this step removes.

@@ -2,7 +2,7 @@
 
 // What the owner sees on their own Page, and nobody else does.
 //
-// Don, 2026-09-18: opening their page should open another surface where these
+// The PM, 2026-09-18: opening their page should open another surface where these
 // things can be changed and where their tools become available.
 //
 // SERVER-SIDE, NOT A HIDDEN BUTTON. `viewerOwnsPage` is resolved on the server
@@ -13,7 +13,7 @@
 //
 // It sits at the top of the Page rather than in the ⋯ menu. The owner's own
 // Page is the one place these belong in plain sight; burying "edit" in an
-// overflow menu is how Don came to say there was no way to edit a Page.
+// overflow menu is how the PM came to say there was no way to edit a Page.
 
 import Link from 'next/link'
 import { Megaphone } from 'lucide-react'

@@ -66,7 +66,7 @@ describe('a status is checked, not asserted', () => {
 })
 
 describe('a relation to a Page is not a kind of person', () => {
-  // Don, 2026-09-19: "Person" is rejected as a noun, and creator, organizer,
+  // The PM, 2026-09-19: "Person" is rejected as a noun, and creator, organizer,
   // follower and patron are relations rather than object types. nouns.md says
   // the same thing from the other side — a Member has "no type, tier, or
   // stored role". Adding one of these here turns a relation into an identity.
@@ -78,7 +78,7 @@ describe('a relation to a Page is not a kind of person', () => {
   })
 
   it('the authority relation is a link, and a different one from founding', () => {
-    // Creator/organizer is the exception Don called out: authority, not
+    // Creator/organizer is the exception the PM called out: authority, not
     // attachment. It must not collapse into the founder link.
     const runs = LINK_TYPES.find((l) => l.name === 'a Member runs a Page')
     const owns = LINK_TYPES.find((l) => l.name === 'a Member owns a Page')

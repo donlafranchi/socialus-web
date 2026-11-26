@@ -1,4 +1,4 @@
-// #951 — Don, 2026-10-18 [always]: no chip or pill UI anywhere; typography,
+// #951 — the PM, 2026-10-18 [always]: no chip or pill UI anywhere; typography,
 // spacing and quiet text links instead. This scans the UI source so a new chip
 // fails CI instead of shipping. Round icon buttons, avatars, dots, switches,
 // toasts and real full-width or button-sized actions are not chips.
@@ -54,7 +54,7 @@ export function chipFindings(path: string, src: string): string[] {
   return out
 }
 
-describe('no chip or pill UI (#951, Don 2026-10-18 [always])', () => {
+describe('no chip or pill UI (#951, the PM 2026-10-18 [always])', () => {
   it('finds no chip pattern in src/components or src/app', () => {
     const found = DIRS.flatMap((d) => files(join(ROOT, d)))
       .map((p) => relative(ROOT, p))

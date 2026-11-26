@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       # The Path: checker lives in the repo so it can prove itself on fixtures
-      # before it judges a body ([guard-proves-itself]). Don's decision rule, 2026-10-04.
+      # before it judges a body ([guard-proves-itself]). The PM's decision rule, 2026-10-04.
       - uses: actions/checkout@v5
         with:
           sparse-checkout: scripts

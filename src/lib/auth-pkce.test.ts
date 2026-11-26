@@ -9,7 +9,7 @@
 // So this asserts the thing the server actually checks, against the real
 // client from `@/lib/supabase` with only `fetch` stubbed — not a mock of the
 // auth layer. A library upgrade that regressed the encoding, or a config
-// change that switched the flow, fails here instead of at Don's phone.
+// change that switched the flow, fails here instead of at the PM's phone.
 //
 // The rule is GoTrue's, copied from supabase/auth internal/api/pkce.go:
 //     var codeChallengePattern = regexp.MustCompile("^[a-zA-Z._~0-9-]+$")

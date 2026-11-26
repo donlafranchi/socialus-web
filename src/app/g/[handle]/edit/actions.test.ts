@@ -2,7 +2,7 @@
 //
 // A server action that throws is redacted by Next in production to "An error
 // occurred in the Server Components render…" plus a digest, whatever it said.
-// That is what Don saw. So the action returns its failure instead of throwing.
+// That is what the PM saw. So the action returns its failure instead of throwing.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ActionError } from '@/actions/_lib/errors'

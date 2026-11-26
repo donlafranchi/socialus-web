@@ -1,5 +1,5 @@
 // #544 — the four starter numbers for the Sacramento metro, this week beside
-// last week. Plain numbers (Don, 2026-10-09): real counts, no suppression, and
+// last week. Plain numbers (the PM, 2026-10-09): real counts, no suppression, and
 // nothing about any one member. Connection here is follow or join, a proxy.
 
 export interface WeekRow {

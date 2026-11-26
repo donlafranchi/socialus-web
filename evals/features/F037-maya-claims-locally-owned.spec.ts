@@ -135,7 +135,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await page.getByTestId("claim-submit").click();
     await settled(page);
 
-    // Don, 2026-10-16: local is the owner's claim for now, never distance.
+    // The PM, 2026-10-16: local is the owner's claim for now, never distance.
     await expect(page.getByTestId("claim-not-proximal")).toHaveCount(0);
     await expect(page.getByTestId("local-owner-badge")).toBeVisible();
   });

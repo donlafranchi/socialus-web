@@ -177,7 +177,7 @@ describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
 })
 
 describe('ShopPublicPage — Beat 3 (items)', () => {
-  // #909 (Don, 2026-10-18) — empty, the section is hidden from visitors and is the owner's prompt.
+  // #909 (the PM, 2026-10-18) — empty, the section is hidden from visitors and is the owner's prompt.
   it('hides an empty section from a visitor', () => {
     renderShop({ items: [], loggedIn: true })
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
@@ -229,7 +229,7 @@ describe('ShopPublicPage — Beat 6 (draft owner preview)', () => {
 // itself: a signed-out viewer gets a way in, a signed-in one gets the control.
 // The control's own behaviour is covered in FollowPageButton.test.tsx.
 
-// #1171 (plan #269, Don 2026-11-02): Follow becomes "Get updates", a quiet option in the Page's ⋯ menu.
+// #1171 (plan #269, the PM 2026-11-02): Follow becomes "Get updates", a quiet option in the Page's ⋯ menu.
 describe('F035 Beats 4 & 5 — Get updates is in the ⋯ for both viewers', () => {
   const getUpdates = () => {
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
@@ -536,7 +536,7 @@ describe('#348 — where it is, under the location', () => {
   })
 })
 
-// Don, 2026-10-05: the local-owner badge and its question belong to business
+// The PM, 2026-10-05: the local-owner badge and its question belong to business
 // kinds (shop, service), never to social groups.
 describe('Locally owned is for businesses only', () => {
   const badge = { label: 'Locally owned' } as never
@@ -817,7 +817,7 @@ describe('#896 — the Location map', () => {
 
   // Privacy: a Page that shares only an area, or that moves, never puts its
   // exact point or address anywhere in what the visitor's browser receives.
-  // Don, 2026-10-18: "area only doesn't need a map to open but does need some kind of indicator about where it's at".
+  // The PM, 2026-10-18: "area only doesn't need a map to open but does need some kind of indicator about where it's at".
   it('an area-only Page: no map, a plain line saying where, never its point', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
     const { container } = renderShop({ shop: { ...SHOP, placements: [area] }, loggedIn: true, where: visit })
@@ -910,7 +910,7 @@ describe('#896 — Contact holds website, phone and socials', () => {
   })
 })
 
-// Don, 2026-10-18 [always]: no chip or pill UI — typography, spacing and quiet text links.
+// The PM, 2026-10-18 [always]: no chip or pill UI — typography, spacing and quiet text links.
 describe('#896 — Location, Contact and Tags carry no chips or pills', () => {
   it('nothing rounded-full or button-styled in those sections', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
@@ -1083,7 +1083,7 @@ describe('F056 criterion 5 — every optional field empty', () => {
   })
 })
 
-// plan #230 (Don, 10-31) — Facebook's Page: the posts are the body; the business info sits in a
+// plan #230 (the PM, 10-31) — Facebook's Page: the posts are the body; the business info sits in a
 // right column on a laptop and behind a quiet About on a phone.
 describe('plan #230 — posts are the Page, the info is on the side', () => {
   const full = {
@@ -1128,7 +1128,7 @@ describe('plan #230 — posts are the Page, the info is on the side', () => {
   })
 })
 
-// #1171 (plan #269, Don 2026-11-02, option A) — ♡ on the Page; its managers see who, by name; nobody else does.
+// #1171 (plan #269, the PM 2026-11-02, option A) — ♡ on the Page; its managers see who, by name; nobody else does.
 describe('#1171 — hearts on the Page', () => {
   it('a visitor can heart the Page; its owner cannot heart their own', () => {
     act(() => resetMarks({ signedIn: true }))

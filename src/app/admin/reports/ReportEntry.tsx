@@ -2,7 +2,7 @@
 
 // One report, decided on a phone.
 //
-// TWO BUTTONS, BOTH PRESENT (Don, 2026-09-17). Not one button with a mode, not
+// TWO BUTTONS, BOTH PRESENT (the PM, 2026-09-17). Not one button with a mode, not
 // a menu. The fast path is choosing between two visible options, each opening
 // its own short list of preset reasons — one tap to pick the outcome, one to
 // pick the reason. Free text exists for the case that does not fit and is the
@@ -90,7 +90,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
     >
       <div>
         <p className="text-sm font-semibold text-[var(--color-fg)]">{report.groupName}</p>
-        {/* Who posted it. Don's ruling of 2026-09-17: content posted to the
+        {/* Who posted it. The PM's ruling of 2026-09-17: content posted to the
             platform is subject to review by the platform. Display name and
             handle — there is no legal_name column. */}
         <p className="text-xs text-[var(--color-fg-muted)]">

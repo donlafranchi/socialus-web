@@ -2,7 +2,7 @@
 
 // A card that shows the SHAPE of the idea without claiming a Page exists.
 //
-// Ruled by Don, 2026-09-17: sample cards carry a mark. The reasoning worth not
+// Ruled by the PM, 2026-09-17: sample cards carry a mark. The reasoning worth not
 // relitigating is why the mark alone is not enough — **a stranger scrolling
 // reads shapes, not badges.** Someone skimming a screen registers "cards of
 // local businesses" long before they read any label on one, and by then they

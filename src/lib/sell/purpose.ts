@@ -1,10 +1,10 @@
 // F087 (draft) — the create flow asks what you are making before anything else.
 //
-// Don's words, 2026-09-15: "What are we creating? Are you opening up a shop,
+// The PM's words, 2026-09-15: "What are we creating? Are you opening up a shop,
 // or are you offering a service, or are you creating a group for meetup?"
 //
 // Underneath, all three make a Page. **The person never sees the word Page** —
-// Don ruled that directly. `nouns.md` keeps Page as the name the docs and the
+// The PM ruled that directly. `nouns.md` keeps Page as the name the docs and the
 // code check each other against; this file is the layer that turns it back
 // into the words someone actually used when they answered the question.
 //
@@ -23,7 +23,7 @@ export const PURPOSES = ['shop', 'service', 'group'] as const
 export type Purpose = (typeof PURPOSES)[number]
 
 interface PurposeCopy {
-  /** The answer, as the person picks it. Don's phrasing. */
+  /** The answer, as the person picks it. The PM's phrasing. */
   choice: string
   /** The noun that replaces "shop" everywhere downstream. */
   noun: string

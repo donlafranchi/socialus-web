@@ -1,4 +1,4 @@
-// #945 (Don, 2026-10-18) — Remind me on a dated post.
+// #945 (the PM, 2026-10-18) — Remind me on a dated post.
 //   member.reminder.set              this one, or every time for a post that repeats. Idempotent.
 //   member.reminder.remove           only by its member.
 //   member.reminder.every_for_page   following a Page that repeats: every time, for each of its series, in one tap;

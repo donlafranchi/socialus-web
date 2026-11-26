@@ -1,7 +1,7 @@
 // Bug #69 — the callback path, which had no test at all.
 //
 // This is where a magic link lands and where the PKCE code verifier is
-// consumed. Don hit "PKCE code verifier not found in storage" here, and the
+// consumed. The PM hit "PKCE code verifier not found in storage" here, and the
 // suite was green: nothing covered this file, nothing covered `useAuth`,
 // `SignInForm`, `lib/supabase.ts` or `proxy.ts`.
 //
@@ -10,7 +10,7 @@
 //   1. The route builds its client through `@/lib/supabase-server`, which is
 //      `createServerClient` with the cookie adapter. The verifier is written
 //      as a cookie by the browser client, so a raw `supabase-js` client here
-//      reads no cookies and every exchange fails with exactly the error Don
+//      reads no cookies and every exchange fails with exactly the error the PM
 //      saw. That swap is one import line and looks harmless in review.
 //
 //   2. The `token_hash` branch still works and still takes its type off the
@@ -64,7 +64,7 @@ describe('bug #69 — auth callback', () => {
   })
 
   it('surfaces a failed exchange on the login page instead of a blank screen', async () => {
-    // This is the exact failure Don met. The member must land somewhere that
+    // This is the exact failure the PM met. The member must land somewhere that
     // explains itself and lets them ask for another link.
     exchangeCodeForSession.mockResolvedValue({
       error: { message: 'PKCE code verifier not found in storage.' },

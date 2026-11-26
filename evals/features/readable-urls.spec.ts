@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { seedF035Fixture, SHOP, DRAFT_SHOP } from "../fixtures/F035-shop";
 
-// #1139 (Don, 2026-11-01) — a Page lives at /<place>-<st>/<page-slug>. The F035 Shop is pinned downtown Sacramento,
+// #1139 (the PM, 2026-11-01) — a Page lives at /<place>-<st>/<page-slug>. The F035 Shop is pinned downtown Sacramento,
 // so its address is /sacramento-ca/oak-park-sourdough (with a suffix when another fixture's Page took the name first);
 // its old /g/<id> link forwards there with a 301.
 

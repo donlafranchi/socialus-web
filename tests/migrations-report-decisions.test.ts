@@ -1,5 +1,5 @@
 // The reversible-decisions migration. Asserted against the file, because the
-// shape is the thing being reviewed and it must not drift after Don applies it.
+// shape is the thing being reviewed and it must not drift after the PM applies it.
 
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'

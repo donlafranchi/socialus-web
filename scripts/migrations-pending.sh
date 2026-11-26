@@ -80,7 +80,7 @@ echo "and a migration under review lives on its branch until the PR merges."
 echo
 
 # Newest first, and capped. 43 remote branches is a wall of text, and the one
-# Don wants is nearly always the branch of the PR he just read — which is the
+# The PM wants is nearly always the branch of the PR he just read — which is the
 # most recently pushed. A wall he scrolls past is the same as no message.
 found=""
 shown=0

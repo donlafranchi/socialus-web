@@ -19,7 +19,7 @@ export function PageContactBlock({
   contact: PageContact | null
   links?: ContactLinks
   now?: Date
-  /** Off by the hours flag (Don, 2026-10-05); on only where it's turned on. */
+  /** Off by the hours flag (the PM, 2026-10-05); on only where it's turned on. */
   showHours?: boolean
 }) {
   const hours = showHours ? (contact?.hours ?? null) : null

@@ -3,12 +3,12 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// #280 — Don, 2026-10-01: builder accounts on the live app. Nothing a builder
+// #280 — the PM, 2026-10-01: builder accounts on the live app. Nothing a builder
 // makes shows to a real member or counts in a number; builders see each
 // other's. Enforced in SQL, so every door (Explore, search, the map, the
 // signed-out front door, PostgREST, crawlers) answers the same way.
 //
-// #388 — Don, 2026-10-05: a switch, "builder content visible to members", on
+// #388 — the PM, 2026-10-05: a switch, "builder content visible to members", on
 // by default in beta. Off, everything above holds; on, builder content shows,
 // and a builder's follows, joins and RSVPs still never count. The switch is
 // flipped inside each query's own transaction, so parallel suites never see it.

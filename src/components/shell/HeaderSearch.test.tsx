@@ -33,7 +33,7 @@ const onExplore = (initial = '') =>
   )
 const open = () => fireEvent.click(screen.getByTestId('search-pill'))
 
-describe('HeaderSearch (Airbnb-style, Don 2026-11-01)', () => {
+describe('HeaderSearch (Airbnb-style, the PM 2026-11-01)', () => {
   it('idle, the pill reads what, where and when', () => {
     onExplore('bakery today')
     const pill = screen.getByTestId('search-pill')

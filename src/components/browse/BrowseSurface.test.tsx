@@ -298,7 +298,7 @@ describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
     expect(screen.queryByTestId('browse-following')).not.toBeInTheDocument()
   })
 
-  // #876 (Don, 2026-10-16) — no separate row: the loader mixes the followed Pages' updates into the results.
+  // #876 (the PM, 2026-10-16) — no separate row: the loader mixes the followed Pages' updates into the results.
   it('shows a followed Page’s update in the mixed list, not in a row of its own', () => {
     const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle', followed: true })
     renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, results: [result(), mine], following: [mine] })} />)
@@ -492,7 +492,7 @@ describe('#791 — the list renders a step at a time', () => {
   })
 })
 
-// #916 (Don, 2026-10-18: "I did a search for flowers (plural) and it didn't return anything but flower
+// #916 (the PM, 2026-10-18: "I did a search for flowers (plural) and it didn't return anything but flower
 // (singular) did.") — the box asks the server, which searches the whole market, not the rows in hand.
 describe('#916 — search asks the server', () => {
   it('a Page outside the rows in hand comes back from the server, once the typing settles', async () => {

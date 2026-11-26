@@ -63,7 +63,7 @@ describe('ShelfRow', () => {
     expect(heading.querySelector('button')).not.toBeNull()
   })
 
-  // Don, 2026-11-02: posts "a little bit larger … take up more screen space". About one and a half post cards on a
+  // The PM, 2026-11-02: posts "a little bit larger … take up more screen space". About one and a half post cards on a
   // phone (the next one peeks, as Airbnb's and Eventbrite's rows do); fewer, wider cards than Pages on a wide screen.
   it('sizes a row of posts to about one and a half cards on a phone, and wider than Pages on a wide screen', () => {
     render(row({ size: 'post' }))

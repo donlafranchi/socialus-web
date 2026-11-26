@@ -1,4 +1,4 @@
-// #1139 (Don, 2026-11-01) — an old /g/<id> or /g/<id>/posts/<post id> link, and where it now lives.
+// #1139 (the PM, 2026-11-01) — an old /g/<id> or /g/<id>/posts/<post id> link, and where it now lives.
 
 import { isPageId } from '@/lib/groups/page-handle'
 import { isPostId } from '@/lib/posts/post-path'

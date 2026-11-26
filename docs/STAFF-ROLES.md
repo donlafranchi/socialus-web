@@ -24,4 +24,4 @@ Permissions: `metrics.view`, `reports.review`, `tags.review`, `builders.manage`,
 
 **Adding a permission:** one row in `staff_permissions`, one in `staff_role_permissions` for each role that gets it, the name in `PERMISSIONS` (`src/lib/staff/permissions.ts`), and a `requirePermission` / `requirePagePermission` at the door. **A new role** is one row in `staff_roles` plus its permissions: no code change.
 
-**Metrics privacy:** staff see real counts (Don, 2026-10-09). Member-to-member privacy is unchanged. No screen lists, ranks or singles out a member; abuse is handled by culture and by who holds `metrics.view`.
+**Metrics privacy:** staff see real counts (the PM, 2026-10-09). Member-to-member privacy is unchanged. No screen lists, ranks or singles out a member; abuse is handled by culture and by who holds `metrics.view`.

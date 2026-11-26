@@ -1,5 +1,5 @@
 // F121 criterion 13 — Explore's shelves, this week: impressions, tap rate, save rate and a verdict. Verdicts are
-// proposals (criterion 14); Don rules on the shelf list. Counts only; no member is stored with a count.
+// proposals (criterion 14); the PM rules on the shelf list. Counts only; no member is stored with a count.
 
 import type { ScoreLine, Verdict } from '@/lib/shelves/verdict'
 

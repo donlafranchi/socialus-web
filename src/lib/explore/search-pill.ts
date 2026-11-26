@@ -1,4 +1,4 @@
-// Don, 2026-11-01 — the Airbnb-style pill: what it reads idle, and how the panel's What and When
+// The PM, 2026-11-01 — the Airbnb-style pill: what it reads idle, and how the panel's What and When
 // write the box. The box stays the one state (F092); these only read it and rewrite it.
 import { readBox, writeBox } from '@/lib/browse/box-text'
 import { DATE_OPTIONS, POST_KIND_OPTIONS, isPickedDay, type DateFilter, type PostKind } from '@/lib/browse/filters'

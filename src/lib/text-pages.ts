@@ -1,5 +1,5 @@
 // #296 — the text pages the footer links to. Content lives here, next to the
-// copy module, so Don's drafts replace a placeholder without touching a
+// copy module, so the PM's drafts replace a placeholder without touching a
 // screen.
 //
 // #489 — live before the first signup. Terms and Privacy are DRAFTS written only

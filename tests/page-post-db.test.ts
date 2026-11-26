@@ -177,7 +177,7 @@ describe.skipIf(!RUNNABLE)('F072 — posting, for real', () => {
   // which is what putting it on a Page means", and it asserted exactly that: a
   // stranger selecting the row and getting it back.
   //
-  // Don ruled the other way. Who exists is public, what's happening is not,
+  // The PM ruled the other way. Who exists is public, what's happening is not,
   // but THAT something is happening is public — so a stranger still FINDS the
   // announcement and no longer READS it. F072's numbered acceptance is
   // untouched: criterion 2 asks that an announcement appear "on its Page and
@@ -229,7 +229,7 @@ describe.skipIf(!RUNNABLE)('F072 — posting, for real', () => {
     expect(still.rowCount).toBe(1)
   })
 
-  // F072 acceptance 4 ("no delete") was replaced by #318 (Don, 2026-10-02):
+  // F072 acceptance 4 ("no delete") was replaced by #318 (the PM, 2026-10-02):
   // the only delete is the owner's soft delete.
   it('has one post delete handler, the soft one from #318', async () => {
     const { listHandlers } = await import('../src/actions')

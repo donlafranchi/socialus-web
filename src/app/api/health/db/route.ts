@@ -2,7 +2,7 @@
 //
 // Exists because of a four-month write outage nobody detected. `DATABASE_URL`
 // was never set in any deployed environment; every action handler was down;
-// the only thing that ever noticed was Don trying to create a Page. This route
+// the only thing that ever noticed was the PM trying to create a Page. This route
 // lets CI ask the same question after every deploy, without a person.
 //
 // It answers three states, and the distinction is the point:

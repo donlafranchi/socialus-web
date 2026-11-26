@@ -1,4 +1,4 @@
-// A post at its own address: /g/<page id>/posts/<post id> (Don, 2026-10-31: "I can't share an anouncment?"). It is the
+// A post at its own address: /g/<page id>/posts/<post id> (the PM, 2026-10-31: "I can't share an anouncment?"). It is the
 // Page landed on the post, so whoever opens it sees what they would see on the Page, signed in or out (F134). A post
 // this reader could not read there is not found here.
 

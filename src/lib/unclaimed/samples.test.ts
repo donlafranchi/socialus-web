@@ -67,7 +67,7 @@ describe('samplePosts (#556)', () => {
     }
   })
 
-  // Don, 2026-10-16 (cap-1, cap-5): a "regular weekly" look — each Page's three samples on one weekday, weeks 1–3.
+  // The PM, 2026-10-16 (cap-1, cap-5): a "regular weekly" look — each Page's three samples on one weekday, weeks 1–3.
   describe('weekly — when samples fall', () => {
     const tz = 'America/Los_Angeles'
     const wd = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(d)

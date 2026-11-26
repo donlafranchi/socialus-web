@@ -1,6 +1,6 @@
 'use client'
 
-// #1171 (socialus-plan #269, Don 2026-11-02) — Follow becomes "Get updates", a quiet option in the Page's ⋯ menu
+// #1171 (socialus-plan #269, the PM 2026-11-02) — Follow becomes "Get updates", a quiet option in the Page's ⋯ menu
 // (Facebook keeps Follow in a Page's ⋯ the same way). Same rows, same handlers, same notifications: only the word and
 // the place change. The provider holds the state so the ⋯ item and what shows while getting updates agree.
 

@@ -1,7 +1,7 @@
 // #295 — screens use the design tokens (globals.css), never one-off visual
 // values. A one-off is a Tailwind arbitrary value for size, spacing, radius,
 // shadow or type (`p-[13px]`, `rounded-[10px]`, `text-[15px]`), or a px/rem
-// length in an inline style. Colour is out of scope (Don, 2026-10-01).
+// length in an inline style. Colour is out of scope (the PM, 2026-10-01).
 //
 // Arithmetic over tokens, viewport units and percentages is not a one-off:
 // `h-[calc(100dvh-var(--nav-top-h))]` names nothing a token could.

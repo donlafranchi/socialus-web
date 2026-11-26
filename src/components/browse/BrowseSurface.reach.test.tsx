@@ -1,4 +1,4 @@
-// #922 — how far Explore reaches is set in the filter sheet. The quiet line at the top went (Don, 2026-11-01).
+// #922 — how far Explore reaches is set in the filter sheet. The quiet line at the top went (the PM, 2026-11-01).
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, cleanup, fireEvent, waitFor } from '@testing-library/react'

@@ -1,4 +1,4 @@
-// #1180 — the one shared list a post or Page is listed under (plan #273, Don ruled B, 2026-11-05).
+// #1180 — the one shared list a post or Page is listed under (plan #273, the PM ruled B, 2026-11-05).
 //
 // The 12 interest labels, each with finer ones beneath, and the plain words that point to each. A person keeps
 // this list, never a model and never a member: posters pick from it, they don't add to it. A word is matched

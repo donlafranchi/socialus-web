@@ -2,7 +2,7 @@
 //
 // Why the split: a code is an internal identifier and should be stable — it is
 // what makes decisions countable, so we can see which reasons dominate. The
-// WORDING is Don's under the public-is-draft rule and will change. If the words
+// WORDING is the PM's under the public-is-draft rule and will change. If the words
 // lived in the CHECK, every rephrasing would be a migration and a production
 // apply, and the wording would stop changing for the wrong reason.
 //
@@ -10,9 +10,9 @@
 // internal shorthand — a reason nobody can be told is a reason that cannot be
 // appealed. Whether the member IS told is unsettled: F058 criterion 2 says a
 // *report* changes nothing visible to the reported party and is silent on the
-// *outcome*. Flagged for Don. These are written so that the answer can be yes.
+// *outcome*. Flagged for the PM. These are written so that the answer can be yes.
 //
-// DRAFT COPY. Don has not signed off the wording.
+// DRAFT COPY. The PM has not signed off the wording.
 
 import type { ReportCategory } from '@/lib/reports/categories'
 

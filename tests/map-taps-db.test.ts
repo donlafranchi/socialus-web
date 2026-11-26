@@ -6,7 +6,7 @@ import { databaseWriteSafety } from './support/write-safe'
 import { resolveActionContext } from '@/lib/action-context'
 import { mapLog } from '@/actions'
 
-// plan #258 option A (Don, 2026-11-01) — "Show on map" and Directions taps, counted per day with no member id,
+// plan #258 option A (the PM, 2026-11-01) — "Show on map" and Directions taps, counted per day with no member id,
 // never for a member who turned logging off on You or a builder, and read back only by staff with metrics.view.
 
 const DATABASE_URL = process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL

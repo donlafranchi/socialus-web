@@ -154,7 +154,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-16 | FATRAC (Folsom Auburn Trail Riders Action Coalition) | Trail group (nonprofit) | Folsom | Fitness & outdoors, Sustainability | Green and outdoors |
 | 2026-10-16 | Fair Oaks Horticulture Center | Demonstration garden (nonprofit) | Fair Oaks | Gardening, Sustainability | Green and outdoors |
 | 2026-10-16 | Bushnell Gardens Nursery | Nursery | Granite Bay | Gardening, Sustainability | Green and outdoors |
-| 2026-10-16 | Tahoe Dog Co. | Goods & crafts | Tahoma | Crafts & makers, Local business | lead: Don; beyond the drive time, added by name |
+| 2026-10-16 | Tahoe Dog Co. | Goods & crafts | Tahoma | Crafts & makers, Local business | lead: the PM; beyond the drive time, added by name |
 | 2026-10-16 | Bishop's Pumpkin Farm | Farm stay & agritourism | Wheatland | Farmers markets, Neighborhood life | reach batch; lead: own site |
 | 2026-10-16 | McBurney Tree Farm | Farm | Grass Valley | Farmers markets, Sustainability | reach batch; lead: own site |
 | 2026-10-16 | Mountain Bounty Farm | Farm | Nevada City | Farmers markets, Sustainability | reach batch; lead: own site |
@@ -252,7 +252,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-19 | Michael David Winery | Food & drink | Lodi | Food & drink, Local business | Food makers; lead: own site |
 | 2026-10-19 | Sudwerk Brewing Co. | Food & drink | Davis | Food & drink, Local business | Food makers; lead: own site |
 | 2026-10-19 | Ticket Chocolate | Food & drink | Loomis | Food & drink, Local business | Food makers; holiday (hot chocolate, s'mores kits); lead: Visit Placer, then own site |
-| 2026-10-19 | Maidu Park Farmers Market | Farmers market | Roseville | Farmers markets, Food & drink | real weekly Market day posts (Sundays 9–1) from the operator's own site, not Samples; stock photos only; lead: Don |
+| 2026-10-19 | Maidu Park Farmers Market | Farmers market | Roseville | Farmers markets, Food & drink | real weekly Market day posts (Sundays 9–1) from the operator's own site, not Samples; stock photos only; lead: the PM |
 | 2026-10-20 | Elk Grove Food Bank Services | Food bank (nonprofit) | Elk Grove | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
 | 2026-10-20 | Oasis City Center | Food bank (nonprofit) | Stockton | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
 | 2026-10-20 | St. Mary's Dining Room | Meal program (nonprofit) | Stockton | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
@@ -267,7 +267,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-22 | The Winters Museum (Historical Society of Winters) | Historical society | Winters | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: Discover Winters, then own site |
 | 2026-10-22 | Winters Theatre Company | Art association (nonprofit) | Winters | Arts & culture, Neighborhood life | Arts and culture; holiday (Christmas Pageant Nov 20-Dec 6); stock photos only; lead: Discover Winters, then own site |
 | 2026-10-22 | Snowy Peaks Tree Farm | Farm | Foresthill | Farmers markets, Sustainability | Arts and culture (farms); holiday (Christmas trees); stock photos only; lead: Visit Placer, then own site |
-| 2026-10-22 | Channel 24 | Music venue | Sacramento | Live music, Arts & culture | Venues (#997); real shows from its own calendar, no samples; lead: Don |
+| 2026-10-22 | Channel 24 | Music venue | Sacramento | Live music, Arts & culture | Venues (#997); real shows from its own calendar, no samples; lead: the PM |
 | 2026-10-22 | Ace of Spades | Music venue | Sacramento | Live music, Arts & culture | Venues (#997); real shows from its own calendar (JSON-LD), no samples |
 | 2026-10-22 | Miners Foundry Cultural Center | Music venue | Nevada City | Live music, Arts & culture | Venues (#997); real shows from its own calendar (Events Calendar API); stock photos only |
 | 2026-10-23 | Rotary Club of Folsom | Service club | Folsom | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |

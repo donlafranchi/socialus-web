@@ -7,7 +7,7 @@ afterEach(cleanup)
 
 // The card system, recovered from the pre-deletion design and made fluid.
 //
-// The design facts below are the ones Don named as what makes it read as
+// The design facts below are the ones the PM named as what makes it read as
 // designed rather than default. They are asserted rather than described,
 // because a comment does not fail when someone changes a class.
 
@@ -67,10 +67,10 @@ describe('TileCard', () => {
     expect(screen.getByTestId('tile-image').className).toMatch(/bg-\[var\(--color-surface\)\]/)
   })
 
-  // ---- uniform height (Don, 2026-09-17) --------------------------------
+  // ---- uniform height (the PM, 2026-09-17) --------------------------------
   //
   // Reserving space, not stretching. `align-items: stretch` only equalises
-  // within a row; Don wants every card the same, so each row holds its height
+  // within a row; the PM wants every card the same, so each row holds its height
   // whether or not it has content.
 
   it('reserves two lines for the title, so a wrapping one does not grow the card', () => {

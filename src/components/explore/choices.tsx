@@ -23,7 +23,7 @@ interface ChoiceProps {
 
 export function Choice({ name, label, checked, onChange, type = 'radio' }: ChoiceProps) {
   return (
-    // #922 (Don, 2026-10-18) — no chips or pills [always]: a choice is a quiet word; chosen, it is bold and underlined.
+    // #922 (the PM, 2026-10-18) — no chips or pills [always]: a choice is a quiet word; chosen, it is bold and underlined.
     <label
       data-checked={checked || undefined}
       className={`inline-flex min-h-11 cursor-pointer items-center text-sm underline-offset-[6px] transition-colors ${

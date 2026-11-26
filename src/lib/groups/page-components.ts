@@ -1,6 +1,6 @@
 import { pageKindOf } from './page-kind'
 
-// Don, 2026-10-04: hours and a business phone are a component of a Page,
+// The PM, 2026-10-04: hours and a business phone are a component of a Page,
 // on by default where they apply (shops, services) and off for groups until
 // the owner adds them. Kept in groups.metadata.components; no column.
 
@@ -15,6 +15,6 @@ export function componentOn(kind: string, metadata: unknown, key: ComponentKey):
   return typeof set === 'boolean' ? set : DEFAULT_ON[key].includes(pageKindOf(kind))
 }
 
-/** Don, 2026-10-05: Locally Owned is a business thing (shops and services);
+/** The PM, 2026-10-05: Locally Owned is a business thing (shops and services);
  *  social groups never show the badge or its question. */
 export const isBusinessKind = (kind: string) => pageKindOf(kind) === 'business'

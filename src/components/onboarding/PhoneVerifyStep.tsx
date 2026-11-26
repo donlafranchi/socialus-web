@@ -1,7 +1,7 @@
 'use client'
 
 // F081 — a member is verified as a person by a text-message code to their
-// phone, at signup (Don, 2026-10-01). The phone goes on the login only
+// phone, at signup (the PM, 2026-10-01). The phone goes on the login only
 // (auth.users), which no member or visitor can read.
 
 import { useState } from 'react'

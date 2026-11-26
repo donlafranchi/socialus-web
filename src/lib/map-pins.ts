@@ -1,4 +1,4 @@
-// The one way a map marker is drawn (Don, 2026-10-05). Markers are DOM
+// The one way a map marker is drawn (the PM, 2026-10-05). Markers are DOM
 // elements, so they read the colour tokens in globals.css directly: a token
 // change recolours every map.
 

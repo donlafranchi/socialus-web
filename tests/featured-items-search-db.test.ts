@@ -6,7 +6,7 @@ import { searchRaw, searchTsQuery } from '@/lib/search/query'
 import { featuredItemSave } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
 
-// #909 (Don, 2026-10-18: "We want our search to help our businesses perform better, carry what the locals are
+// #909 (the PM, 2026-10-18: "We want our search to help our businesses perform better, carry what the locals are
 // looking for") — a Page's featured products and services join its search document in browse_feed, so
 // "milkweed seed" finds the shop carrying it. The result is the Page, never a separate listing. Signed out, a
 // match on what a Page carries would say what F093 withholds, as with tags.

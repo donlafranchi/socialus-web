@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 
-// #962 — Don, 2026-10-19: "Shouldn't I be able to see which businesses I follow from within the app?"
+// #962 — the PM, 2026-10-19: "Shouldn't I be able to see which businesses I follow from within the app?"
 // A Following row near the top of You, saying how many Pages, opening the Following page.
 
 const query = { select: () => query, eq: () => query, order: () => query, limit: async () => ({ data: [] }), maybeSingle: async () => ({ data: null }) }
@@ -45,7 +45,7 @@ describe('#962 — Following from You', () => {
   })
 })
 
-// #1171 (plan #269, Don 2026-11-02) — Saved, on You, under Getting updates.
+// #1171 (plan #269, the PM 2026-11-02) — Saved, on You, under Getting updates.
 describe('#1171 — Saved from You', () => {
   it('has a Saved row that opens the Saved list', async () => {
     render(await YouPage())

@@ -35,7 +35,7 @@ describe('extractSiteMeta (#556)', () => {
   })
 })
 
-// Don, 2026-10-16 — TikTok and Instagram first; a Facebook profile with no vanity name keeps its id; AI-made pictures stay off.
+// The PM, 2026-10-16 — TikTok and Instagram first; a Facebook profile with no vanity name keeps its id; AI-made pictures stay off.
 describe('extractSiteMeta — socials and made-up pictures', () => {
   const page = `<a href="https://www.facebook.com/profile.php?id=61576552717408">fb</a><a href="https://www.tiktok.com/@tahoedogco">tt</a>
     <a href="https://www.instagram.com/tahoedogco/">ig</a><a href="https://www.facebook.com/profile.php">bare</a>

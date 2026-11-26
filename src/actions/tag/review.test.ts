@@ -1,5 +1,5 @@
 // #287 — tags are moderated after they appear, against a list that marks each
-// one safe, unsafe or needs review (Don, 2026-10-01).
+// one safe, unsafe or needs review (the PM, 2026-10-01).
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 

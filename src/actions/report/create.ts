@@ -42,7 +42,7 @@ const MAX_OPEN_REPORTS_PER_REPORTER = 5
 
 // THE REFUSAL CAPS (2026-09-18). The one above only withholds the auto-hide;
 // the report is still stored, so an unbounded reporter could still fill the
-// operator's queue. Report-bombing a business is the specific risk Don named,
+// operator's queue. Report-bombing a business is the specific risk the PM named,
 // and requiring an account is what makes these caps possible at all — an
 // account is persistent and rate-limitable, an anonymous reporter is neither.
 // That is the point of the wall: not identity, continuity.
@@ -596,7 +596,7 @@ export const reportCreate = defineHandler(
       //                         granted for. Nothing here clears it.
       //   the open-report cap — decouples the hide from an unbounded reporter.
       // F078 criterion 8 — sensitive content and threat of harm hide whatever
-      // the per-member limits say. The restore lock still holds: Don has
+      // the per-member limits say. The restore lock still holds: the PM has
       // already looked at that photo.
       const urgent = URGENT_CATEGORIES.includes(input.category)
       if (urgent && !subject.reporterIsBuilder && !subject.builderOnReal) textAfterCommit = true

@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// #349 — Don, 2026-10-04: anything in MSA 40900 counts as local. The owner's
+// #349 — the PM, 2026-10-04: anything in MSA 40900 counts as local. The owner's
 // ZIP and the Page's pin must be in the same metro; nothing tighter. Brings
 // its own county outline and ZIPs, so it runs on a fresh database.
 

@@ -1,6 +1,6 @@
 'use client'
 
-// #1171 (socialus-plan #269, Don 2026-11-02): "I kinda like both Heart and Save", "As separate things". Small, calm
+// #1171 (socialus-plan #269, the PM 2026-11-02): "I kinda like both Heart and Save", "As separate things". Small, calm
 // icons (Instagram's): ♡ is "I like this" and tells the poster who; the bookmark keeps a post on You, privately.
 // F134.4 — shown signed out too: a tap asks for sign-in first and saves nothing, and the heart is there once they
 // are back. Optimistic: the icon turns at once and goes back if the server says no.

@@ -1,4 +1,4 @@
-// #1094 — what the ➕ offers, and where each choice goes. Don, 2026-11-01: only Start a Page and
+// #1094 — what the ➕ offers, and where each choice goes. The PM, 2026-11-01: only Start a Page and
 // Propose something; a Page's own posts start from its owner bar (Announce). A Proposal is written on
 // a Page, so with no Page the first step is making one.
 
@@ -18,7 +18,7 @@ export interface CreateChoice {
   needsPage: boolean
 }
 
-// plan #218 (Don, 2026-11-01) — the button for a Proposal reads "Propose something".
+// plan #218 (the PM, 2026-11-01) — the button for a Proposal reads "Propose something".
 // #1183 (plan #270 B) — a post without a Page. Draft words.
 const LABEL: Record<CreateKind, string> = { page: 'Start a Page', wonder: 'Propose something', neighbor: 'Post to the neighborhood' }
 const ORDER: CreateKind[] = ['page', 'wonder', 'neighbor']

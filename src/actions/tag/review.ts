@@ -1,4 +1,4 @@
-// #287 — tags are moderated after they appear (Don, 2026-10-01). A new tag
+// #287 — tags are moderated after they appear (the PM, 2026-10-01). A new tag
 // shows at once and waits as needs_review; the operator marks it safe or
 // unsafe. Unsafe hides it (status 'hidden'), so it stops steering search and
 // display while its rows stay, and marking it safe again restores it.

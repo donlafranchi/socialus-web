@@ -1,7 +1,7 @@
 'use client'
 
 // #962 — every Page the member follows: photo, name, town, the next dated post, Remind me every time (#945) and
-// Unfollow with Undo. Quiet text links only (Don, 2026-10-18: no chips or pills).
+// Unfollow with Undo. Quiet text links only (the PM, 2026-10-18: no chips or pills).
 
 import { useState } from 'react'
 import Link from 'next/link'

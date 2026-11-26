@@ -1,4 +1,4 @@
-// #388 — builder content, all at once (Don, 2026-10-05: one person with a day
+// #388 — builder content, all at once (the PM, 2026-10-05: one person with a day
 // job, so global actions). Operator-only, checked here; absence of a button is
 // not authorization. The SQL lives in 20261005140000_builder_content_switch.sql
 // so the GitHub workflow runs exactly the same thing.

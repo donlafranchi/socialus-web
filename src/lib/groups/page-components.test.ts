@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { componentOn } from './page-components'
 
 // Path: well-worn — Google Business Profile shows hours only for categories that
-// have them; a component an owner can add (Don, 2026-10-04).
+// have them; a component an owner can add (the PM, 2026-10-04).
 describe('hours and phone, as a component', () => {
   it('on by default for a business', () => {
     expect(componentOn('business', {}, 'contact')).toBe(true)

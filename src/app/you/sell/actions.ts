@@ -43,7 +43,7 @@ class SellActionError extends Error {
  * A custom Error thrown from a 'use server' function does not cross the
  * boundary: Next replaces it with a generic digest and the message is gone.
  * Every message in this file used to die that way, which is how a creation
- * crash reached Don with nothing to read.
+ * crash reached the PM with nothing to read.
  *
  * The client adapter in SellCta turns a returned failure back into a throw,
  * so the composer's existing catch still works — but the throw now happens

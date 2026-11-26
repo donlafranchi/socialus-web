@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-require-imports -- CommonJS, so actions/github-script can require() it */
 // Every Issue and PR body carries a `Path:` line: `well-worn` or `new territory`.
-// Don's decision rule, 2026-10-04 (ops-pattern/process/PIPELINE.md § Decision rule).
+// The PM's decision rule, 2026-10-04 (ops-pattern/process/PIPELINE.md § Decision rule).
 // Usage: node scripts/check-path-line.cjs <body.md>   |   --self-test   (proves itself on the fixtures)
 const fs = require('fs')
 const path = require('path')

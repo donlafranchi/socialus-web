@@ -5,18 +5,18 @@
 // an iPhone mini to a 27-inch monitor with every card the same height.
 //
 // Pages and posts are different results and read as different cards, but both
-// carry the Page's name (F059 criterion 9). #922 (Don, 2026-10-18): a Page card
+// carry the Page's name (F059 criterion 9). #922 (the PM, 2026-10-18): a Page card
 // leads with its photo (~80/20: large photo, name, one line, up to two labels
 // set as small-caps text, quick links); a post card leads with its words
 // (~60/40: a strong date line, a title, two lines, a smaller photo, the Page's
 // name and avatar). No chips or pills [always].
 //
-// plan #230 (Don, 2026-10-31): "I need people to see exactly what's being offered." A post card opens with
+// plan #230 (the PM, 2026-10-31): "I need people to see exactly what's being offered." A post card opens with
 // KIND · WHEN · WHERE in small caps, built from fields and never the body, then a one-line headline without the
 // Page's name, then the Page's avatar and name. A sample says Sample once, in that lead line: no watermark, no
 // label, no disclaimer on the card (the Page keeps its disclaimer).
 //
-// Don (2026-11-02): "our posts should be a little bit larger." A post card sets its photo on top at the card's full
+// The PM (2026-11-02): "our posts should be a little bit larger." A post card sets its photo on top at the card's full
 // width, 3:2 (between Eventbrite's 2:1 and Airbnb's near-square), with the words beneath it, at every width.
 
 import { sizedMediaUrl, sizedMediaSrcSet } from '@/lib/media/served-url'
@@ -179,7 +179,7 @@ function PostCard(props: CardProps) {
       {...props}
       kind="post"
       imageUrl={photo}
-      // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card. #1127: in the card's
+      // The PM, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card. #1127: in the card's
       // bottom corner, level with the Page's name, rather than on a row of its own.
       after={
         <>
@@ -208,7 +208,7 @@ function PostCard(props: CardProps) {
               {headline}
             </p>
           )}
-          {/* Don, 2026-11-02: "a line or two about the post". Two lines, cut short; the whole card opens the post, so no See more. */}
+          {/* the PM, 2026-11-02: "a line or two about the post". Two lines, cut short; the whole card opens the post, so no See more. */}
           {preview && (
             <p data-testid="browse-post-preview" className="mt-0.5 line-clamp-2 text-sm leading-5 text-[var(--color-fg-muted)]">
               {preview}

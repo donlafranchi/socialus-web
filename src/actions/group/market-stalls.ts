@@ -1,4 +1,4 @@
-// #955 (Don, 2026-10-18: "Go") — a vendor Page at a market Page.
+// #955 (the PM, 2026-10-18: "Go") — a vendor Page at a market Page.
 //   group.market_stall.set      the vendor's managers: which market, every market day or listed dates. Idempotent.
 //   group.market_stall.skip     the vendor's managers: "skipping this week" for one date, or undo it.
 //   group.market_stall.remove   the vendor's managers, or the market's once it is claimed.

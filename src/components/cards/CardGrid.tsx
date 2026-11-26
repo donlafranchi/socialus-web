@@ -23,7 +23,7 @@ import type { ReactNode } from 'react'
 export type CardGridDensity = 'roomy' | 'comfortable' | 'compact'
 
 const MIN: Record<CardGridDensity, string> = {
-  // Posts (Don, 2026-11-02: "a little bit larger"): fewer, wider columns than Pages.
+  // Posts (the PM, 2026-11-02: "a little bit larger"): fewer, wider columns than Pages.
   roomy: '18rem',
   // Matches the recovered card's two widths: w-56 (224px) and w-44 (176px).
   comfortable: '14rem',

@@ -1,5 +1,5 @@
 // #936 — an unclaimed Page with a street address sits at that address, not at
-// its town's centre (Don, 2026-10-18: "it just opens up to Sutter Creek when
+// its town's centre (the PM, 2026-10-18: "it just opens up to Sutter Creek when
 // the business has an actual address"). Yelp and Google pin the street address.
 
 import { toSlug } from '../slugify'

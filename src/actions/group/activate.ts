@@ -173,7 +173,7 @@ export const groupActivate = defineHandler(
 
       // F082 criterion 6 — the agreement, with its version and the time (the
       // column's default), in the same transaction as the publish. Seen only
-      // by Don and operators: the table has no client policy.
+      // by the PM and operators: the table has no client policy.
       await client.query(
         `insert into public.creator_rules_agreements (member_id, group_id, rules_version)
          values ($1, $2, $3)`,

@@ -13,7 +13,7 @@
 //      progress bar. F076 forbids implying a schedule and nothing here implies
 //      one.
 //   2. WHAT IT LOOKS LIKE — the example block. This is the whole reason a
-//      signed-out stranger has any reason to care, and it is the block Don
+//      signed-out stranger has any reason to care, and it is the block the PM
 //      ruled on: marked, separated, non-interactive, captioned as the idea
 //      rather than as stock.
 //   3. WHAT THEY CAN DO — leave an address, or sign in. This is assembly.
@@ -21,12 +21,12 @@
 // SIGNED OUT IS THE COMMON CASE HERE, and it used to be a dead end: the
 // waitlist needed an account, so the control routed to /auth/login, which is
 // the step someone who just found their own city has no reason to take yet.
-// Don ruled that open on 2026-09-21 (F076 criteria 13-15) and T167 built the
+// The PM ruled that open on 2026-09-21 (F076 criteria 13-15) and T167 built the
 // handler, so the signed-out branch now takes an address instead.
 //
 // THE POPUP CARRIES A NUMBER AGAIN, ruled 2026-09-23, reversing #196. A unique
 // index on an email does make "is this address already waiting?" answerable,
-// and the earlier ruling removed the count to close that. Don overruled it:
+// and the earlier ruling removed the count to close that. The PM overruled it:
 // what the oracle reveals is "this address expressed interest in a local app
 // before launch", which does not justify losing something useful.
 //

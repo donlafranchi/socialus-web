@@ -15,7 +15,7 @@
 // Recorded here because this is the file recurrence work touches first.
 //
 // The approved F074 is weekly-on-chosen-days with an optional start and end
-// date. It has no yearly case. On 2026-09-23 Don named a YEARLY event as the
+// date. It has no yearly case. On 2026-09-23 the PM named a YEARLY event as the
 // reason past announcements must survive — "Especially if the announcement is
 // for a yearly event" — so the case is live in his head and absent from the
 // scenario.
@@ -59,7 +59,7 @@ export interface AnnouncementWhenWhere {
   showUntil: string
 }
 
-/** #314 (Don, 2026-10-02) — an undated post shows for this long unless its owner picks another day. */
+/** #314 (the PM, 2026-10-02) — an undated post shows for this long unless its owner picks another day. */
 export const UNDATED_SHOWS_DAYS = 14
 export const defaultShowUntil = (postedAt: Date, days: number = UNDATED_SHOWS_DAYS) => metroDate(new Date(postedAt.getTime() + days * 86_400_000), METRO_TIME_ZONE)
 /** plan #230 — how long an undated post of this kind shows by default. */

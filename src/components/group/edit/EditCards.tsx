@@ -102,7 +102,7 @@ export function EditCards({
       <div data-testid="edit-cards" className="flex flex-col gap-4">
         <Card section="basics" initial={initial} />
         <Card section="where" initial={initial} />
-        {/* The phone: only where the Page shows it (Don, 2026-10-04). */}
+        {/* The phone: only where the Page shows it (the PM, 2026-10-04). */}
         {initial.contactOn && <Card section="contact" initial={initial} />}
         <Card section="found" initial={initial}>
           {/* The link can't move (#180); said here rather than in a card of its own. */}

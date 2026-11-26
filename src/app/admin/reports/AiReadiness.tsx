@@ -1,5 +1,5 @@
 // #640 (F100.11, the PM's call C) — "AI readiness", for staff: the harness numbers against the ruled targets,
-// the days of shadow reads, and one light. For beta the live flip is Don's own checklist with these numbers
+// the days of shadow reads, and one light. For beta the live flip is the PM's own checklist with these numbers
 // shown to him; software refusing the flip is the production step.
 
 import type { Readiness, Reading, Status } from '@/lib/moderation/readiness'

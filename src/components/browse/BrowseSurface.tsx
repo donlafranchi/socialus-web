@@ -210,13 +210,13 @@ export function BrowseSurface({
   // #892 — the reader's own interests, for "My interests". Only ever the person looking (owner-only read).
   const myTags = useMemo(() => snapshot.myInterests ?? [], [snapshot.myInterests])
 
-  // #796 — Explore leads with what is new. #876 (Don, 2026-10-16) — then everything, mixed: Pages,
+  // #796 — Explore leads with what is new. #876 (the PM, 2026-10-16) — then everything, mixed: Pages,
   // posts and the followed Pages' updates (the loader merged them, in place-and-time order).
   const lead = useMemo(() => snapshot.lead ?? [], [snapshot.lead])
   const mix = useMemo(() => {
     const leadKeys = new Set(lead.map(leadKey))
     const rest = snapshot.results.filter((r) => !leadKeys.has(leadKey(r)))
-    // Don, 2026-11-01 — no "What's new" block above: what is new leads the list itself.
+    // The PM, 2026-11-01 — no "What's new" block above: what is new leads the list itself.
     return [...lead, ...rest]
   }, [snapshot.results, lead])
 
@@ -295,7 +295,7 @@ export function BrowseSurface({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [neighborKey])
   const neighborPosts = neighborKey && neighbors?.key === neighborKey && settledNeedle === needle ? neighbors.posts : []
-  // Don (2026-11-01) — a search comes back in labelled rows, one type each; one flat list on request.
+  // The PM (2026-11-01) — a search comes back in labelled rows, one type each; one flat list on request.
   const [flat, setFlat] = useState(false)
   const groups = useMemo(() => (needle && !searching && !searchFailed ? groupResults(visible, now) : []), [needle, searching, searchFailed, visible, now])
   const grouped = !flat && groups.length > 1
@@ -345,7 +345,7 @@ export function BrowseSurface({
 
   const clearAll = () => setQuery('')
 
-  // Don, 2026-11-01 — the search is the header's pill; Explore lends it the live box, area and sheets.
+  // The PM, 2026-11-01 — the search is the header's pill; Explore lends it the live box, area and sheets.
   useLendExploreSearch({
     query,
     onQueryChange: setQuery,

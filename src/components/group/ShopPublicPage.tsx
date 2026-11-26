@@ -106,13 +106,13 @@ interface Props {
   followerCount?: number
   /** F117 — what this viewer may see of each Wonder on the Page, by post id. */
   wonders?: Record<string, WonderView>
-  /** Don, 2026-10-31 — the post a post's own address names: its list lands on it. */
+  /** The PM, 2026-10-31 — the post a post's own address names: its list lands on it. */
   focusPostId?: string | null
   /** #945 — the viewer's own reminders; absent for an owner or a visitor. */
   reminders?: ViewerReminders
   /** #301 — a draft's tag count, for its owner's publish checklist. */
   draftTagCount?: number
-  /** #302 — the owner's in-place editor (Don, 2026-10-04). */
+  /** #302 — the owner's in-place editor (the PM, 2026-10-04). */
   viewerMemberId?: string | null
   contactOn?: boolean
   /** #363 — Products & services: on for a business, added by any other Page. */
@@ -127,7 +127,7 @@ interface Props {
   searchDemand?: PageSearchDemand | null
 }
 
-// Don, 2026-10-04: an unnamed draft is called what Create asked about.
+// The PM, 2026-10-04: an unnamed draft is called what Create asked about.
 const DRAFT_HEADING: Record<Purpose, string> = { sell: 'business', offer: 'class or service', gather: 'group or meetup', create: '' }
 
 export function ShopPublicPage({
@@ -187,7 +187,7 @@ export function ShopPublicPage({
   // #896 — an area-only Page gets the area, never its point; a Page that moves, no map (#894).
   const mapView = pageMapView(shop.placements[0], where?.mode ?? null, shop.displayName)
   const stops = (where?.mode === 'multi' || where?.mode === 'roaming') ? (where.stops ?? []) : []
-  // #896 — Don, 2026-10-18: an area-only Page has no map, but a line says where it is.
+  // #896 — the PM, 2026-10-18: an area-only Page has no map, but a line says where it is.
   const area = shop.placements[0]
   const areaLine = !mapView && area?.kind === 'area' && (!where?.mode || where.mode === 'visit') && area.label.trim() ? `In ${area.label.trim()}` : null
   const hasContact = Boolean(shownContact?.phone || (SHOW_OPENING_HOURS && shownContact?.hours) || contactLinks.website || contactLinks.socials.length)
@@ -413,7 +413,7 @@ export function ShopPublicPage({
             </a>
           )}
           {shop.founder && (
-            // #303 — no public member profile (Don, 2026-10-01): the founder is a name, never a link.
+            // #303 — no public member profile (the PM, 2026-10-01): the founder is a name, never a link.
             <div data-testid="shop-founder" className="flex items-center gap-2">
               <span data-testid="shop-founder-text" className="flex items-center gap-2">
                 {shop.founder.avatarUrl && (

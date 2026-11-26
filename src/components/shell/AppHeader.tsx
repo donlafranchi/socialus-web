@@ -1,6 +1,6 @@
 'use client'
 
-// #1094 — the one header, every width. Don, 2026-11-01 — one row: the way back (anywhere but Explore),
+// #1094 — the one header, every width. The PM, 2026-11-01 — one row: the way back (anywhere but Explore),
 // the mark, the search pill, the ➕ (signed in) and You. On a phone it slides away scrolling down and
 // comes back scrolling up, as Safari's and Airbnb's do; from 744px it stays.
 

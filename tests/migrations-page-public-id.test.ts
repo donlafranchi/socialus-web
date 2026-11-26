@@ -1,6 +1,6 @@
 // Issue #175 — groups.public_id, against a real database.
 //
-// The ruling (ops-pattern planning/URL-IDENTITY.md, Don 2026-09-21) turns on
+// The ruling (ops-pattern planning/URL-IDENTITY.md, the PM 2026-09-21) turns on
 // properties of the identifier, not on the shape of the URL: it must not be
 // derivable from a member, and it must not be walkable. Those are claims about
 // what the generator does, so they are checked by running it.

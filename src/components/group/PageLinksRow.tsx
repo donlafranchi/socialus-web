@@ -1,4 +1,4 @@
-// Plant Foundry (Don, 2026-10-31) — a Page's website and socials as quiet icon links under its name,
+// Plant Foundry (the PM, 2026-10-31) — a Page's website and socials as quiet icon links under its name,
 // so a visitor can reach the business's own channels without scrolling to Contact. Every URL is
 // already re-checked by contactLinksForDisplay.
 

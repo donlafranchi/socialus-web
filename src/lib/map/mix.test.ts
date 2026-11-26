@@ -7,7 +7,7 @@ const r = (id: string, over: Partial<BrowseResult> = {}) =>
 const many = (p: string, n: number) => Array.from({ length: n }, (_, i) => r(`${p}${i}`))
 const empty: Record<Bucket, BrowseResult[]> = { dated: [], new: [], recent: [], interesting: [] }
 
-describe('#331 — the default map is a tunable mix (Don, 2026-10-05)', () => {
+describe('#331 — the default map is a tunable mix (the PM, 2026-10-05)', () => {
   it('splits the cap evenly by default', () => {
     const mix = buildMix({ dated: many('d', 50), new: many('n', 50), recent: many('r', 50), interesting: many('i', 50) }, { ...DEFAULT_MIX, cap: 40 })
     expect(mix).toHaveLength(40)

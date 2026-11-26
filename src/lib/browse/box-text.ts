@@ -1,5 +1,5 @@
 // F092: the box is the state. The filter sheet writes plain words into the search box and readBox takes
-// them back out, so there is one text and no second filter state. #876 (Don, 2026-10-16): the words now
+// them back out, so there is one text and no second filter state. #876 (the PM, 2026-10-16): the words now
 // cover the three groups: Type (pages / posts, the post kinds, following), Category (tags) and Date.
 import { normalizeTag } from '@/lib/groups/tags'
 import { DEFAULT_BROWSE_FILTERS, isPickedDay, type BrowseFilters, type DateFilter, type PostKind, type ResultType } from './filters'

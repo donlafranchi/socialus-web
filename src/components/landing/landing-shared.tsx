@@ -4,7 +4,7 @@
 import localFont from 'next/font/local'
 import { ETHOS_LINE, HOME } from '@/lib/home-landing'
 
-// TODO(Don): these are Family Type's trial files (ASCII only, evaluation licence); swap in the Brand Licence WOFF2s once bought.
+// TODO(the PM): these are Family Type's trial files (ASCII only, evaluation licence); swap in the Brand Licence WOFF2s once bought.
 export const aime = localFont({
   src: [
     { path: '../../app/fonts/aime-regular.woff2', weight: '400', style: 'normal' },
@@ -43,7 +43,7 @@ export function CanBlocks() {
   )
 }
 
-/** The spot for Don's one-line ethos (coming): nothing renders until ETHOS_LINE has words. */
+/** The spot for the PM's one-line ethos (coming): nothing renders until ETHOS_LINE has words. */
 export function EthosSpot({ className = '' }: { className?: string }) {
   if (!ETHOS_LINE) return null
   return (

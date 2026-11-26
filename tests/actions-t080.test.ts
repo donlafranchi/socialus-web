@@ -97,7 +97,7 @@ describe('T080 — create.ts branches the child insert on kind', () => {
   })
 })
 
-// #336 — /you/sell is retired to Create (Don, 2026-10-05); its flow is kept,
+// #336 — /you/sell is retired to Create (the PM, 2026-10-05); its flow is kept,
 // unrouted, for when product and service listings are due.
 describe('#336 — /you/sell redirects to Create, and its flow is kept', () => {
   const src = readFileSync(resolve(APP_DIR, 'you', 'sell', 'page.tsx'), 'utf8')

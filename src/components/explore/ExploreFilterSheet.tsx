@@ -10,7 +10,7 @@
 // navigation, group semantics and checked state come from the platform rather
 // than from a hand-rolled `role="radiogroup"`.
 //
-// T156 — this is the ONLY place filtering happens. Ruled 2026-09-12 (Don):
+// T156 — this is the ONLY place filtering happens. Ruled 2026-09-12 (the PM):
 // zero filter pills outside the filter view, at every viewport width — the
 // ruling is about the results surface, not about how wide the screen is, so
 // there is no desktop pill row either. Free-text search stays on the results
@@ -56,7 +56,7 @@ interface ExploreFilterSheetProps {
 const PICK_INTERESTS = '/you#interests'
 const pickInterestsHref = (signedIn: boolean) => (signedIn ? PICK_INTERESTS : `/auth/login?next=${encodeURIComponent(PICK_INTERESTS)}`)
 
-// #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Three groups, opt-in, that
+// #876 (the PM, 2026-10-16, on #796): "Target by type or category or date." Three groups, opt-in, that
 // combine with each other and with search; the default is everything mixed.
 const CATEGORIES = INTEREST_VOCAB.map((t) => ({ value: normalizeTag(t.label), label: t.label }))
 

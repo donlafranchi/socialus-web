@@ -1,8 +1,8 @@
-// #1090 — the one sign-up path, outside an open market. Words wait on Don's
+// #1090 — the one sign-up path, outside an open market. Words wait on the PM's
 // review (human-review PR); his own lines are marked.
 
 export const WAITING_COPY = {
-  // Don, 2026-10-26 (grammar tidied only).
+  // The PM, 2026-10-26 (grammar tidied only).
   notOpen: (area: string) => `We’re not open in ${area} yet.`,
   notOpenBody: 'If enough people there join, we could open yours next.',
 }

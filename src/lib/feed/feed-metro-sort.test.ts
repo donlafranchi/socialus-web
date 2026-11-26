@@ -1,4 +1,4 @@
-// F076 — most wanted first. Don: "it would be cool to sort those metros by
+// F076 — most wanted first. The PM: "it would be cool to sort those metros by
 // number of people signed up."
 //
 // The ordering reads the SAME cached figure the popup shows. A live count here

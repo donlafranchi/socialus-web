@@ -1,4 +1,4 @@
-// Don, 2026-10-31: "I can't share an anouncment?" — a post's own address shows its Page, landed on the post, to whoever
+// The PM, 2026-10-31: "I can't share an anouncment?" — a post's own address shows its Page, landed on the post, to whoever
 // could already read it there; anyone else gets not found, and its preview never carries words it may not show.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Suspense } from 'react'

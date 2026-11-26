@@ -1,4 +1,4 @@
-// The owner surface. Don, 2026-09-18: opening their page should open another
+// The owner surface. The PM, 2026-09-18: opening their page should open another
 // surface where these things can be changed and their tools become available.
 
 import { describe, it, expect, afterEach } from 'vitest'

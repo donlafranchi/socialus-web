@@ -1,5 +1,5 @@
 // F078 criterion 1 — the reasons a reporter picks from; F080 (2026-10-01)
-// widened "children" to sensitive content. Labels are placeholders, Don's to
+// widened "children" to sensitive content. Labels are placeholders, the PM's to
 // word ([public-is-draft]).
 
 export const REPORT_CATEGORIES = [
@@ -19,7 +19,7 @@ export type ReportCategory = (typeof REPORT_CATEGORIES)[number]['value']
 
 export const REPORT_CATEGORY_VALUES = REPORT_CATEGORIES.map((c) => c.value) as [ReportCategory, ...ReportCategory[]]
 
-/** F078 criteria 5 and 8: hides regardless of the bar, and texts Don. */
+/** F078 criteria 5 and 8: hides regardless of the bar, and texts the PM. */
 export const URGENT_CATEGORIES: readonly ReportCategory[] = ['sensitive_content', 'threat_of_harm']
 
 /** F101 § The severity scale: 1 child safety or illegal, 2 threats and harassment, 3 sensitive or adult, 4 spam and other.

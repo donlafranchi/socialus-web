@@ -1,5 +1,5 @@
 // #346 — the builder roster: invented Sacramento-region organizations the
-// builder accounts create and keep active (Don, 2026-10-04: a wide variety,
+// builder accounts create and keep active (the PM, 2026-10-04: a wide variety,
 // nothing run-of-the-mill). Every name, address and link is made up; links
 // point at .example domains. Photos are Unsplash-licensed (photos.json).
 // All of it is builder content, invisible to real members (#280), and removed

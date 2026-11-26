@@ -1,7 +1,7 @@
 'use client'
 
 // #409 — Share, for anyone on a published Page: the phone's share sheet where
-// there is one (Web Share API), otherwise copy the link and say so. Since Don's
+// there is one (Web Share API), otherwise copy the link and say so. Since the PM's
 // 2026-10-31 "I can't share an anouncment?", every post uses it too, quieter.
 
 import { useCallback, useState } from 'react'

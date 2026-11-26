@@ -1,4 +1,4 @@
-// #796 — Explore's first look (ruled A, Don 2026-10-14), and #876 — everything mixed, posts-only as a filter (Don, 2026-10-16).
+// #796 — Explore's first look (ruled A, the PM 2026-10-14), and #876 — everything mixed, posts-only as a filter (the PM, 2026-10-16).
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
@@ -88,7 +88,7 @@ const post = (id: string, postedAt: string, name = `Post ${id}`) =>
   result({ resultKind: 'post', resultId: id, groupId: `g-${id}`, name, slug: `g-${id}`, href: `/g/g-${id}#post-${id}`, body: `Body of ${id}`, postedAt, sortAt: postedAt, tags: [] })
 
 describe('#796 — Explore opens on what is new', () => {
-  it('what is new leads the one list: no "What\u2019s new" block above it (Don, 2026-11-01)', () => {
+  it('what is new leads the one list: no "What\u2019s new" block above it (the PM, 2026-11-01)', () => {
     const fresh = page('new', 'New Bakery')
     const results = [page('a', 'Old A'), page('b', 'Old B'), post('p1', '2026-10-14T00:00:00Z', 'Announcement One'), fresh]
     renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, results, lead: [fresh], leadFresh: true })} />)
