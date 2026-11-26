@@ -635,6 +635,12 @@ UptimeRobot's free keyword monitors cannot do. It is what would have caught the
 | Database, from the app | `https://www.socialus.org/api/health/db` | `"ok":true` |
 | Login page | `https://www.socialus.org/auth/login` | `name="email"` |
 
+**Status (2026-11-26):** set up by the PM; both monitors Up. **Public status
+page: https://stats.uptimerobot.com/11Jx7n72Sp**, where agents and members check
+whether socialus.org is up. It is outside the app on purpose, so it answers when
+the app is down; the site footer and both error screens link it
+(`src/lib/status-page.ts`). Store record: see the knowledge store, "status page".
+
 Use `www.`: the bare domain answers 308 first. Both answered with their keyword
 on 2026-11-16. Whether UptimeRobot is hitting them could not be seen from here:
 Vercel's CLI logs carry function output, not request user agents.

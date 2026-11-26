@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import * as Sentry from '@sentry/nextjs'
 import { EmptyState } from '@/components/shell/EmptyState'
+import { STATUS_PAGE_URL } from '@/lib/status-page'
 
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
   // #490 — reported (scrubbed, and only when error tracking is configured).
@@ -23,6 +24,13 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
         <Link href="/report" className="underline">
           Report a problem with the app
         </Link>
+      </p>
+      {/* Placeholder words for the copywriter ([public-is-draft]). */}
+      <p className="mt-2 text-center text-body-sm">
+        Something&rsquo;s not working?{' '}
+        <a href={STATUS_PAGE_URL} target="_blank" rel="noopener noreferrer" className="underline">
+          Check our status page
+        </a>
       </p>
     </main>
   )

@@ -22,4 +22,16 @@ describe('the route error state', () => {
     expect(captureException).toHaveBeenCalledWith(err)
     expect(screen.getByText("That didn't go through")).toBeInTheDocument()
   })
+  it('points to the status page, which works even when the app does not', () => {
+    render(<ErrorPage error={new Error('boom')} reset={() => {}} />)
+    expect(screen.getByRole('link', { name: /status page/i })).toHaveAttribute('href', 'https://stats.uptimerobot.com/11Jx7n72Sp')
+  })
+})
+
+describe('the root error page', () => {
+  it('points to the status page too', async () => {
+    const { default: GlobalError } = await import('./global-error')
+    render(<GlobalError error={new Error('boom')} reset={() => {}} />, { container: document.documentElement })
+    expect(screen.getByRole('link', { name: /status page/i })).toHaveAttribute('href', 'https://stats.uptimerobot.com/11Jx7n72Sp')
+  })
 })
