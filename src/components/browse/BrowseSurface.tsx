@@ -18,6 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from 'react'
 import dynamic from 'next/dynamic'
+import { preloadWhenIdle } from '@/lib/browse/preload-when-idle'
 import Link from 'next/link'
 import { useSearchParams, unstable_isUnrecognizedActionError } from 'next/navigation'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
@@ -59,7 +60,8 @@ import { useSearchDemand } from './useSearchDemand'
 import type { BrowseSnapshot } from '@/lib/browse/snapshot'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 
-const BrowseMap = dynamic(() => import('./BrowseMap').then((m) => m.BrowseMap), { ssr: false })
+const loadBrowseMap = () => import('./BrowseMap')
+const BrowseMap = dynamic(() => loadBrowseMap().then((m) => m.BrowseMap), { ssr: false })
 
 /** T187 — the map column sits under the top row, which holds the search (Don, 2026-11-01). */
 const SPLIT_TOP = 'top-nav-top'
@@ -195,6 +197,8 @@ export function BrowseSurface({
     },
     [metroSlug, snapshot.area],
   )
+
+  useEffect(() => preloadWhenIdle(loadBrowseMap), [])
 
   const firstQs = useRef<string | null>(null)
   useEffect(() => {

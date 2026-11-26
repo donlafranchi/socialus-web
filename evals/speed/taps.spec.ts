@@ -16,6 +16,7 @@ import { builderEmail, builderPassword } from '../../src/lib/builders/credential
 import { judge, type Flag, type TapMeasure } from '../../src/lib/speed/judge'
 import { verdict, medianOf, type Baseline, type Budgets, type Status } from '../../src/lib/speed/verdict'
 import { PROBE } from './probe'
+import { pagePathOf } from '../../src/lib/speed/page-path'
 import { STEPS, type Step, type Who } from './steps'
 
 const SEED = process.env.BUILDER_SEED ?? ''
@@ -64,10 +65,15 @@ async function stateFor(browser: Browser, who: Who): Promise<string | undefined>
 
 async function resolveFrom(page: Page, from: string): Promise<string> {
   if (!from.startsWith('@')) return from
-  const sel = from === '@own-page' ? 'a[href^="/g/"]' : 'a[href^="/g/"]:not([href*="#"])'
-  await page.goto(from === '@own-page' ? '/you' : '/explore')
-  const href = await page.locator(sel).first().getAttribute('href', { timeout: 15_000 })
-  return href ?? '/explore'
+  if (from === '@own-page') {
+    await page.goto('/you')
+    return (await page.locator('a[href^="/g/"]').first().getAttribute('href', { timeout: 15_000 })) ?? '/explore'
+  }
+  // #978 — Explore lists posts at /<town>/<page>/<post>; the first one's Page.
+  await page.goto('/explore')
+  await page.locator('[data-testid="browse-results"] a[href^="/"]').first().waitFor({ timeout: 15_000 })
+  const hrefs = await page.locator('[data-testid="browse-results"] a[href^="/"]').evaluateAll((as) => as.map((a) => a.getAttribute('href')))
+  return hrefs.map(pagePathOf).find(Boolean) ?? '/explore'
 }
 
 async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', fromPath: string): Promise<Row> {
@@ -94,8 +100,9 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
     if (step.back) {
       await page.goto('/explore', { waitUntil: 'load' })
       await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {})
-      await page.locator('a[href^="/g/"]').first().click()
-      await page.waitForURL(/\/g\//, { timeout: 20_000 })
+      // #978 — in-app to the first card's Page, so the back is the router's.
+      await page.locator('[data-testid="tile-card"] a[href^="/"]').first().click()
+      await page.waitForURL((u) => u.pathname !== '/explore', { timeout: 20_000 })
       await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {})
     } else {
       await page.goto(fromPath, { waitUntil: 'load' })
