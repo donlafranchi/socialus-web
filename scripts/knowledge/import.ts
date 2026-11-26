@@ -344,7 +344,12 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     ...readAbsolutes(resolve(src.planDir, 'product/ABSOLUTES.md'), 'socialus-plan/product/ABSOLUTES.md', 'product'),
     ...readAbsolutes(resolve(src.opsDir, 'process/ABSOLUTES.md'), 'socialus-ops/process/ABSOLUTES.md', 'process'),
   ]
-  if (!absolutes.length) throw new Error('No absolutes found: check the socialus-plan and socialus-ops checkouts.')
+  // Both absolutes files were deleted on 2026-11-25 (socialus-plan #412,
+  // socialus-ops #192): absolutes live in the store now. With no file there is
+  // nothing to bring in, and the ones already in the store stand: the loop
+  // below retires only what came from a ruling line or the registry. Until
+  // this was allowed, every import since that day stopped here (run of
+  // 2026-11-26: "No absolutes found").
   const registry = readRegistry(src.registryPath)
 
   const wanted: Wanted[] = [
