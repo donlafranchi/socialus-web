@@ -104,6 +104,10 @@ jobs:
       - name: Path line checker — self-test
         run: node scripts/check-path-line.cjs --self-test
 
+      # #1434 — the architecture-note checker issue-lint runs on every ticket, proven here.
+      - name: Architecture note checker — self-test
+        run: node scripts/check-architecture-note.cjs --self-test
+
       # #1432 — the incident-review checker incident-review.yml runs on alarm Issues, proven here.
       - name: Incident review checker — self-test
         run: node scripts/check-incident-review.cjs --self-test

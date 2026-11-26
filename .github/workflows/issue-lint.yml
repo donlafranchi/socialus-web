@@ -39,10 +39,14 @@ jobs:
           sparse-checkout: scripts
       - name: Path line checker — self-test
         run: node scripts/check-path-line.cjs --self-test
+      # #1434 — the architecture-note checker proves itself before it judges a ticket.
+      - name: Architecture note checker — self-test
+        run: node scripts/check-architecture-note.cjs --self-test
       - uses: actions/github-script@v8
         with:
           script: |
             const { checkPath } = require(`${process.env.GITHUB_WORKSPACE}/scripts/check-path-line.cjs`);
+            const { checkNote } = require(`${process.env.GITHUB_WORKSPACE}/scripts/check-architecture-note.cjs`);
             const body = (context.payload.issue?.body || context.payload.pull_request?.body || "");
             const num = context.payload.issue?.number || context.payload.pull_request?.number;
             const isPR = !!context.payload.pull_request;
@@ -63,6 +67,9 @@ jobs:
               if (!isUat && kind && kind !== "scenario" && /- \[[ x]\]/i.test(body)) {
                 problems.push("has acceptance checkboxes but is kind `" + kind + "` — that's a scenario");
               }
+              // #1434 — schema, RLS or routes: an architecture note and a Visibility line first.
+              const noteProblem = checkNote(body);
+              if (noteProblem) problems.push(noteProblem);
             } else {
               if (!/#\d+/.test(body)) problems.push("cites no Issue (`#123` or `closes #123`)");
             }
