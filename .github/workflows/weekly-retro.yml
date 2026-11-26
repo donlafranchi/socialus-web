@@ -1,0 +1,71 @@
+name: weekly-retro
+
+# #1433 — Mondays: the week's code PRs, which had no review, alarm Issues, how stale the scores are, and the
+# measured experiment, posted on the standing retro Issue (scripts/retro-digest.cjs). The agent pass reads that
+# comment and the week's reviews, writes what repeated, and builds at most one new check.
+on:
+  schedule:
+    - cron: '0 15 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: scripts
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-ops
+          path: .ops
+          sparse-checkout: scores
+          persist-credentials: false
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const { render } = require(`${process.env.GITHUB_WORKSPACE}/scripts/retro-digest.cjs`);
+            const { isAlarm } = require(`${process.env.GITHUB_WORKSPACE}/scripts/check-incident-review.cjs`);
+            const MEASURE_START = '2026-11-27';
+            const now = new Date();
+            const day = (d) => d.toISOString().slice(0, 10);
+            const from = day(new Date(now - 7 * 86400000)), to = day(now);
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+
+            const found = await github.paginate(github.rest.search.issuesAndPullRequests, { q: `repo:${repo} is:pr is:merged merged:>=${MEASURE_START < from ? MEASURE_START : from}`, per_page: 100 });
+            const prs = [];
+            for (const p of found) {
+              const n = p.number;
+              const files = (await github.paginate(github.rest.pulls.listFiles, { ...context.repo, pull_number: n, per_page: 100 })).map((f) => f.filename);
+              const reviews = await github.rest.pulls.listReviews({ ...context.repo, pull_number: n, per_page: 1 });
+              const pr = await github.rest.pulls.get({ ...context.repo, pull_number: n });
+              prs.push({ number: n, title: p.title, files, reviewed: reviews.data.length > 0, mergedAt: pr.data.merged_at });
+            }
+            const week = prs.filter((p) => p.mergedAt.slice(0, 10) >= from);
+
+            const touched = await github.paginate(github.rest.issues.listForRepo, { ...context.repo, state: 'all', since: `${from}T00:00:00Z`, per_page: 100 });
+            const alarms = touched.filter((i) => !i.pull_request && isAlarm(i)).map((i) => ({ number: i.number, title: i.title, state: i.state, needsReview: i.labels.some((l) => l.name === 'needs-review') }));
+
+            const tsv = fs.existsSync('.ops/scores/history.tsv') ? fs.readFileSync('.ops/scores/history.tsv', 'utf8').trim().split('\n') : [];
+            const scoresLast = (tsv[tsv.length - 1] || '').split('\t')[0] || null;
+
+            const final = render({ from, to, prs: week, measurePrs: prs, alarms, scoresLast, now, measureStart: MEASURE_START });
+
+            const title = 'chore · weekly retro';
+            const open = await github.paginate(github.rest.issues.listForRepo, { ...context.repo, state: 'open', labels: 'retro', per_page: 100 });
+            let issue = open.find((i) => i.title === title);
+            if (!issue) {
+              issue = (await github.rest.issues.create({ ...context.repo, title, labels: ['retro', 'area:ops'], body: [
+                'Kind: chore', 'Scenario: none',
+                'Path: well-worn — a weekly retrospective ending in one action (Scrum Guide, Atlassian); checks over review comments (Google eng-practices).',
+                '', 'Standing Issue (#1433): each Monday a digest comment, then the agent pass. Stays open.',
+              ].join('\n') })).data;
+            }
+            await github.rest.issues.createComment({ ...context.repo, issue_number: issue.number, body: final });
+            core.summary.addRaw(final).write();
