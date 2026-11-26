@@ -1,44 +1,44 @@
 {
-  "at": "2026-11-25T20:29:50.917Z",
-  "sha": "e93e53cf055788e3ccf125d39cd8a7fa6ebf36ca",
+  "at": "2026-11-26T17:52:45.098Z",
+  "sha": "facef730d892f4d3aad42a32635e5f38cd267056",
   "red": true,
-  "redCount": 11,
-  "amberCount": 1,
+  "redCount": 8,
+  "amberCount": 2,
   "rebenchmarkDue": null,
   "slowest": [
     {
       "screen": "Header → Explore [settled]",
       "kind": "consumer",
-      "readyMs": 1851,
-      "feedbackMs": 77,
+      "readyMs": 1590,
+      "feedbackMs": 46,
       "status": "amber"
     },
     {
       "screen": "Creator: own Page → edit [settled]",
       "kind": "creator",
-      "readyMs": 1690,
-      "feedbackMs": 91,
+      "readyMs": 1430,
+      "feedbackMs": 73,
       "status": "red"
     },
     {
-      "screen": "Explore: ➕ → Show the map [settled]",
+      "screen": "Explore card → Page [quick]",
       "kind": "consumer",
-      "readyMs": 964,
-      "feedbackMs": 81,
-      "status": "green"
+      "readyMs": 1179,
+      "feedbackMs": 58,
+      "status": "amber"
+    },
+    {
+      "screen": "Explore card → Page (member) [settled]",
+      "kind": "consumer",
+      "readyMs": 1169,
+      "feedbackMs": 64,
+      "status": "red"
     },
     {
       "screen": "You → Following list [settled]",
       "kind": "consumer",
-      "readyMs": 461,
-      "feedbackMs": 81,
-      "status": "green"
-    },
-    {
-      "screen": "Header → You (signed out) [settled]",
-      "kind": "consumer",
-      "readyMs": 309,
-      "feedbackMs": 53,
+      "readyMs": 644,
+      "feedbackMs": 49,
       "status": "green"
     }
   ],
@@ -46,82 +46,150 @@
     {
       "screen": "Explore card → Page [quick]",
       "kind": "consumer",
-      "feedbackMs": null,
-      "urlMs": null,
-      "readyMs": null,
-      "status": "red",
+      "feedbackMs": 58,
+      "urlMs": 756,
+      "readyMs": 1179,
+      "status": "amber",
       "flags": [
-        "no-feedback",
-        "never-ready"
+        "slow-content"
       ]
     },
     {
       "screen": "Explore card → Page [settled]",
       "kind": "consumer",
-      "feedbackMs": null,
-      "urlMs": null,
-      "readyMs": null,
+      "feedbackMs": 37,
+      "urlMs": 234,
+      "readyMs": 256,
+      "status": "green",
+      "flags": []
+    },
+    {
+      "screen": "Page → back to Explore [quick]",
+      "kind": "consumer",
+      "feedbackMs": 201,
+      "urlMs": 201,
+      "readyMs": 232,
       "status": "red",
       "flags": [
-        "no-feedback",
-        "never-ready"
+        "slow-feedback"
+      ]
+    },
+    {
+      "screen": "Page → back to Explore [settled]",
+      "kind": "consumer",
+      "feedbackMs": 225,
+      "urlMs": 225,
+      "readyMs": 264,
+      "status": "red",
+      "flags": [
+        "slow-feedback"
       ]
     },
     {
       "screen": "Explore: search pill opens [quick]",
       "kind": "consumer",
-      "feedbackMs": 81,
+      "feedbackMs": 66,
       "urlMs": null,
-      "readyMs": 140,
+      "readyMs": 121,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: search pill opens [settled]",
       "kind": "consumer",
-      "feedbackMs": 93,
+      "feedbackMs": 76,
       "urlMs": null,
-      "readyMs": 139,
+      "readyMs": 111,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: More filters opens sheet [settled]",
       "kind": "consumer",
-      "feedbackMs": 135,
+      "feedbackMs": 93,
       "urlMs": null,
-      "readyMs": 185,
-      "status": "red",
-      "flags": [
-        "slow-feedback"
-      ]
+      "readyMs": 129,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore: Where opens picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 133,
+      "feedbackMs": 100,
       "urlMs": null,
-      "readyMs": 190,
-      "status": "red",
-      "flags": [
-        "slow-feedback"
-      ]
+      "readyMs": 136,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Header → You (signed out) [settled]",
       "kind": "consumer",
-      "feedbackMs": 53,
-      "urlMs": 271,
-      "readyMs": 309,
+      "feedbackMs": 46,
+      "urlMs": 350,
+      "readyMs": 377,
+      "status": "green",
+      "flags": []
+    },
+    {
+      "screen": "Page: follow asks you to sign in [quick]",
+      "kind": "consumer",
+      "feedbackMs": 52,
+      "urlMs": null,
+      "readyMs": 87,
+      "status": "green",
+      "flags": []
+    },
+    {
+      "screen": "Page: follow asks you to sign in [settled]",
+      "kind": "consumer",
+      "feedbackMs": 51,
+      "urlMs": null,
+      "readyMs": 75,
+      "status": "green",
+      "flags": []
+    },
+    {
+      "screen": "Page: sign in → login screen [settled]",
+      "kind": "consumer",
+      "feedbackMs": 76,
+      "urlMs": 206,
+      "readyMs": 229,
+      "status": "green",
+      "flags": []
+    },
+    {
+      "screen": "Page: share [settled]",
+      "kind": "consumer",
+      "feedbackMs": 57,
+      "urlMs": null,
+      "readyMs": 78,
+      "status": "green",
+      "flags": []
+    },
+    {
+      "screen": "Page: overflow menu → report [settled]",
+      "kind": "consumer",
+      "feedbackMs": 65,
+      "urlMs": null,
+      "readyMs": 66,
+      "status": "green",
+      "flags": []
+    },
+    {
+      "screen": "Report: Page menu → report [settled]",
+      "kind": "consumer",
+      "feedbackMs": 49,
+      "urlMs": null,
+      "readyMs": 81,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Waitlist: open from the area picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 78,
+      "feedbackMs": 64,
       "urlMs": null,
-      "readyMs": 125,
+      "readyMs": 97,
       "status": "green",
       "flags": []
     },
@@ -152,62 +220,67 @@
     {
       "screen": "Explore card → Page (member) [quick]",
       "kind": "consumer",
-      "feedbackMs": null,
-      "urlMs": null,
-      "readyMs": null,
-      "status": "red",
-      "flags": [
-        "no-feedback",
-        "never-ready"
-      ]
+      "feedbackMs": 76,
+      "urlMs": 317,
+      "readyMs": 343,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore card → Page (member) [settled]",
       "kind": "consumer",
-      "feedbackMs": null,
-      "urlMs": null,
-      "readyMs": null,
+      "feedbackMs": 64,
+      "urlMs": 482,
+      "readyMs": 1169,
       "status": "red",
       "flags": [
-        "no-feedback",
-        "never-ready"
+        "slow-content"
       ]
     },
     {
       "screen": "You → Following list [settled]",
       "kind": "consumer",
-      "feedbackMs": 81,
-      "urlMs": 436,
-      "readyMs": 461,
+      "feedbackMs": 49,
+      "urlMs": 622,
+      "readyMs": 644,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: ➕ → Show the map [settled]",
       "kind": "consumer",
-      "feedbackMs": 81,
-      "urlMs": 82,
-      "readyMs": 964,
+      "feedbackMs": 65,
+      "urlMs": 65,
+      "readyMs": 576,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Header → Explore [settled]",
       "kind": "consumer",
-      "feedbackMs": 77,
-      "urlMs": 159,
-      "readyMs": 1851,
+      "feedbackMs": 46,
+      "urlMs": 111,
+      "readyMs": 1590,
       "status": "amber",
       "flags": [
         "slow-content"
       ]
     },
     {
+      "screen": "Page: overflow menu → report (member) [settled]",
+      "kind": "consumer",
+      "feedbackMs": 64,
+      "urlMs": null,
+      "readyMs": 65,
+      "status": "green",
+      "flags": []
+    },
+    {
       "screen": "Creator: own Page → edit [settled]",
       "kind": "creator",
-      "feedbackMs": 91,
-      "urlMs": 1203,
-      "readyMs": 1690,
+      "feedbackMs": 73,
+      "urlMs": 748,
+      "readyMs": 1430,
       "status": "red",
       "flags": []
     },
@@ -238,9 +311,9 @@
     {
       "screen": "Creator: ➕ offers Propose something [settled]",
       "kind": "creator",
-      "feedbackMs": 56,
+      "feedbackMs": 48,
       "urlMs": null,
-      "readyMs": 77,
+      "readyMs": 86,
       "status": "green",
       "flags": []
     }
