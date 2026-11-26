@@ -71,6 +71,7 @@
     "practice.pm-directs-agents-edit": "product manager",
     "practice.pm-looks-at-running-app": "product manager",
     "practice.pm-queue-one-at-a-time": "product manager",
+    "practice.pr-review-call": "reviewer",
     "practice.pr-states-how-verified": "engineer",
     "practice.prefer-delete-and-check-code": "tech lead",
     "practice.previews-off": "release owner",
