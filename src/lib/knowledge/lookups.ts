@@ -556,6 +556,16 @@ export interface HowLine {
   holds: string | null
   enforced_by: string | null
   applies: string[]
+  /** #1435: the seat a person takes later (the practice's owner). */
+  seat?: string | null
+}
+
+/** One practice as `how` lists it. */
+export function howLineText(l: HowLine): string {
+  const meta = [l.strength, l.ring, l.holds === 'for now' ? 'for now' : null].filter(Boolean).join(', ')
+  const applies = l.applies.length ? ` [applies ${l.applies.join(', ')}]` : ''
+  const seat = l.seat ? ` Seat: ${l.seat}.` : ''
+  return `- ${l.id} · ${meta}: ${l.answer}${seat} Enforced by: ${l.enforced_by ?? 'nothing yet'}.${applies}`
 }
 
 /** The live practices for the areas a question points at, strictest first; and which areas those were. */
@@ -568,7 +578,9 @@ export async function how(
     [question],
   )
   const { rows: lines } = await db.query<HowLine>(
-    `select h.*, c.name as area from knowledge.how($1) h join knowledge.concerns c on c.slug = h.concern`,
+    `select h.*, c.name as area, r.owner as seat
+       from knowledge.how($1) h join knowledge.concerns c on c.slug = h.concern
+       left join knowledge.records r on r.id = h.id`,
     [question],
   )
   const absolutes = areas.length ? await processAbsolutes(db) : []
@@ -626,7 +638,7 @@ export async function packRows(db: ClientBase): Promise<{
   steps: string | null
 }> {
   const { rows: practices } = await db.query<PackPractice>(
-    `select r.id, r.concern, c.name as area, r.answer, r.why, r.strength, r.ring, r.holds
+    `select r.id, r.concern, c.name as area, r.answer, r.why, r.strength, r.ring, r.holds, r.owner as seat
        from knowledge.records r join knowledge.concerns c on c.slug = r.concern
       where r.kind = 'practice' and r.status = 'live'
       order by r.concern,

@@ -40,6 +40,7 @@ import { loadConcepts, readSeed, readImagine, readScenarios, readBriefs, concept
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
 import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
 import { loadRuns, runsReport, type RunsSummary } from './runs'
+import { loadSeats, readSeats, seatReport, type SeatSummary } from './seats'
 import { loadVersions, readVersionSeed, versionReport, type VersionSeed, type VersionSummary } from './versions'
 
 export interface Sources {
@@ -57,6 +58,8 @@ export interface Sources {
   maps?: MapSources
   /** F135: routines.json and runs-seed.json; false skips them. */
   runs?: false
+  /** #1435: seats.json; false skips it. */
+  seats?: false
   /** #1431: the version plans. Left out, none is loaded (the fixtures' imports). */
   versions?: VersionSeed
 }
@@ -81,6 +84,8 @@ export interface Summary {
   maps?: MapSummary
   /** F135: routines, and the runs from before runs recorded themselves. */
   runs?: RunsSummary
+  /** #1435: the seat each live practice names. */
+  seats?: SeatSummary
   /** #1431: versions and their plans. */
   versions?: VersionSummary
 }
@@ -429,6 +434,8 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   // F135: which practices are routines, and run one (runs-seed.json), after
   // the practices they belong to. Later runs record themselves.
   if (src.runs !== false) summary.runs = await loadRuns(db)
+  // #1435: last, so a practice recorded above is held to it too.
+  if (src.seats !== false) summary.seats = await loadSeats(db, readSeats())
   return summary
 }
 
@@ -509,6 +516,7 @@ async function main(): Promise<void> {
       ...(summary.maps ? mapReport(summary.maps) : []),
       ...(summary.versions ? versionReport(summary.versions) : []),
       ...(summary.runs ? runsReport(summary.runs) : []),
+      ...(summary.seats ? seatReport(summary.seats) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),
@@ -519,6 +527,10 @@ async function main(): Promise<void> {
     if (process.env.GITHUB_STEP_SUMMARY) {
       const { appendFileSync } = await import('node:fs')
       appendFileSync(process.env.GITHUB_STEP_SUMMARY, report + '\n')
+    }
+    if (summary.seats?.problems.length) {
+      await db.query('rollback')
+      throw new Error(`A live practice has no seat (#1435); nothing was written: ${summary.seats.problems.join('; ')}`)
     }
     if (!matches) {
       await db.query('rollback')
