@@ -3,6 +3,7 @@
   "seats": {
     "PR-0001": "tech lead",
     "PR-0002": "tech lead",
+    "PR-0003": "reviewer",
     "practice.absolute-needs-four-harms": "tech lead",
     "practice.acceptance-checks-mean-scenario": "product manager",
     "practice.accepted-risk-expires": "tech lead",

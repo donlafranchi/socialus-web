@@ -35,6 +35,7 @@ describe('retro digest', () => {
     expect(md).toMatch(/#20[^\n]*needs-review/)
     expect(md).toMatch(/Scores[^\n]*2026-11-06[^\n]*stale/i)
     expect(md).toMatch(/at most one/i)
+    expect(md).toMatch(/PR-0003[^\n]*three or more PRs[^\n]*judgement-only/)
     for (const c of BASELINE.classes) expect(md).toContain(c.name)
   })
   it('counts the measure across weeks when given every PR since the start', () => {

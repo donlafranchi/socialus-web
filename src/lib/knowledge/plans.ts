@@ -66,6 +66,12 @@ const sliceWords = (s: SliceLine) =>
   `${s.slice}${s.answer ? ` ${s.answer}` : ''}${s.feature ? ` (${s.feature}${s.feature_answer ? ` ${s.feature_answer}` : ''})` : ''}` +
   `${s.status && s.status !== 'planned' ? `, ${s.status}` : ''}`
 
+/** A full stop at the end, unless the words already end a sentence. */
+export const endSentence = (s: string) => {
+  const t = s.trimEnd()
+  return /[.!?]$/.test(t) ? t : `${t}.`
+}
+
 export async function planText(db: ClientBase, id: string, on?: string): Promise<string | null> {
   const { rows } = await db.query<{ p: Plan | null }>(
     `select knowledge.plan_as_of($1, case when $2::text is null then now() else ${endOf('$2')} end) as p`,
@@ -75,7 +81,7 @@ export async function planText(db: ClientBase, id: string, on?: string): Promise
   if (!p) return null
   const lines = [
     `${p.id} · ${p.status}: ${p.name}${p.due_on ? ` (due ${p.due_on})` : ''}${on ? `, as it was on ${on}` : ''}`,
-    `For: ${p.outcomes.join('; ')}. Appetite: ${p.appetite}.`,
+    `For: ${endSentence(p.outcomes.join('; '))} Appetite: ${endSentence(p.appetite)}`,
     `This plan since ${p.since.slice(0, 10)} (version ${p.version}): ${p.because}${p.outcome ? ` [outcome: ${p.outcome}]` : ''}`,
     'Includes:',
     ...(p.includes.length ? p.includes.map((s) => `- ${sliceWords(s)}`) : ['- nothing yet']),

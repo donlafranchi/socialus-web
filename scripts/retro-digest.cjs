@@ -51,6 +51,7 @@ function render({ from, to, prs, alarms, scoresLast, now, measureStart, measureP
     ...BASELINE.classes.map((c) => `| ${c.name} | ${c.prs} (${pct(c.prs, BASELINE.reviewed)}) | |`),
     '',
     '### For the agent pass',
+    '- The rule (PR-0003, trial; the PM picked A, 2026-11-26): a finding seen in three or more PRs becomes a check with a bad fixture, or is recorded as judgement-only. Its trial measure is the 30-PR recount above.',
     '- Read the reviewed PRs above: what repeated, by class; fill the column.',
     '- Build at most one new check, proven on a bad fixture, or say in one line why none. Remove a check that wrongly failed more than 2 PRs.',
     '- Message the PM only for a judgement call.',
