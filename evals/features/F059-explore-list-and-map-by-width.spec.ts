@@ -5,20 +5,6 @@ import { test, expect } from '@playwright/test'
 // Don, 2026-11-01 — one top row (mark, search pill, ➕, You); no bottom bar.
 
 // [guards F059.5 partial: signed out only; a member's ➕ menu is guarded in BrowseSurface.layout.test.tsx]
-// TEMP DEBUG (#1459): print what Explore shows, and any page errors, when a check here fails. Removed before merge.
-const pageErrors: string[] = []
-test.beforeEach(async ({ page }) => {
-  pageErrors.length = 0
-  page.on('pageerror', (e) => pageErrors.push(String(e)))
-  page.on('console', (m) => m.type() === 'error' && pageErrors.push(`console: ${m.text()}`))
-})
-test.afterEach(async ({ page }, info) => {
-  if (info.status === info.expectedStatus) return
-  const results = await page.getByTestId('browse-results').innerText().catch((e) => `no browse-results: ${e}`)
-  const ids = await page.evaluate(() => [...document.querySelectorAll('[data-testid]')].map((e) => e.getAttribute('data-testid')).join(','))
-  console.log(`DEBUG ${info.title} @ ${page.url()}\nRESULTS: ${results.slice(0, 600)}\nTESTIDS: ${ids.slice(0, 1500)}\nERRORS: ${pageErrors.join(' | ').slice(0, 1500)}`)
-})
-
 test.describe('F059 — a list at every width', () => {
   test('on a phone the top row slides away scrolling down and returns scrolling up; no bottom bar, no map', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
