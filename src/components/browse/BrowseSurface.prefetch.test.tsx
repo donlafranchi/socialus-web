@@ -7,6 +7,8 @@ import { renderExplore } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
+const { preload } = vi.hoisted(() => ({ preload: vi.fn(() => () => {}) }))
+vi.mock('@/lib/browse/preload-when-idle', () => ({ preloadWhenIdle: preload }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => '/explore' }))
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
 vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
@@ -40,5 +42,13 @@ describe('Explore cards prefetch their Page (#555)', () => {
     renderExplore(<BrowseSurface initial={snapshot(6)} />)
     const links = [0, 1, 2, 3, 4, 5].map((i) => screen.getByText(`Page ${i}`).closest('a')!)
     expect(links.map((a) => a.getAttribute('data-prefetch'))).toEqual(['true', 'true', 'true', 'default', 'default', 'default'])
+  })
+})
+
+describe('the map\'s code loads while Explore is idle (#978)', () => {
+  it('schedules one idle preload when Explore mounts', () => {
+    preload.mockClear()
+    renderExplore(<BrowseSurface initial={snapshot(1)} />)
+    expect(preload).toHaveBeenCalledTimes(1)
   })
 })
