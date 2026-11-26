@@ -69,6 +69,8 @@ export interface Summary {
   links: number
   /** Rulings gone from socialus-plan that no newer ruling names as replaced. */
   goneWithoutReplacement: string[]
+  /** Their ids, which the export check leaves out: socialus-plan's file cannot hold them. */
+  goneIds: string[]
   /** Changes the store's functions do not offer (an ontology entry's status moving to live). */
   blocked: string[]
   /** F130: concepts, ideas and the scenarios that name them. */
@@ -93,7 +95,8 @@ const PLAN_SOURCE = /^([^:#]+\.md):(\d+)$/
  * method (the store's newer-decision-wins rule) allows two
  * forms that name a ruling: `[replaces 2026-09-22: old text]`, by the old
  * ruling's date, and `[replaces F059: old text]`, by the scenario it sat in.
- * Either way the old text is the ruling's words, or a clause of them.
+ * Either way the old text is the ruling's words, or a clause of them, with or
+ * without the date the line opened with.
  */
 export function replacesTagNames(tag: string, gone: { decided_on: string | null; source: string | null; answer: string }): boolean {
   const m = /^\[replaces (\d{4}-\d{2}-\d{2}|F\d{3,}): (.+)\]$/.exec(tag)
@@ -101,7 +104,14 @@ export function replacesTagNames(tag: string, gone: { decided_on: string | null;
   const where = m[1].startsWith('F')
     ? !!gone.source && gone.source.startsWith(`planning/scenario-${m[1]}.md:`)
     : m[1] === gone.decided_on
-  const words = m[2].trim()
+  // The old text may be quoted as the line stood in the file, date first
+  // (`2026-10-06 — Location …`), which socialus-plan's markers.py accepts
+  // because it looks for the text in the old file. The store's answer holds
+  // the words without the date, so the date is taken off, and it must be the
+  // gone ruling's own.
+  const dated = /^(\d{4}-\d{2}-\d{2}) [—–-] (.+)$/.exec(m[2].trim())
+  if (dated && dated[1] !== gone.decided_on) return false
+  const words = (dated ? dated[2] : m[2]).trim()
   return where && (gone.answer.includes(words) || words.includes(gone.answer))
 }
 
@@ -291,7 +301,7 @@ function keyOf(r: Existing): string {
 /** As the store's login, holding a key: bring the store in line with the sources. */
 export async function importAll(db: ClientBase, src: Sources, today = dateOnly(new Date())): Promise<Summary> {
   const summary: Summary = {
-    recorded: 0, revised: 0, unchanged: 0, retired: 0, links: 0, goneWithoutReplacement: [], blocked: [],
+    recorded: 0, revised: 0, unchanged: 0, retired: 0, links: 0, goneWithoutReplacement: [], goneIds: [], blocked: [],
   }
   const rulings = readRulings(src.planDir)
   if (!rulings.length) throw new Error(`No rulings found under ${src.planDir}: is it a checkout of socialus-plan?`)
@@ -349,10 +359,15 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     if (!fromRulings && !fromRegistry) continue
     let replacedBy: string | null = null
     if (fromRulings) {
-      const newer = rulings.find((r) => r.replaces.some((t) => replacesTagNames(t, gone)))
+      const goneFile = PLAN_SOURCE.exec(gone.source!)![1]
+      const newer =
+        rulings.find((r) => r.replaces.some((t) => replacesTagNames(t, gone))) ??
+        // Re-dated between imports: the store holds the first dating, the tag names a later one.
+        rulings.find((r) => r.file === goneFile && r.replaces.some((t) => replacesTagQuotesRedated(t, gone)))
       replacedBy = newer ? idOfKey.get(rulingKey(newer.date, newer.words)) ?? null : null
       if (!replacedBy) {
         summary.goneWithoutReplacement.push(`${gone.id} (${gone.decided_on}): ${gone.answer}`)
+        summary.goneIds.push(gone.id)
         continue
       }
     }
@@ -417,6 +432,27 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   return summary
 }
 
+/**
+ * Whether a `[replaces DATE: DATE — old text]` tag quotes the gone ruling's
+ * words under a different date. A ruling re-dated in socialus-plan and then
+ * replaced before the next import leaves the store holding the first dating,
+ * while the only tag left names the later one (D-0294, 2026-11-24: ruled
+ * 11-01, re-dated 11-13, replaced 11-24, with no import in between). The
+ * caller accepts this only from a ruling in the gone ruling's own file, and
+ * only for a ruling already gone from that file.
+ */
+export function replacesTagQuotesRedated(tag: string, gone: { decided_on: string | null; answer: string }): boolean {
+  const m = /^\[replaces (\d{4}-\d{2}-\d{2}): \1 [—–-] (.+)\]$/.exec(tag)
+  if (!m || !gone.decided_on || m[1] <= gone.decided_on) return false
+  // A re-dated ruling is often reworded too (D-0294's last sentence was), so
+  // the two are compared by how far they open alike. Eighty characters is a
+  // ruling's own opening clause, not a phrase two rulings share.
+  const words = m[2].trim()
+  let same = 0
+  while (same < words.length && same < gone.answer.length && words[same] === gone.answer[same]) same++
+  return same >= 80
+}
+
 // ---------------------------------------------------------------------------
 // The command line, for the workflow.
 
@@ -440,7 +476,7 @@ async function main(): Promise<void> {
     maps: { seed: readMapSeed(), walkthroughs: readWalkthroughs(planDir), rollup: readRollup() },
     versions: readVersionSeed(),
   }
-  const { exportConstraints } = await import('./export')
+  const { exportConstraints, firstDifferences } = await import('./export')
   const { readFileSync } = await import('node:fs')
 
   const db = new Client({ connectionString: url })
@@ -451,7 +487,11 @@ async function main(): Promise<void> {
     await db.query('begin')
     await enterStore(db, agent)
     const summary = await importAll(db, src)
-    const exported = await exportConstraints(db, 'code')
+    // Rulings gone from socialus-plan with nothing replacing them stay live in
+    // the store and are listed below for a decision. The plan's file cannot
+    // hold them, so they are left out of this comparison: with them in, one
+    // deleted line stopped every import (D-0282, from 2026-11-24).
+    const exported = await exportConstraints(db, 'code', summary.goneIds)
     const handBuilt = readFileSync(resolve(planDir, 'constraints/code.md'), 'utf8')
     await leaveStore(db, agent)
     const matches = exported === handBuilt
@@ -473,6 +513,7 @@ async function main(): Promise<void> {
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),
       ...(summary.blocked.length ? ['', 'Not changed (the store offers no way to):', ...summary.blocked.map((b) => `- ${b}`)] : []),
+      ...(matches ? [] : ['', "Where the store's constraints/code.md differs from socialus-plan's:", ...firstDifferences(exported, handBuilt).map((d) => `- ${d}`)]),
     ].join('\n')
     console.log(report)
     if (process.env.GITHUB_STEP_SUMMARY) {
