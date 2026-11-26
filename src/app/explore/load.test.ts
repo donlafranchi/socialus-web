@@ -68,9 +68,10 @@ vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
 vi.mock('@/lib/feed/metro-catalog', () => ({ cachedMetros: () => listFeedMetros() }))
 
 vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountByMetro }))
-vi.mock('@/lib/browse/scope', () => ({ resolveBrowseScope }))
+vi.mock('@/lib/browse/scope', async (actual) => ({ ...(await actual<typeof import('@/lib/browse/scope')>()), resolveBrowseScope }))
 const { cookieGet } = vi.hoisted(() => ({ cookieGet: vi.fn() }))
-vi.mock('next/headers', () => ({ cookies: async () => ({ get: cookieGet }) }))
+const { headerGet } = vi.hoisted(() => ({ headerGet: vi.fn() }))
+vi.mock('next/headers', () => ({ cookies: async () => ({ get: cookieGet }), headers: async () => ({ get: headerGet }) }))
 
 import { loadBrowse, loadMemberMap } from './load'
 
@@ -93,6 +94,7 @@ beforeEach(() => {
   listFeedMetros.mockResolvedValue([METRO])
   waitingCountByMetro.mockResolvedValue(new Map([[METRO.id, 12]]))
   cookieGet.mockReturnValue(undefined)
+  headerGet.mockReturnValue(null)
   resolveBrowseScope.mockResolvedValue({ metro: METRO, chosen: false })
   resolveFollowedPageIds.mockResolvedValue([])
   from.mockReturnValue({
@@ -483,5 +485,42 @@ describe('#978 — the metros are the cached list', () => {
     signedOut()
     await loadBrowse(null)
     expect(resolveBrowseScope).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ catalog: [METRO] }))
+  })
+})
+
+// F081 (the PM, 2026-11-25) — the request's location is read only for someone with no market of their own.
+describe('F081 — admission by where the visitor is', () => {
+  const near = { 'x-vercel-ip-latitude': '38.5449', 'x-vercel-ip-longitude': '-121.7405' } as Record<string, string>
+  const SAC_C = { ...METRO, center: [-121.4944, 38.5816] as [number, number] }
+
+  it('a visitor with nothing of their own is admitted to the open market near them', async () => {
+    signedOut()
+    listFeedMetros.mockResolvedValue([SAC_C])
+    headerGet.mockImplementation((k: string) => near[k] ?? null)
+    rpc.mockResolvedValue({ data: null, error: null })
+    resolveBrowseScope.mockResolvedValue({ metro: SAC_C, chosen: false, admitted: true })
+    const snap = await loadBrowse(null, null, { withMap: false })
+    expect(resolveBrowseScope.mock.calls[0]![1].admission).toEqual({ kind: 'one', metro: SAC_C })
+    expect(snap.admitted).toBe(true)
+  })
+
+  it('a requested market is theirs: the location is never read', async () => {
+    signedOut()
+    listFeedMetros.mockResolvedValue([SAC_C])
+    headerGet.mockImplementation((k: string) => near[k] ?? null)
+    await loadBrowse(SAC_C.slug, null, { withMap: false })
+    expect(headerGet).not.toHaveBeenCalled()
+    expect(resolveBrowseScope.mock.calls[0]![1].admission).toBeUndefined()
+  })
+
+  it('beyond an hour of every open market: no scope, and the prompt says so', async () => {
+    signedOut()
+    listFeedMetros.mockResolvedValue([SAC_C])
+    headerGet.mockImplementation((k: string) => ({ 'x-vercel-ip-latitude': '40.71', 'x-vercel-ip-longitude': '-74.0' })[k] ?? null)
+    rpc.mockResolvedValue({ data: null, error: null })
+    resolveBrowseScope.mockResolvedValue(null)
+    const snap = await loadBrowse(null, null, { withMap: false })
+    expect(snap.metro).toBeNull()
+    expect(snap.prompt).toEqual({ kind: 'far' })
   })
 })
