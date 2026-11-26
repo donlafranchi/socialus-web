@@ -4,13 +4,13 @@ import { resolve } from 'node:path'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
-import { readRulings, readAbsolutes } from '../scripts/knowledge/plan-source'
+import { readRulings } from '../scripts/knowledge/plan-source'
 import { renderConstraints } from '../scripts/knowledge/render'
 import { enterStore, leaveStore, importAll, type Sources } from '../scripts/knowledge/import'
 import { exportConstraints } from '../scripts/knowledge/export'
 
 // F125 / T1017 (#1218) — the knowledge import. Reads a checkout of
-// socialus-plan (and socialus-ops, for its absolutes file), imports it into
+// socialus-plan, imports it into
 // the store, and reads constraints/code.md back out. CI checks both out at a
 // pinned commit (.github/workflows/ci.yml); locally they are the sibling repos.
 // The database half runs in one transaction that is always rolled back, so it
@@ -111,19 +111,13 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
     expect(philosophies.rowCount).toBe(rulings.filter((r) => r.principle).length)
   })
 
-  it('brings in both absolutes files at strength absolute, and the ontology registry', async () => {
+  it('brings in the ontology registry', async () => {
     const { rows } = await db.query<{ kind: string; strength: string; n: string }>(
       `select kind, strength, count(*) as n from knowledge.records
-        where 'absolute' = any (tags) or kind in ('noun', 'verb', 'link') group by 1, 2 order by 1, 2`,
+        where kind in ('noun', 'verb', 'link') group by 1, 2 order by 1, 2`,
     )
     const registry = JSON.parse(readFileSync(src.registryPath, 'utf8'))
     const count = (k: string, s: string) => Number(rows.find((r) => r.kind === k && r.strength === s)?.n ?? 0)
-    // Every absolute in the two files, however many they hold today (the 2026-11-18 retirement took one out).
-    const inFiles =
-      readAbsolutes(resolve(src.planDir, 'product/ABSOLUTES.md'), 'socialus-plan/product/ABSOLUTES.md', 'product').length +
-      readAbsolutes(resolve(src.opsDir, 'process/ABSOLUTES.md'), 'socialus-ops/process/ABSOLUTES.md', 'process').length
-    expect(inFiles).toBeGreaterThan(0)
-    expect(count('decision', 'absolute')).toBeGreaterThanOrEqual(inFiles)
     expect(count('noun', 'guideline')).toBe(registry.objectTypes.length + registry.rejectedAsNouns.length)
     expect(count('verb', 'guideline')).toBe(registry.handlers.length)
     expect(count('link', 'guideline')).toBe(registry.links.length)
@@ -139,11 +133,8 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
     const c = first.concepts!
     // F127: and every scenario as a feature with its first slice.
     const p = first.plans!
-    // F128: so are the practices and experiments, and each verdict.
-    const pr = first.practices
     const all = first.recorded + c.conceptsRecorded + c.conceptsRevised + c.ideasRecorded + c.features +
       p.features + p.slices + p.moved + p.statusChanged +
-      (pr ? pr.recorded + pr.revised + pr.experiments + pr.verdicts : 0) +
       (first.runs?.versions ?? 0) // F135: run one and the ideas it left
     expect(Number(rows[0].n)).toBe(all)
     expect(Number(rows[0].named)).toBe(all)
