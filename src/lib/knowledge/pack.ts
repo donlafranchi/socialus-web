@@ -19,6 +19,8 @@ export interface PackPractice {
   strength: string
   ring: string
   holds: string | null
+  /** #1435: the seat a person takes later. */
+  seat?: string | null
 }
 
 export interface PackPhilosophy {
@@ -81,7 +83,8 @@ export function renderPack(
     body.push(`## ${list[0].area}`, '')
     for (const p of list) {
       const holds = p.holds === 'for now' ? ', for now' : ''
-      body.push(`- **${oneLine(p.answer)}** ${p.strength}, ${p.ring}${holds}. Why: ${oneLine(p.why ?? 'not recorded')} (${p.id})`)
+      const seat = p.seat ? ` Seat: ${p.seat}.` : ''
+      body.push(`- **${oneLine(p.answer)}** ${p.strength}, ${p.ring}${holds}.${seat} Why: ${oneLine(p.why ?? 'not recorded')} (${p.id})`)
     }
     body.push('')
   }
