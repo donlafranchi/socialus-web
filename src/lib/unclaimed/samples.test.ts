@@ -6,13 +6,20 @@ const now = new Date('2026-10-10T18:00:00Z')
 
 describe('samplePosts (#556)', () => {
   const posts = samplePosts(subject, now)
-  it('is an event, a deal and a last-minute opening', () => {
-    expect(posts.map((p) => p.kind)).toEqual(['event', 'deal', 'last_minute'])
+  // Don, 2026-11-26: one sample each, not full of text.
+  it('is one event, a line or two long', () => {
+    expect(posts.map((p) => p.kind)).toEqual(['event'])
+    for (const pool of ['Food & drink', 'Goods & crafts', 'Repair & trades', 'Farm', 'Farm stay & agritourism', 'Community & volunteer', 'Shop']) {
+      for (let i = 0; i < 6; i++) {
+        const [p] = samplePosts({ ...subject, slug: `len-${i}`, pool }, now)
+        expect(p!.body.length).toBeLessThanOrEqual(200)
+      }
+    }
   })
-  it('opens every one with the Sample label, and says it is not a real offer', () => {
+  it('opens with the Sample label, and says it is not a real event', () => {
     for (const p of posts) {
       expect(isSampleBody(p.body)).toBe(true)
-      expect(p.body).toMatch(/not a real offer/)
+      expect(p.body).toMatch(/Not a real event\./)
       expect(p.body).toContain('Temple Coffee Roasters')
     }
   })
@@ -29,12 +36,10 @@ describe('samplePosts (#556)', () => {
     expect(posts[0]!.startsAt.getTime()).toBeGreaterThan(now.getTime())
   })
   // plan #230 — a sample carries a post kind and a short headline, and stays marked by sample_kind.
-  it('carries the post kind: event, sale, limited', () => {
-    expect(posts.map((p) => p.postKind)).toEqual(['event', 'sale', 'limited'])
-  })
-  it('a volunteer group’s ask for help is news, not a sale (#786)', () => {
+  it('carries the event post kind, for a business and a volunteer group alike', () => {
+    expect(posts.map((p) => p.postKind)).toEqual(['event'])
     const fb = samplePosts({ ...subject, name: 'Yolo Food Bank', slug: 'fb-1', pool: 'Community & volunteer' }, now)
-    expect(fb.map((p) => p.postKind)).toEqual(['event', 'news', 'limited'])
+    expect(fb.map((p) => p.postKind)).toEqual(['event'])
   })
   it('a headline of at most 60 characters, without the Page name or the Sample label', () => {
     for (const pool of ['Food & drink', 'Goods & crafts', 'Repair & trades', 'Farm', 'Farm stay & agritourism', 'Community & volunteer', 'Shop']) {
@@ -97,9 +102,9 @@ describe('samplePosts (#556)', () => {
       const weekday = (count.Mon! + count.Tue! + count.Wed! + count.Thu!) / 4
       expect(weekend).toBeGreaterThan(weekday)
     })
-    it('varies which kind comes first, and the times', () => {
+    it('puts the event (the one sample shown) in week 1, and varies the times', () => {
       const first = new Set(pages.map((p) => { const s = sampleSchedule(nows[0]!, p.slug, p.pool); return (Object.keys(s) as (keyof typeof s)[]).sort((a, b) => s[a].startsAt.getTime() - s[b].startsAt.getTime())[0] }))
-      expect(first.size).toBe(3)
+      expect([...first]).toEqual(['event'])
       expect(new Set(pages.map((p) => hm(sampleSchedule(nows[0]!, p.slug, p.pool).event.startsAt))).size).toBeGreaterThanOrEqual(4)
       const farm = pages.filter((p) => p.pool === 'Farm').map((p) => hm(sampleSchedule(nows[0]!, p.slug, p.pool).event.startsAt))
       for (const t of farm) expect(t < '12:00').toBe(true)
@@ -113,11 +118,11 @@ describe('samplePosts (#556)', () => {
         expect(days(s.last_minute.endsAt, s.last_minute.startsAt)).toBeLessThan(1)
       }
     })
-    it('rolls a finished sample three weeks on, same weekday and time, and leaves a current one alone', () => {
+    it('rolls a finished sample a week on, same weekday and time, and leaves a current one alone', () => {
       const s = sampleSchedule(nows[0]!, 'page-3', 'Farm')
       const later = new Date(s.event.endsAt.getTime() + 3600_000)
       const rolled = rollSample(s.event, later)!
-      expect(Math.round(days(rolled.startsAt, s.event.startsAt))).toBe(21)
+      expect(Math.round(days(rolled.startsAt, s.event.startsAt))).toBe(7)
       expect(wd(rolled.startsAt)).toBe(wd(s.event.startsAt))
       expect(hm(rolled.startsAt)).toBe(hm(s.event.startsAt))
       expect(rollSample(s.event, nows[0]!)).toBeNull()
