@@ -17,7 +17,12 @@ import { renderConstraints, type ConstraintRow } from './render'
 
 const PLAN_SOURCE = /^([^:#]+\.md):(\d+)$/
 
-export async function constraintRows(db: ClientBase): Promise<ConstraintRow[]> {
+/**
+ * `except`: record ids left out. The import passes the rulings gone from
+ * socialus-plan that no newer ruling replaces: the plan's file cannot hold
+ * them, so comparing with them in can only fail, and the run lists each one.
+ */
+export async function constraintRows(db: ClientBase, except: string[] = []): Promise<ConstraintRow[]> {
   const { rows } = await db.query<{
     decided_on: string
     holds: 'always' | 'for now' | null
@@ -28,7 +33,9 @@ export async function constraintRows(db: ClientBase): Promise<ConstraintRow[]> {
     `select to_char(decided_on, 'YYYY-MM-DD') as decided_on, holds, tags, answer, source
        from knowledge.records
       where kind in ('decision', 'philosophy') and status = 'live'
-        and not ('unlisted' = any (tags))`,
+        and not ('unlisted' = any (tags))
+        and not (id = any ($1::text[]))`,
+    [except],
   )
   return rows
     .filter((r) => PLAN_SOURCE.test(r.source ?? ''))
@@ -47,6 +54,18 @@ export async function constraintRows(db: ClientBase): Promise<ConstraintRow[]> {
     })
 }
 
-export async function exportConstraints(db: ClientBase, tier: string): Promise<string> {
-  return renderConstraints(tier, await constraintRows(db))
+export async function exportConstraints(db: ClientBase, tier: string, except: string[] = []): Promise<string> {
+  return renderConstraints(tier, await constraintRows(db, except))
+}
+
+/** The first lines that differ between two renderings, for a run's report. */
+export function firstDifferences(store: string, plan: string, limit = 8): string[] {
+  const a = store.split('\n')
+  const b = plan.split('\n')
+  const inPlan = new Set(b)
+  const inStore = new Set(a)
+  const out: string[] = []
+  for (const l of a) if (!inPlan.has(l) && out.length < limit) out.push(`only in the store: ${l.slice(0, 220)}`)
+  for (const l of b) if (!inStore.has(l) && out.length < limit * 2) out.push(`only in socialus-plan: ${l.slice(0, 220)}`)
+  return out.length ? out : ['the same lines in a different order']
 }

@@ -78,3 +78,13 @@ describe('a replaces tag that quotes a ruling re-dated since the last import', (
     expect(replacesTagQuotesRedated("[replaces 2026-11-13: 2026-11-14 — Explore puts the timely first and mixes locals tips in with Pages' posts]", gone)).toBe(false)
   })
 })
+
+// #1445: when the store's constraints file differs from socialus-plan's, the
+// run says where, so the next failure does not need the database to explain.
+describe('what a failed comparison reports', () => {
+  it('names the lines each side has alone, and says so when only the order differs', async () => {
+    const { firstDifferences } = await import('../scripts/knowledge/export')
+    expect(firstDifferences('a\nb\nc', 'a\nc\nd')).toEqual(['only in the store: b', 'only in socialus-plan: d'])
+    expect(firstDifferences('a\nb', 'b\na')).toEqual(['the same lines in a different order'])
+  })
+})

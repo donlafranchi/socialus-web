@@ -74,6 +74,8 @@ export interface Summary {
   links: number
   /** Rulings gone from socialus-plan that no newer ruling names as replaced. */
   goneWithoutReplacement: string[]
+  /** Their ids, which the export check leaves out: socialus-plan's file cannot hold them. */
+  goneIds: string[]
   /** Changes the store's functions do not offer (an ontology entry's status moving to live). */
   blocked: string[]
   /** F130: concepts, ideas and the scenarios that name them. */
@@ -336,7 +338,7 @@ function keyOf(r: Existing): string {
 /** As the store's login, holding a key: bring the store in line with the sources. */
 export async function importAll(db: ClientBase, src: Sources, today = dateOnly(new Date())): Promise<Summary> {
   const summary: Summary = {
-    recorded: 0, revised: 0, unchanged: 0, retired: 0, links: 0, goneWithoutReplacement: [], blocked: [],
+    recorded: 0, revised: 0, unchanged: 0, retired: 0, links: 0, goneWithoutReplacement: [], goneIds: [], blocked: [],
   }
   const rulings = readRulings(src.planDir)
   if (!rulings.length) throw new Error(`No rulings found under ${src.planDir}: is it a checkout of socialus-plan?`)
@@ -415,6 +417,7 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
       replacedBy = newer ? idOfKey.get(rulingKey(newer.date, newer.words)) ?? null : null
       if (!replacedBy) {
         summary.goneWithoutReplacement.push(`${gone.id} (${gone.decided_on}): ${gone.answer}`)
+        summary.goneIds.push(gone.id)
         continue
       }
     }
@@ -534,7 +537,7 @@ async function main(): Promise<void> {
     maps: { seed: readMapSeed(), walkthroughs: readWalkthroughs(planDir), rollup: readRollup() },
     versions: readVersionSeed(),
   }
-  const { exportConstraints } = await import('./export')
+  const { exportConstraints, firstDifferences } = await import('./export')
   const { readFileSync } = await import('node:fs')
 
   const db = new Client({ connectionString: url })
@@ -545,7 +548,11 @@ async function main(): Promise<void> {
     await db.query('begin')
     await enterStore(db, agent)
     const summary = await importAll(db, src)
-    const exported = await exportConstraints(db, 'code')
+    // Rulings gone from socialus-plan with nothing replacing them stay live in
+    // the store and are listed below for a decision. The plan's file cannot
+    // hold them, so they are left out of this comparison: with them in, one
+    // deleted line stopped every import (D-0282, from 2026-11-24).
+    const exported = await exportConstraints(db, 'code', summary.goneIds)
     const handBuilt = readFileSync(resolve(planDir, 'constraints/code.md'), 'utf8')
     await leaveStore(db, agent)
     const matches = exported === handBuilt
@@ -568,6 +575,7 @@ async function main(): Promise<void> {
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),
       ...(summary.blocked.length ? ['', 'Not changed (the store offers no way to):', ...summary.blocked.map((b) => `- ${b}`)] : []),
+      ...(matches ? [] : ['', "Where the store's constraints/code.md differs from socialus-plan's:", ...firstDifferences(exported, handBuilt).map((d) => `- ${d}`)]),
     ].join('\n')
     console.log(report)
     if (process.env.GITHUB_STEP_SUMMARY) {
