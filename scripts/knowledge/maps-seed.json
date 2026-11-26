@@ -715,6 +715,17 @@
         "F117",
         "F060"
       ]
+    },
+    "CO-0071": {
+      "name": "Know your Page owner",
+      "on": "JY-LOCAL.A2.T1"
+    },
+    "CO-0072": {
+      "name": "Your patronage supports a neighbor",
+      "on": "JY-LOCAL.A3.T1",
+      "stands_on": [
+        "CO-0071"
+      ]
     }
   }
 }
