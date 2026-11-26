@@ -1,0 +1,34 @@
+{
+  "task:SocialUs 9pm: merge green, line up overnight work": {
+    "rec": "ask-pm",
+    "note": "Suggest restore with a refreshed prompt: since it went off (10-27), green PRs that said Don doesn't need to look sat open for weeks (the Edit link, meet-up seeding, four seed PRs). Its prompt cites ROADMAP.md (gone) and the old Mac's 2-build limit."
+  },
+  "task:SocialUs: 10 new local businesses a day": {
+    "rec": "ask-pm",
+    "note": "Suggest remove: seeding moved to hand-picked batches on 11-13 (toy and gift shops, skate shops). Its prompt contradicts THEMES.md (theme order, farm quota) and never runs the load. Restore only with a rewritten prompt."
+  },
+  "job:auth-email-templates.yml": {
+    "rec": "restore",
+    "note": "Its only run (10-18) failed at the push step and nobody re-ran it: re-run once to confirm the sign-in emails match supabase/templates, then keep as a by-hand tool."
+  },
+  "job:report-selftest.yml": {
+    "rec": "restore",
+    "note": "Its only run (10-20) failed (the report sheet did not load in time); fix and run once, or remove it if the problem-reports self-test covers the same flow."
+  },
+  "job:builder-content.yml": {
+    "rec": "remove",
+    "note": "Never run since it was added on 10-05; Builders (daily) does the ongoing work."
+  },
+  "job:flags.yml": {
+    "rec": "keep",
+    "note": "Added 11-10; the tool for switching our own feature flags, unused so far because no flag has needed switching."
+  },
+  "job:boundaries.yml": { "rec": "keep", "note": "By-hand tool for loading a new metro's map boundaries; next needed when a metro opens." },
+  "job:builders-production.yml": { "rec": "keep", "note": "By-hand tool for the builder accounts on the live app; rarely needed by design." },
+  "job:staff-roles.yml": { "rec": "keep", "note": "By-hand tool until the staff admin screen exists." },
+  "job:signup-hook-readiness.yml": { "rec": "keep", "note": "By-hand check of the sign-up hook; run it after any auth change." },
+  "job:problem-reports-selftest.yml": { "rec": "keep", "note": "By-hand end-to-end test of Report a problem; run it after changing that flow." },
+  "job:tap-speed.yml": { "rec": "keep", "note": "Red nightly since 11-18 because taps really are over budget (open bugs: slow taps, slow signed-in Explore); the job is doing its work." },
+  "job:knowledge-answers.yml": { "rec": "keep", "note": "Failing since 11-24; tied to the knowledge import fix in progress (#1446)." },
+  "job:knowledge-import.yml": { "rec": "keep", "note": "Failing since 11-24; a fix is open (#1446)." }
+}

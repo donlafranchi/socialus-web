@@ -22,6 +22,7 @@
     "ontology:registry": "tsx scripts/ontology-registry.ts",
     "migrations:manifest": "tsx scripts/generate-migration-manifest.ts",
     "docs:inventory": "tsx scripts/doc-inventory.ts",
+    "infra:inventory": "tsx scripts/infra-inventory.ts",
     "docs:regen": "tsx scripts/regen-docs.ts",
     "storyboard:app": "tsx scripts/storyboard-app.ts",
     "flags:check": "tsx scripts/flags.ts check"

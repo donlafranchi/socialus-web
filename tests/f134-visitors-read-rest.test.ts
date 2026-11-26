@@ -83,10 +83,14 @@ async function publishPage(name: string): Promise<string> {
   return groupId
 }
 
-/** The same read as both callers; `[anon, stranger]`. A refusal reads as an empty answer. */
+/** The same read as both callers; `[anon, stranger]`. Every read here is one a stranger may make, so a refusal is
+ *  thrown with PostgREST's own words rather than read as an empty answer. */
 async function both<T>(read: (c: SupabaseClient) => PromiseLike<{ data: T | null; error: unknown }>): Promise<[T | null, T | null]> {
   const [a, s] = await Promise.all([read(anon), read(stranger)])
-  return [a.error ? null : a.data, s.error ? null : s.data]
+  for (const [who, r] of [['anon', a], ['stranger', s]] as const) {
+    if (r.error) throw new Error(`${who}'s read was refused: ${JSON.stringify(r.error)}`)
+  }
+  return [a.data, s.data]
 }
 
 describe.skipIf(!RUNNABLE)('F134 — signed out, over PostgREST, with the bundle key', () => {
