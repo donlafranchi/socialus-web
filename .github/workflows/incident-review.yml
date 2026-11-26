@@ -1,0 +1,43 @@
+name: incident-review
+
+# #1432 — an Issue an alarm opened closes with a three-line incident review (scripts/check-incident-review.cjs).
+# Closed without one: reopened, asked for it, labelled needs-review. A review comment clears the label.
+# Closes by the workflow token (uptime's own "back up") fire no workflow, so uptime asks and labels itself.
+on:
+  issues:
+    types: [closed]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  review:
+    if: github.event_name == 'issues' || !github.event.issue.pull_request
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: scripts
+      - name: Incident review checker — self-test
+        run: node scripts/check-incident-review.cjs --self-test
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const { hasReview, isAlarm, PROMPT } = require(`${process.env.GITHUB_WORKSPACE}/scripts/check-incident-review.cjs`);
+            const issue = context.payload.issue;
+            if (!isAlarm(issue)) return;
+            const repo = { ...context.repo, issue_number: issue.number };
+            const comments = await github.paginate(github.rest.issues.listComments, { ...repo, per_page: 100 });
+            const reviewed = hasReview(comments.map((c) => c.body));
+            const flagged = issue.labels.some((l) => l.name === 'needs-review');
+            if (reviewed) {
+              if (flagged) await github.rest.issues.removeLabel({ ...repo, name: 'needs-review' });
+              return;
+            }
+            if (context.eventName !== 'issues') return;
+            await github.rest.issues.update({ ...repo, state: 'open' });
+            await github.rest.issues.addLabels({ ...repo, labels: ['needs-review'] });
+            await github.rest.issues.createComment({ ...repo, body: `Reopened. ${PROMPT}` });

@@ -113,7 +113,7 @@ jobs:
           if [ -n "$existing" ]; then
             gh issue comment "$existing" -R "$REPO" --body "Failed again: $RUN"
           else
-            gh issue create -R "$REPO" --title "$title" --label bug --label area:ops --body "This month's restore test could not bring the newest backup back whole: $RUN
+            gh issue create -R "$REPO" --title "$title" --label bug --label area:ops --label alarm --body "This month's restore test could not bring the newest backup back whole: $RUN
 
           Until it passes, assume our own backups would not save us; Supabase's 7-day snapshot still covers the database.
 

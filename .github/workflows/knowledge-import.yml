@@ -16,6 +16,10 @@ name: Knowledge import
 # differ from socialus-plan's own.
 
 on:
+  # #1432 — a daily dry run, so a jam like 11-24..26 (the import refusing for two days, unseen)
+  # opens an alarm Issue within a day. A schedule has no inputs, so it is always a dry run.
+  schedule:
+    - cron: '20 13 * * *'
   workflow_dispatch:
     inputs:
       confirm:
@@ -80,3 +84,28 @@ jobs:
           write=""
           if [ "$CONFIRM" = "import" ]; then write="--commit"; else echo "Dry run: nothing will be written."; fi
           npx tsx scripts/knowledge/import.ts --plan .knowledge/socialus-plan --ops .knowledge/socialus-ops $write
+
+  alarm:
+    name: Open or update the alarm Issue
+    needs: import
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="bug · the daily knowledge import dry run fails"
+          existing="$(gh issue list -R "$REPO" --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)"
+          if [ -n "$existing" ]; then gh issue comment "$existing" -R "$REPO" --body "Failed again: $RUN"; exit 0; fi
+          gh issue create -R "$REPO" --title "$title" --label bug --label area:ops --label alarm --body "The daily dry run of the knowledge import failed: $RUN
+
+          Read the run's summary for the line it stopped on. Until it passes, no import can write.
+
+          Kind: bug
+          Scenario: none
+          Path: well-worn. Precedent: the other alarm workflows here (uptime, smoke-live), one Issue per failure."
