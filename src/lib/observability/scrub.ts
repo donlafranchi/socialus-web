@@ -3,7 +3,9 @@
 // typed or is (user, cookies, bodies, query strings, free-form extras, request
 // data) is dropped, and emails and phone numbers are cut out of every string.
 
-import type { ErrorEvent } from '@sentry/nextjs'
+import type { ErrorEvent, Event } from '@sentry/nextjs'
+
+type TransactionEvent = Event & { type: 'transaction' }
 
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
 const PHONE = /(?:\+?1[\s.-]?)?(?:\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}/g
@@ -16,6 +18,13 @@ export function scrubText(text: string): string {
 function scrubUrl(url: string): string {
   return scrubText(url.split('?')[0]!.split('#')[0]!)
 }
+
+function scrubUrlsIn(text: string): string {
+  return scrubText(text.replace(/\?[^\s#]*/g, '').replace(/#\S*/g, ''))
+}
+
+const SPAN_DATA_DROPPED = new Set(['http.query', 'http.fragment'])
+const SPAN_DATA_URLS = new Set(['url', 'http.url', 'url.full', 'server.address'])
 
 export function scrubEvent<T extends ErrorEvent>(event: T): T {
   const out: ErrorEvent = { ...event }
@@ -43,6 +52,23 @@ export function scrubEvent<T extends ErrorEvent>(event: T): T {
       const { data: _data, ...rest } = b
       void _data
       return typeof rest.message === 'string' ? { ...rest, message: scrubText(rest.message) } : rest
+    })
+  }
+  return out as T
+}
+
+// #1455 — sampled traces carry page and request URLs: keep paths and timings, drop the rest.
+export function scrubTransaction<T extends TransactionEvent>(event: T): T {
+  const out: TransactionEvent = scrubEvent(event as unknown as ErrorEvent) as unknown as TransactionEvent
+  if (typeof out.transaction === 'string') out.transaction = scrubUrl(out.transaction)
+  if (out.spans) {
+    out.spans = out.spans.map((span: NonNullable<Event['spans']>[number]) => {
+      const data = Object.fromEntries(
+        Object.entries(span.data ?? {})
+          .filter(([k]) => !SPAN_DATA_DROPPED.has(k))
+          .map(([k, v]) => [k, typeof v === 'string' && SPAN_DATA_URLS.has(k) ? scrubUrl(v) : v]),
+      )
+      return { ...span, ...(span.description ? { description: scrubUrlsIn(span.description) } : {}), data }
     })
   }
   return out as T
