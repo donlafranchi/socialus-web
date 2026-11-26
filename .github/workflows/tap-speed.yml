@@ -116,5 +116,5 @@ jobs:
             if (existing) {
               await github.rest.issues.createComment({ ...context.repo, issue_number: existing.number, body: `Again: ${run}\n\nSlowest ten:${slow}` });
             } else {
-              await github.rest.issues.create({ ...context.repo, title, body, labels: ['bug', 'area:ops'] });
+              await github.rest.issues.create({ ...context.repo, title, body, labels: ['bug', 'area:ops', 'alarm'] });
             }

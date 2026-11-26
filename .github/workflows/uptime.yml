@@ -125,12 +125,16 @@ jobs:
           Path: well-worn. Precedent: Upptime (scheduled Actions uptime checks that open an Issue per outage).
 
           @donlafranchi"
-            gh issue create -R "$REPO" --title "$title" --body "$body" --label bug --label area:ops
+            gh issue create -R "$REPO" --title "$title" --body "$body" --label bug --label area:ops --label alarm
             exit 1
           fi
 
           if [ -n "$existing" ]; then
-            gh issue comment "$existing" -R "$REPO" --body "Back up at $now. $RUN"
+            # #1432 — this close fires no workflow (it is the workflow token), so it asks for the review itself.
+            gh issue comment "$existing" -R "$REPO" --body "Back up at $now. $RUN
+
+          Incident review (#1432): reply with three lines, \`Broke:\` what broke, \`Not caught:\` why no check caught it, \`Check:\` the check added or why none; or one \`False alarm:\` line."
+            gh issue edit "$existing" -R "$REPO" --add-label needs-review
             gh issue close "$existing" -R "$REPO" --reason completed
           fi
           echo "Up."

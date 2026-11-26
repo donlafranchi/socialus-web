@@ -43,5 +43,5 @@ jobs:
           if [ -n "$existing" ]; then
             gh issue comment "$existing" -R "$REPO" --body "Still failing: \`${SHA:0:7}\` — ${LOG}"
           else
-            gh issue create -R "$REPO" --title "$title" --body "$body" --label bug --label launch-blocking
+            gh issue create -R "$REPO" --title "$title" --body "$body" --label bug --label launch-blocking --label alarm
           fi
