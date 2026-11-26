@@ -47,16 +47,11 @@ export const ROUTES: ScreenRoute[] = [
   {
     name: 'explore-map',
     inventory: ['S012', 'S013'],
-    path: () => '/explore',
+    // F059.5 (the PM, 2026-11-25) — Explore is a list; the map opens only from a Page's map, on that Page.
+    path: () => `/g/${pageHandle(business)}`,
     act: async (page) => {
-      // The ➕ menu carries the map switch where the layout shows one at a time; wide and signed in, the map is already beside the list.
-      // Signed out there is no ➕ and no map (Don, 2026-11-01).
-      const plus = page.getByTestId('create-menu')
-      if (!(await plus.isVisible().catch(() => false))) return
-      await plus.click()
-      const view = page.getByTestId('create-menu-view')
-      if (await view.isVisible().catch(() => false)) await view.click()
-      else await page.keyboard.press('Escape')
+      const map = page.getByTestId('page-map-ours').first()
+      if (await map.isVisible().catch(() => false)) await map.click()
     },
   },
   { name: 'following', inventory: ['S022', 'S023', 'S027', 'S095', 'S096'], path: () => '/following' },

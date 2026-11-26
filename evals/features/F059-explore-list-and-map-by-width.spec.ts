@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test'
 
-// T187 — F059 criterion 5 (restated 2026-10-01): Explore's list and map follow
-// the screen width. Signed out, against the persona seed's metro.
-// Don, 2026-11-01 — one top row (mark, search pill, ➕, You); no bottom bar; signed out, no ➕ and so no Map.
+// F059 criterion 5 (the PM, 2026-11-25): Explore is a list at every width — no List | Map switch, no Map pill.
+// A map appears only as part of an answer (today, a Page's map). Signed out, against the persona seed's metro.
+// Don, 2026-11-01 — one top row (mark, search pill, ➕, You); no bottom bar.
 
-// [guards F059.5 partial: the 1024–1439px owner-panel switch, which nothing opens yet]
-test.describe('F059 — list and map by width', () => {
-  test('on a phone the top row slides away scrolling down and returns scrolling up; no bottom bar, no Map', async ({ page }) => {
+// [guards F059.5 partial: signed out only; a member's ➕ menu is guarded in BrowseSurface.layout.test.tsx]
+test.describe('F059 — a list at every width', () => {
+  test('on a phone the top row slides away scrolling down and returns scrolling up; no bottom bar, no map', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/explore')
     const header = page.getByTestId('app-header')
@@ -24,27 +24,22 @@ test.describe('F059 — list and map by width', () => {
     await expect(page.getByTestId('browse-map')).toHaveCount(0)
   })
 
-  test('from 1024px a signed-out visitor gets the list first, with no Map tab', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 800 })
-    await page.goto('/explore')
-    await expect(page.getByTestId('card-grid')).toBeVisible()
-    await expect(page.getByTestId('browse-map-pane')).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Hide map' })).toHaveCount(0)
-    await expect(page.getByRole('tab', { name: 'Map' })).toHaveCount(0)
-  })
+  for (const width of [1024, 1440]) {
+    test(`at ${width}px the list stands alone, with nothing that opens a map`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 })
+      await page.goto('/explore')
+      await expect(page.getByTestId('card-grid')).toBeVisible()
+      await expect(page.getByTestId('browse-map-pane')).toHaveCount(0)
+      await expect(page.getByRole('link', { name: /on (the )?map/i })).toHaveCount(0)
+      await expect(page.getByRole('button', { name: /(show|hide) (the )?map/i })).toHaveCount(0)
+      await expect(page.getByRole('tab', { name: 'Map' })).toHaveCount(0)
+    })
+  }
 
-  // F134 (the PM, 2026-11-12) — signed out, the map opens with its pins, not sign-in.
-  test('signed out, Show on map opens the map beside the list, not a sign-in sheet', async ({ page }) => {
+  test('an old ?view=map link opens the list, not a map', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
-    await page.goto('/explore')
+    await page.goto('/explore?view=map')
     await expect(page.getByTestId('card-grid')).toBeVisible()
-    // A tap before the list has settled can be lost on the runner's slow cores (as F037's About sheet does): tap
-    // until the map is open. The map's code loads on demand, so its first paint can take a few seconds.
-    await expect(async () => {
-      const link = page.getByRole('link', { name: 'Show on map' })
-      if (await link.isVisible()) await link.click()
-      await expect(page.getByTestId('browse-map')).toBeVisible({ timeout: 3_000 })
-    }).toPass({ timeout: 30_000 })
-    await expect(page.getByTestId('sign-in-prompt')).toHaveCount(0)
+    await expect(page.getByTestId('browse-map')).toHaveCount(0)
   })
 })

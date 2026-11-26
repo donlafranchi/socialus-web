@@ -2,7 +2,6 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { CreateMenu } from './CreateMenu'
-import { ExploreSearchProvider, useLendExploreSearch } from '@/components/shell/explore-search'
 
 const MEMBER = { id: 'm0', email: 'a@b.c' }
 const auth = { user: MEMBER as { id: string; email: string } | null, loading: false }
@@ -74,24 +73,6 @@ describe('CreateMenu — the one ➕ (Don, 2026-11-01)', () => {
     expect(within(sheet).queryByText('Gone')).not.toBeInTheDocument()
   })
 
-  it('on Explore, it holds the List/Map switch', () => {
-    const view = vi.fn()
-    function Lend() {
-      useLendExploreSearch({ query: '', onQueryChange: () => {}, knownTags: TAGS, areaLabel: null, onOpenScope: () => {}, filtersActive: false, onOpenFilters: () => {}, focusRequest: 0, view: 'list', onViewChange: view })
-      return null
-    }
-    render(
-      <ExploreSearchProvider>
-        <CreateMenu />
-        <Lend />
-      </ExploreSearchProvider>,
-    )
-    openMenu()
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Show the map' }))
-    expect(view).toHaveBeenCalledWith('map')
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-  })
-
   it('a failed Pages read is asked again on the next tap', async () => {
     own.mockRejectedValueOnce(new Error('offline')).mockRejectedValueOnce(new Error('offline')).mockResolvedValue([page('Bakery', '/g/b')])
     render(<CreateMenu />)
@@ -118,5 +99,3 @@ describe('CreateMenu — the one ➕ (Don, 2026-11-01)', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 })
-
-const TAGS: string[] = []
