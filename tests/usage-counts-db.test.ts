@@ -59,19 +59,21 @@ async function added(): Promise<Snapshot> {
 }
 
 const hash = (s: string) => createHash('sha256').update(s, 'utf8').digest('hex')
-async function forgetOurKeys() {
+async function keysOf(members: string[]): Promise<string[]> {
   const { day, week } = (
     await q(`select (now() at time zone 'America/Los_Angeles')::date::text as day,
                     date_trunc('week', (now() at time zone 'America/Los_Angeles')::date)::date::text as week`)
   ).rows[0] as { day: string; week: string }
   const parts = ['posts', 'explore', 'pages', 'groups', 'map', 'search', 'ask']
   const steps = ['signed_in', 'profile', 'welcomed', 'first_follow', 'first_post']
-  const keys = MEMBERS.flatMap((m) => [
+  return members.flatMap((m) => [
     hash(`usage-week|${m}|${week}`),
     ...parts.map((p) => hash(`usage-part|${m}|${p}|${day}`)),
     ...steps.map((s) => hash(`usage-step|${m}|${s}`)),
   ])
-  await q(`delete from public.usage_seen where key = any($1) or key like 'zz133-%'`, [keys])
+}
+async function forgetOurKeys() {
+  await q(`delete from public.usage_seen where key = any($1) or key like 'zz133-%'`, [await keysOf(MEMBERS)])
 }
 
 async function cleanup() {
@@ -167,12 +169,14 @@ describe.skipIf(!RUNNABLE)('F133 — usage counts', () => {
   })
 
   // [guards F133.6]
-  it('never counts a member who turned sharing off, or a builder', async () => {
+  it('never counts a member who turned sharing off, or a builder, nor keeps a key for them', async () => {
     for (const m of [QUIET, BUILDER]) {
       expect(await usageLog(ctx(m), { part: 'explore' })).toEqual({ counted: false })
       expect(await usageLog(ctx(m), { step: 'signed_in' })).toEqual({ counted: false })
     }
     expect(await added()).toEqual({ daily: {}, funnel: {}, weekly: {} })
+    // Not even a dedupe key: nothing of theirs reaches the fourth table either (#1456).
+    expect((await q(`select key from public.usage_seen where key = any($1)`, [await keysOf([QUIET, BUILDER])])).rows).toEqual([])
   })
 
   // [guards F133.4]

@@ -80,3 +80,24 @@ describe('F133.5 — nothing leaves, nothing added to the page', () => {
     }
   })
 })
+
+// Counting stays on: every part of the app and every step is counted from somewhere on the server, so the counts the
+// first cohort makes are kept (#1456).
+describe('F133.8 — counting is on for every part and step', () => {
+  // [guards F133.8 partial: that counting began before the first cohort is a live fact, checked 2026-11-18]
+  it('each part and each step has a countUse call outside the counting code', async () => {
+    const { USAGE_PARTS, FUNNEL_STEPS } = await vi.importActual<typeof import('@/actions/usage/log')>('@/actions/usage/log')
+    const callers = files(SRC)
+      .filter((p) => !p.includes(join('lib', 'usage')) && !p.includes(join('actions', 'usage')))
+      .map((p) => readFileSync(p, 'utf8'))
+      .filter((t) => t.includes('countUse('))
+      .join('\n')
+    const named = (v: string) => new RegExp(`['"]${v}['"]`).test(callers)
+    const viaHelpers = new Set<string>([
+      ...(callers.includes('partForPage(') ? [partForPage('business', true), partForPage('business', false), partForPage('group', false)] : []),
+      ...(callers.includes('partsForExplore(') ? [{ view: 'map' }, { q: 'x' }, {}].flatMap((sp) => partsForExplore(sp)) : []),
+    ])
+    const missing = [...USAGE_PARTS, ...FUNNEL_STEPS].filter((v) => !named(v) && !viaHelpers.has(v))
+    expect(missing).toEqual([])
+  })
+})
