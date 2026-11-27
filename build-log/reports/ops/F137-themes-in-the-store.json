@@ -1,0 +1,120 @@
+{
+ "schema": 1,
+ "feature": "F137",
+ "title": "themes in the store, with journeys that belong to one or more of them",
+ "area": "ops",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-27",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A theme is a record: a name, the PM's words for why it matters, and its journeys; no steps of its own",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1498
+   ],
+   "note": "Not built [V]: no theme kind, record or verb on main; no PR cites F137. Filed #1498."
+  },
+  {
+   "id": "2",
+   "text": "Many to many: a journey may belong to several themes, a theme holds several journeys",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1499
+   ],
+   "note": "Not built [V]: no theme kind, record or verb on main; no PR cites F137. Filed #1499."
+  },
+  {
+   "id": "3",
+   "text": "Up and down in one call: a theme returns its journeys, built state and open questions; a journey or concept returns its themes",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1500
+   ],
+   "note": "Not built [V]: no theme kind, record or verb on main; no PR cites F137. Filed #1500."
+  },
+  {
+   "id": "4",
+   "text": "A new idea finds its theme: the where-does-this-fit answer names the themes, or 'no theme yet'",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1501
+   ],
+   "note": "Not built [V]: no theme kind, record or verb on main; no PR cites F137. `fits` (F132.5) names journey, activity and task only. Filed #1501."
+  },
+  {
+   "id": "5",
+   "text": "First themes are real: 'Members grow the platform' and 'Who is local here?' load with their journeys",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1502
+   ],
+   "note": "Not built [V]: no theme kind, record or verb on main; no PR cites F137. JY-LOCAL exists as a story map (#1429), not as a theme. Filed #1502."
+  },
+  {
+   "id": "6",
+   "text": "Short answers: each fits a phone screen, plain words, no ticket numbers",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1503
+   ],
+   "note": "Not built [V]: no theme kind, record or verb on main; no PR cites F137. Filed #1503."
+  }
+ ]
+}

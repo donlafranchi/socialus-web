@@ -6,7 +6,7 @@
  "area_source": "guess",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -22,11 +22,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Kinds `journey`, `activity`, `task`, `detail` with `parent` and `place` (#1257) [V]. Checked: `[guards F132.1]` in `supabase/tests/knowledge_maps.sql`."
+   "note": "Built in #1257 [V]. Checked: `[guards F132.1]` in `supabase/tests/knowledge_maps.sql`."
   },
   {
    "id": "2",
-   "text": "Up and down in one call: any item returns its place, what sits around it and what it is made of",
+   "text": "Up and down in one call: any item's place, what sits around it and what it is made of",
    "kind": [
     "behavior"
    ],
@@ -38,11 +38,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`knowledge.map_place` (#1257; every-department read #1343, #1350) [V]. Checked: `[guards F132.2]` in `tests/knowledge-maps.test.ts` and `supabase/tests/knowledge_maps.sql`."
+   "note": "`story_map` / `knowledge.map_place` (#1257; every-department read #1343, #1350) [V]. Checked: `[guards F132.2]` in `tests/knowledge-maps.test.ts` and `supabase/tests/knowledge_maps.sql`."
   },
   {
    "id": "3",
-   "text": "Slices cut across the map: each task shows which slices include it and whether it is built",
+   "text": "Slices cut across the map; every task shows which slices include it and whether it is built",
    "kind": [
     "behavior"
    ],
@@ -54,11 +54,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`slice_of` a journey, `takes`, `knowledge.built` (#1257; built from shipped state #1341, review recorded) [V]. Checked: `[guards F132.3]` in `tests/knowledge-maps.test.ts` and `supabase/tests/knowledge_maps.sql`."
+   "note": "Built in #1257; built read from shipped state (#1341, reviewed twice). The shipped-count test was split so each #1341 fix is guarded on its own (#1474, closing #1472) [V]. Checked: `[guards F132.3]` in both suites."
   },
   {
    "id": "4",
-   "text": "Editing shows the picture: a proposed change returns the journey, slices and features it touches before it is decided",
+   "text": "Editing shows the picture before a change is decided",
    "kind": [
     "behavior"
    ],
@@ -70,11 +70,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`map_propose`, `map_decide` (#1257) [V]. Checked: `[guards F132.4]` in `tests/knowledge-maps.test.ts` and `supabase/tests/knowledge_maps.sql`."
+   "note": "`propose_map_change` / `decide_map_change` (#1257) [V]. Checked: `[guards F132.4]` in both suites."
   },
   {
    "id": "5",
-   "text": "Where does this fit: a new idea in plain words returns the journey, activity and task, what it stands on, what must be built first, and what it clashes with",
+   "text": "Where does this fit: one call names journey, activity, task (or 'no journey yet'), what it stands on, needs first and clashes with",
    "kind": [
     "behavior"
    ],
@@ -86,11 +86,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`fits` (#1257); for an unplaced idea it lists rules sharing its words as 'may clash, not judged yet', not a judged clash [V]. Checked: `[guards F132.5]` in `tests/knowledge-maps.test.ts`."
+   "note": "`fits` (#1257) [V]. Checked: `[guards F132.5]` in `tests/knowledge-maps.test.ts`."
   },
   {
    "id": "6",
-   "text": "Today comes in: `uat-journeys.json` walk-throughs become journeys, each feature is placed, IMAGINE ideas are placed or marked \"no journey yet\"",
+   "text": "Today comes in: walk-throughs become journeys, features placed, IMAGINE ideas placed or 'no journey yet'",
    "kind": [
     "behavior"
    ],
@@ -102,11 +102,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`maps.ts` and `maps-seed.json`, ideas CO-0003 to CO-0043 placed (#1257; later ideas #1331) [V]. Checked: `[guards F132.6]` in `tests/knowledge-maps.test.ts`. Reviewed: #1331 carries no `Reviewed by:`, so no."
+   "note": "`maps.ts` and `maps-seed.json` (#1257; later ideas #1331). Seed has grown with JY-VALUES (#1413), JY-LAUNCH (#1417, #1422), JY-LOCAL (#1429) and two placements (#1470), none with a `Reviewed by:` line [V]. Checked: `[guards F132.6]` in `tests/knowledge-maps.test.ts`. Reviewed: #1331 carries no `Reviewed by:`, so no."
   },
   {
    "id": "7",
-   "text": "The first map is real: \"a neighbour finds something happening this weekend and goes\" loads with its activities, tasks, details and two slices",
+   "text": "The first map is real: the weekend journey loads with activities, tasks, details and two slices",
    "kind": [
     "behavior"
    ],
@@ -122,7 +122,7 @@
   },
   {
    "id": "8",
-   "text": "Short answers: each answer fits a phone screen, plain words, no ticket numbers",
+   "text": "Short answers: each fits a phone screen, plain words, no ticket numbers",
    "kind": [
     "behavior"
    ],
@@ -134,7 +134,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Every verb answers in twelve lines or fewer (#1257) [V]. Checked: `[guards F132.8]` in `tests/knowledge-maps.test.ts`."
+   "note": "Twelve lines or fewer (#1257) [V]. Checked: `[guards F132.8]` in `tests/knowledge-maps.test.ts`."
   }
  ]
 }
