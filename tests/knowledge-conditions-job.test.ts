@@ -298,4 +298,23 @@ describe.skipIf(!RUNNABLE)('F126 — the scheduled check, against the store', ()
       reader.release()
     }
   })
+
+  // #1537: a check runs as knowledge_checker, which sees no table: not the
+  // knowledge store, not the app's own tables, so no member data either.
+  it('runs a check query in the sealed room: no table is readable, whoever wrote the check', async () => {
+    const admin = await pool.connect()
+    const reader = await pool.connect()
+    try {
+      await admin.query('create table if not exists public.t_checker_members (email text)')
+      await admin.query("insert into public.t_checker_members values ('someone@example.com')")
+      await expect(readOnlyQuery(reader, 'select count(*) from knowledge.records')).rejects.toThrow(/permission denied/)
+      await expect(readOnlyQuery(reader, 'select ascii(email) from public.t_checker_members limit 1')).rejects.toThrow(/permission denied/)
+      expect(await readOnlyQuery(reader, 'select current_user')).toBe('knowledge_checker')
+      expect(await readOnlyQuery(reader, 'select 2 + 2')).toBe(4)
+    } finally {
+      await admin.query('drop table if exists public.t_checker_members')
+      admin.release()
+      reader.release()
+    }
+  })
 })

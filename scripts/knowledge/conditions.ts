@@ -230,11 +230,16 @@ export function redact(e: unknown): string {
     : 'the check failed to run'
 }
 
-/** Runs one check query on its own connection: one statement, read-only, with a timeout. */
+/** Runs one check query on its own connection: one statement, read-only, with a timeout, as knowledge_checker. */
 export async function readOnlyQuery(reader: ClientBase, sql: string): Promise<unknown> {
   await reader.query('begin transaction read only')
   try {
     await reader.query(`set local statement_timeout = '20s'`)
+    // #1537: the sealed room. A check runs as knowledge_checker, which sees only
+    // the knowledge_checks schema (aggregate views, none yet): no member data,
+    // and no knowledge table either, whoever wrote the check.
+    await reader.query('set local role knowledge_checker')
+    await reader.query(`set local search_path = knowledge_checks`)
     // The extended protocol takes exactly one statement: `commit; …` is refused.
     const { rows } = await reader.query({ text: sql, queryMode: 'extended' } as unknown as string)
     return rows[0] ? Object.values(rows[0])[0] : null

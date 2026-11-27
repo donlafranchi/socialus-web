@@ -103,6 +103,50 @@ begin
     'off: a key could revoke a key';
 end $$;
 
+-- test: off: the hard limits stay with the PM's key: unsettling, a condition's check, marking a condition (#1537)
+-- [guards F125.7 partial: settled holds against unsettling, not only against a change]
+do $$
+declare
+  cn text;
+begin
+  perform pg_temp.act('ops');
+  perform knowledge.set_settled(current_setting('t.new_rec'), true, 'the PM: do not re-raise');
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.set_settled(%L, false, %L)', current_setting('t.new_rec'), 'try')) ~ 'operator',
+    'off: a building key unsettled a settled record';
+  assert (select settled from knowledge.records where id = current_setting('t.new_rec')), 'off: the record is no longer settled';
+  assert knowledge.revise(current_setting('t.new_rec'), '{"answer":"A post lasts a day."}', 'try')->>'refused' is not null,
+    'off: a settled record was changed after a building key tried to unsettle it';
+
+  -- a condition's check: the scheduled job runs it, so only the PM's key writes one
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"condition","concern":"payments","answer":"Card payments work","why":"Pre-orders need them.","owner":"the PM","audience":"public","checked_by":{"query":"select 1","at_least":1}}', 'try')$q$) ~ 'operator',
+    'off: a building key wrote a condition''s check';
+  cn := knowledge.record('{"kind":"condition","concern":"payments","answer":"Card payments work","why":"Pre-orders need them.","owner":"the PM","audience":"public"}', 'a condition with no check');
+  assert pg_temp.refused(format('select knowledge.revise(%L, %L, %L)', cn, '{"checked_by":{"query":"select 1","at_least":1}}', 'try')) ~ 'operator',
+    'off: a building key added a check to a condition';
+  assert pg_temp.refused(format('select knowledge.set_condition(%L, %L, %L)', cn, 'met', 'try')) ~ 'operator',
+    'off: a building key marked a condition met by hand';
+
+  -- the PM's key still does all three
+  perform pg_temp.act('ops');
+  perform knowledge.revise(cn, '{"checked_by":{"query":"select 1","at_least":1}}', 'the PM writes the check');
+  assert (knowledge.set_condition(cn, 'met', 'the PM marks it')->>'status') = 'met', 'the PM''s key could not mark a condition';
+  assert (knowledge.set_settled(current_setting('t.new_rec'), false, 'the PM reopens it')->>'settled') = 'false', 'the PM''s key could not unsettle';
+end $$;
+
+-- test: the sealed room: a check runs as knowledge_checker, which reads no table (#1537)
+reset role;
+do $$ begin
+  assert exists (select 1 from pg_roles where rolname = 'knowledge_checker' and not rolcanlogin and not rolbypassrls),
+    'knowledge_checker is missing, can log in, or bypasses row-level security';
+  assert not has_table_privilege('knowledge_checker', 'knowledge.records', 'select'), 'a check can read the knowledge records';
+  assert not has_table_privilege('knowledge_checker', 'knowledge.agents', 'select'), 'a check can read the keys';
+  assert not has_schema_privilege('knowledge_checker', 'knowledge', 'usage'), 'a check can reach the knowledge schema';
+  assert has_schema_privilege('knowledge_checker', 'knowledge_checks', 'usage'), 'a check cannot reach its own schema';
+  assert not has_function_privilege('knowledge_store', 'knowledge._pm_key()', 'execute'), 'the store''s login can call _pm_key directly';
+end $$;
+set local role knowledge_store;
+
 -- test: on: the old refusals return
 -- [guards F125.8 partial: the switch back on]
 reset role;
