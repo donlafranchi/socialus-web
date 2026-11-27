@@ -8,7 +8,7 @@ import { runReminders } from '@/lib/notify/push/reminder-sender'
 import { syncMarketDays, type MarketSchedule } from '@/lib/unclaimed/market-days'
 import { SYSTEM_MEMBER_ID } from '@/lib/system-member'
 
-// Don, 2026-10-19 — Maidu Park Farmers Market: an unclaimed market's real Market day posts are a weekly series,
+// The PM, 2026-10-19 — Maidu Park Farmers Market: an unclaimed market's real Market day posts are a weekly series,
 // three dates ahead, rolled on as each passes, and "Remind me every time" works on them.
 
 const DATABASE_URL = process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL

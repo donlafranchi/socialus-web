@@ -123,7 +123,7 @@ describe('the composer opens from Announce', () => {
   })
 })
 
-// plan #230 (Don, 10-31) — a timeline anchored at now: Earlier above (a tap away, newest nearest now),
+// plan #230 (the PM, 10-31) — a timeline anchored at now: Earlier above (a tap away, newest nearest now),
 // the latest at now, Coming up below, soonest first. Facebook Page's single column of posts.
 describe('plan #230 — the posts as a timeline anchored at now', () => {
   const NOW = new Date('2026-11-01T20:00:00.000Z')
@@ -670,7 +670,7 @@ describe('F099 — a post photo', () => {
     expect(screen.queryByTestId('default-art')).toBeNull()
   })
 
-  // Don, 2026-11-02: "our posts should be a little bit larger." The timeline's picture keeps Eventbrite's 2:1 shape
+  // The PM, 2026-11-02: "our posts should be a little bit larger." The timeline's picture keeps Eventbrite's 2:1 shape
   // at the card's full width, so it grows with the screen instead of a fixed 128px strip.
   it('gives the photo a 2:1 area at the card’s full width, not a fixed short strip', () => {
     renderPosts({ posts: [postFixture({ photoUrl: PHOTO } as never)] })
@@ -916,7 +916,7 @@ describe('a weekly series', () => {
   })
 })
 
-// #314 (Don, 2026-10-02) — an undated post shows for 14 days; the owner can pick another day.
+// #314 (the PM, 2026-10-02) — an undated post shows for 14 days; the owner can pick another day.
 describe('#314 — show until, on an undated post', () => {
   afterEach(() => vi.useRealTimers())
 
@@ -952,7 +952,7 @@ describe('#314 — show until, on an undated post', () => {
   })
 })
 
-// #913 (Don 2026-10-02 on #314, option A) — current posts first, then Earlier for undated posts past their window;
+// #913 (the PM 2026-10-02 on #314, option A) — current posts first, then Earlier for undated posts past their window;
 // "Posted <date>" on each, in the metro's clock (Craigslist, Facebook Marketplace, Nextdoor).
 describe('#913 — Earlier, and Posted <date>', () => {
   const current = postFixture({ id: 'now', body: 'Fresh loaves', createdAt: '2026-10-15T12:00:00.000Z' })
@@ -1010,7 +1010,7 @@ describe('F117 — posting a Wonder', () => {
   })
 })
 
-// plan #230 (Don, 2026-10-31) — pick the kind first, then a one-line headline, then the details.
+// plan #230 (the PM, 2026-10-31) — pick the kind first, then a one-line headline, then the details.
 describe('plan #230 — the composer: kind, headline, details', () => {
   afterEach(() => vi.useRealTimers())
   const kindRadio = (name: string) => screen.getByRole('radio', { name })
@@ -1105,7 +1105,7 @@ describe('plan #230 — the composer: kind, headline, details', () => {
   })
 })
 
-// Don, 2026-10-31: "I can't share an anouncment?" — Share on every post, to its own address; the post view lands on it.
+// The PM, 2026-10-31: "I can't share an anouncment?" — Share on every post, to its own address; the post view lands on it.
 describe('Share on a post', () => {
   const ID = '0b6c1e9a-4a3f-4f7e-9d6b-2c1a5e8f7d10'
   afterEach(() => Object.assign(navigator, { share: undefined }))

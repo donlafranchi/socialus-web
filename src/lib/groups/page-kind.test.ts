@@ -1,4 +1,4 @@
-// #363 — purpose first, type for listing (Don ruled A, 2026-10-05).
+// #363 — purpose first, type for listing (the PM ruled A, 2026-10-05).
 import { describe, it, expect } from 'vitest'
 import { pageKindOf, purposeOf, PAGE_KIND_LABEL, PURPOSES, TYPE_FOR_PURPOSE, kindLine, pageLayoutFor, upcomingPosts } from './page-kind'
 

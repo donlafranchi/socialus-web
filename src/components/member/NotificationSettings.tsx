@@ -1,6 +1,6 @@
 'use client'
 
-// #904 (Don, 2026-10-18, option A) — a member's notifications: each kind off until they turn it on, quiet hours,
+// #904 (the PM, 2026-10-18, option A) — a member's notifications: each kind off until they turn it on, quiet hours,
 // pause all. Turning a kind on asks the browser for permission and saves this browser's subscription first.
 
 import { useEffect, useState, type ReactNode } from 'react'

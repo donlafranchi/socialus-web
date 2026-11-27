@@ -10,7 +10,7 @@ import { rowsToMapPages, withinBounds, type MapPageRow } from './useMapPages'
 // `anchor_location_id → locations.geography`.
 //
 // Which Pages belong on the map is not this module's call — it asks
-// `kind-controls`, per Don's ruling that a control belongs to the Page kind.
+// `kind-controls`, per the PM's ruling that a control belongs to the Page kind.
 
 const point = (lng: number, lat: number) => {
   // EWKB hex for SRID 4326 POINT, little-endian — the shape PostgREST returns

@@ -406,7 +406,7 @@ describe('resolveOwnerClaim', () => {
 //
 // This resolver filtered `kind = 'business'` and so 404'd every other kind of
 // Page: a run club, an interest Page, a practice. Whether SocialUs has two
-// Page kinds or three is Don's and unruled, so the filter becomes an argument
+// Page kinds or three is the PM's and unruled, so the filter becomes an argument
 // the caller supplies and the decision lands without a second rewrite.
 function makeRecordingStub(row: unknown) {
   const calls = { eq: [] as [string, unknown][], in: [] as [string, unknown][] }

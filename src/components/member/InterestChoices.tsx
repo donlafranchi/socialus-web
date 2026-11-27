@@ -1,4 +1,4 @@
-// #892 — the 12 interests as a plain checklist (Don, 2026-10-18 [always]: no chip or pill UI), shared by You
+// #892 — the 12 interests as a plain checklist (the PM, 2026-10-18 [always]: no chip or pill UI), shared by You
 // and the step after sign-up. Native checkboxes, one 44px row each.
 
 import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'

@@ -10,13 +10,13 @@
 //
 //   * **The follow set.** Browse carries a signed-in person's own
 //     announcements and upcoming things, and signed out that half is absent
-//     — **absent server-side, never rendered and hidden** (Don, 2026-09-17;
+//     — **absent server-side, never rendered and hidden** (the PM, 2026-09-17;
 //     F059 criteria 2b/2c). So the set of Pages a member gets updates from is
 //     an input to the query, and the withholding is the predicate rather than
 //     a filter some caller is trusted to apply.
 //
 //   * **The Page kind.** Whether SocialUs has two Page kinds or three is
-//     Don's, and unruled. A constant would have to be found and changed in
+//     The PM's, and unruled. A constant would have to be found and changed in
 //     every read the day he rules; a parameter means the ruling lands as a
 //     caller's argument. `resolveShop` is the cautionary tale — it hardcoded
 //     `kind = 'business'` and 404'd a run club.
@@ -30,7 +30,7 @@
 // NOT HERE, DELIBERATELY: a cost parameter. "Free things" is the fourth lens
 // axis and there is no price or cost anywhere on a Page or a post — the only
 // price column in the schema belongs to `item_products`, on the noun the model
-// says does not exist. Don still owes that decision. A stub parameter with
+// says does not exist. The PM still owes that decision. A stub parameter with
 // nothing behind it would read as built.
 //
 // Ordering is locality and recency. Never payment, never what holds attention

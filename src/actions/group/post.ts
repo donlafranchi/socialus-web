@@ -17,7 +17,7 @@
 // their own Page, so the kind is read and the role derived from it through the
 // same function group.create writes with. One answer, in one place.
 //
-// DELETE IS SOFT (#318, Don 2026-10-02, replacing F072 acceptance 4's "no
+// DELETE IS SOFT (#318, the PM 2026-10-02, replacing F072 acceptance 4's "no
 // delete"). `group.post_delete` stamps `dissolved_at`; every reader already
 // filters it, so the post is hidden everywhere and the row stays for reports
 // and audit. `page_posts` still carries no INSERT/UPDATE/DELETE policy, so a
@@ -94,7 +94,7 @@ function checkKind(k: PostKind, startsAt: string | null | undefined, endsAt: str
   }
 }
 
-/** #286 — a post's own tags (Don, 2026-10-01); since #1180, labels from the shared list. None means it carries
+/** #286 — a post's own tags (the PM, 2026-10-01); since #1180, labels from the shared list. None means it carries
  *  its Page's. On an edit, `undefined` leaves them alone and `[]` clears them. */
 const tags = labelsInput
 

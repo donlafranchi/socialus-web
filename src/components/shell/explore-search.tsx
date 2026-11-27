@@ -1,6 +1,6 @@
 'use client'
 
-// Don, 2026-11-01 — the search lives in the one top row, which the layout owns. Explore lends it the
+// The PM, 2026-11-01 — the search lives in the one top row, which the layout owns. Explore lends it the
 // live box, area and sheets while it is on screen; anywhere else the pill sends its words to Explore.
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'

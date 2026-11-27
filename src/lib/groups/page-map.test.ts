@@ -14,7 +14,7 @@ describe('pageMapView', () => {
     })
   })
 
-  // Don, 2026-10-18: an area-only Page has no map at all.
+  // The PM, 2026-10-18: an area-only Page has no map at all.
   it('an area: no map, so no point', () => {
     expect(pageMapView(area, 'visit')).toBeNull()
   })

@@ -84,7 +84,7 @@ export const CONCERN_DEPARTMENT: Record<string, string> = {
 export const ABSOLUTE_CONCERN: Record<string, string | null> = {
   'member-content-takedown': 'moderation-and-reports',
   'member-data-disclosure': 'privacy',
-  'production-asks-don': 'ci-and-deploys',
+  'production-asks-pm': 'ci-and-deploys',
   'public-is-draft': 'words-and-voice',
   'don-decides': null,
   'ruling-is-dated-line': null,

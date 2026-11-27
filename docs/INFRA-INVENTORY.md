@@ -8,7 +8,7 @@
 
 | What | Kind | Signal | Suggested |
 |---|---|---|---|
-| SocialUs 9pm: merge green, line up overnight work | scheduled task | off since 2026-10-27; last ran 2026-10-26 | ask-pm: Suggest restore with a refreshed prompt: since it went off (10-27), green PRs that said Don doesn't need to look sat open for weeks (the Edit link, meet-up seeding, four seed PRs). Its prompt cites ROADMAP.md (gone) and the old Mac's 2-build limit. |
+| SocialUs 9pm: merge green, line up overnight work | scheduled task | off since 2026-10-27; last ran 2026-10-26 | ask-pm: Suggest restore with a refreshed prompt: since it went off (10-27), green PRs that said PM doesn't need to review sat open for weeks (the Edit link, meet-up seeding, four seed PRs). Its prompt cites ROADMAP.md (gone) and the old Mac's 2-build limit. |
 | SocialUs: 10 new local businesses a day | scheduled task | off since 2026-11-13; last ran 2026-11-12 | ask-pm: Suggest remove: seeding moved to hand-picked batches on 11-13 (toy and gift shops, skate shops). Its prompt contradicts THEMES.md (theme order, farm quota) and never runs the load. Restore only with a rewritten prompt. |
 | Auth email templates | GitHub job | last run failed, unused 30+ days; last ran 2026-10-18 | restore: Its only run (10-18) failed at the push step and nobody re-ran it: re-run once to confirm the sign-in emails match supabase/templates, then keep as a by-hand tool. |
 | Report self-test | GitHub job | last run failed, unused 30+ days; last ran 2026-10-20 | restore: Its only run (10-20) failed (the report sheet did not load in time); fix and run once, or remove it if the problem-reports self-test covers the same flow. |
@@ -43,10 +43,10 @@
 | Disk cleanup (Sundays 8am) | on | `CRON_TZ=America/Los_Angeles 0 8 * * 0` | 2026-11-22 | Weekly disk cleanup on the PM's Mac, run by a session on the Mac itself; nothing destructive without the PM's yes. | not reviewed yet |
 | notifications monthly review | on | `CRON_TZ=America/Los_Angeles 0 9 2 * *` | 2026-11-02 | Monthly review of opt-in push notifications: proposes at most one change, copy changes go to the PM. | not reviewed yet |
 | Single-loop upkeep review | on | `CRON_TZ=America/Los_Angeles 43 13 1 * *` | 2026-11-01 | Monthly re-evaluation of the agentic code-writing setup by the single-agent-loop kit's upkeep step; reports only. | not reviewed yet |
-| SocialUs 9pm: merge green, line up overnight work | **off** | `CRON_TZ=America/Los_Angeles 0 21 * * *` | 2026-10-26 | Nightly: merges green PRs that say Don doesn't need to look (no migrations), flags stale gates, lists overnight work. | ask-pm: Suggest restore with a refreshed prompt: since it went off (10-27), green PRs that said Don doesn't need to look sat open for weeks (the Edit link, meet-up seeding, four seed PRs). Its prompt cites ROADMAP.md (gone) and the old Mac's 2-build limit. |
+| SocialUs 9pm: merge green, line up overnight work | **off** | `CRON_TZ=America/Los_Angeles 0 21 * * *` | 2026-10-26 | Nightly: merges green PRs that say PM doesn't need to review (no migrations), flags stale gates, lists overnight work. | ask-pm: Suggest restore with a refreshed prompt: since it went off (10-27), green PRs that said PM doesn't need to review sat open for weeks (the Edit link, meet-up seeding, four seed PRs). Its prompt cites ROADMAP.md (gone) and the old Mac's 2-build limit. |
 | SocialUs weekly handoff (Fridays 5am) | on | `CRON_TZ=America/Los_Angeles 0 5 * * 5` | 2026-11-20 | Run SocialUs's weekly handoff: the week by area, beta progress, what waits on the PM, what is red, and proposed lanes. | not reviewed yet |
 | SocialUs: 10 new local businesses a day | **off** | `CRON_TZ=America/Los_Angeles 0 3 * * *` | 2026-11-12 | The daily seed: researches 10 real local organizations and opens a PR adding them as unclaimed Pages. | ask-pm: Suggest remove: seeding moved to hand-picked batches on 11-13 (toy and gift shops, skate shops). Its prompt contradicts THEMES.md (theme order, farm quota) and never runs the load. Restore only with a rewritten prompt. |
-| Weekly docs cleanup | on | `CRON_TZ=America/Los_Angeles 42 19 * * 6` | 2026-11-22 | Weekly docs cleanup across Don's repos: opens PRs only, never merges. | not reviewed yet |
+| Weekly docs cleanup | on | `CRON_TZ=America/Los_Angeles 42 19 * * 6` | 2026-11-22 | Weekly docs cleanup across the PM's repos: opens PRs only, never merges. | not reviewed yet |
 
 Plus 1 one-off reminder sessions set for themselves (Re-check import fix PR); they end on their own.
 
@@ -80,7 +80,7 @@ Plus 1 one-off reminder sessions set for themselves (Re-check import fix PR); th
 | tap-speed `0 11 * * *` | Tap speed on production, nightly: a mid-range phone on 4G taps through the live site, read-only. | #527 | 2026-11-25 | failure | keep: Red nightly since 11-18 because taps really are over budget (open bugs: slow taps, slow signed-in Explore); the job is doing its work. |
 | Open your town — the round `15 13 * * *` | Daily: mark the towns that reached both goals (the first 3 this round) and log each as an Issue for a person to open with scripts/market/open-market.ts. | F118 | 2026-11-25 | success | not reviewed yet |
 | Venue shows import `15 13 * * *` | Every morning, read each venue Page's own events page or feed and post its next 60 days of shows; over, cancelled and dropped shows come off. | #997 | 2026-11-25 | success | not reviewed yet |
-| Unclaimed samples roll forward `30 12 * * *` | Don, 2026-10-16 — move each unclaimed Page's finished sample posts on, so every Page always shows its next 1–3 weeks. | #1357 | 2026-11-25 | success | not reviewed yet |
+| Unclaimed samples roll forward `30 12 * * *` | The PM, 2026-10-16 — move each unclaimed Page's finished sample posts on, so every Page always shows its next 1–3 weeks. | #1357 | 2026-11-25 | success | not reviewed yet |
 | Uptime `*/10 * * * *` | Is socialus.org up? | #1260 | 2026-11-26 | success | not reviewed yet |
 
 </details>
@@ -98,7 +98,7 @@ Plus 1 one-off reminder sessions set for themselves (Re-check import fix PR); th
 | Knowledge run links | What changed after a run links itself. | F135 | 2026-11-26 | success | not reviewed yet |
 | Load simulation | What happens when many people use the same Page at once, and what breaks first (socialus-ops process/PERFORMANCE.md § Load simulation). | #1261 | 2026-11-22 | success | not reviewed yet |
 | Moderation eval | The evaluation harness runs on every prompt change. | #638 | 2026-10-23 | success | not reviewed yet |
-| preview-on-label | Don ruled C (2026-10-05): previews build only for PRs labelled for review. | #394 | 2026-11-14 | skipped | not reviewed yet |
+| preview-on-label | The PM ruled C (2026-10-05): previews build only for PRs labelled for review. | #394 | 2026-11-14 | skipped | not reviewed yet |
 | Feature reports | Every report's JSON sidecar must parse, its generated tables must match it, and the committed roll-up must be what criteria.py computes. | — | 2026-11-20 | success | not reviewed yet |
 
 </details>
@@ -111,7 +111,7 @@ Plus 1 one-off reminder sessions set for themselves (Re-check import fix PR); th
 
 | Job | What it does | Why (ticket or ruling) | Last ran | Result | Suggested |
 |---|---|---|---|---|---|
-| Main build alarm | A production deploy of main that fails to build opens (or updates) one Issue and pings Don. | #911 | 2026-11-26 | skipped | not reviewed yet |
+| Main build alarm | A production deploy of main that fails to build opens (or updates) one Issue and pings the PM. | #911 | 2026-11-26 | skipped | not reviewed yet |
 | Main build recovered | The other half of main-build-alarm.yml: the first successful Production deploy after a failure closes the alarm Issue with the deploy as the evidence (#1121 … | #1121 | 2026-11-26 | success | not reviewed yet |
 | uat-close | The PM closes a `uat` Issue after looking. | — | 2026-11-26 | skipped | not reviewed yet |
 | uat-comment | A reply with no criterion id (a sentence about a walk-through) files one note bug, which an agent maps to the criterion. | F081 | 2026-11-26 | skipped | not reviewed yet |
@@ -130,8 +130,8 @@ Plus 1 one-off reminder sessions set for themselves (Re-check import fix PR); th
 | Apply migrations | The only thing in this repo that writes to socialus-db. | — | 2026-11-17 | success | not reviewed yet |
 | Auth email templates | The sign-in, confirmation and password-reset emails live in supabase/templates/ and are pushed to the Supabase project here, so the link carries the token (w… | #927 | 2026-10-18 | failure | restore: Its only run (10-18) failed at the push step and nobody re-ran it: re-run once to confirm the sign-in emails match supabase/templates, then keep as a by-hand tool. |
 | Boundaries | Load a metro's boundary layers (counties, places, tracts, neighbourhoods) from public data into production. | #347 | 2026-10-16 | success | keep: By-hand tool for loading a new metro's map boundaries; next needed when a metro opens. |
-| Builder content | What the builder agents made, all at once (Don, 2026-10-05). | #388 | never | — | remove: Never run since it was added on 10-05; Builders (daily) does the ongoing work. |
-| Builder accounts (production) | Builder accounts on the live app (Don, 2026-10-01). | #280 | 2026-10-03 | success | keep: By-hand tool for the builder accounts on the live app; rarely needed by design. |
+| Builder content | What the builder agents made, all at once (the PM, 2026-10-05). | #388 | never | — | remove: Never run since it was added on 10-05; Builders (daily) does the ongoing work. |
+| Builder accounts (production) | Builder accounts on the live app (the PM, 2026-10-01). | #280 | 2026-10-03 | success | keep: By-hand tool for the builder accounts on the live app; rarely needed by design. |
 | Feature flags | Feature flags of our own (PM, 2026-11-10). | #1227 | never | — | keep: Added 11-10; the tool for switching our own feature flags, unused so far because no flag has needed switching. |
 | Knowledge import | Brings socialus-plan's live rulings and principles, the two absolutes files and the ontology registry into the knowledge store (#1217) in socialus-db. | F125 | 2026-11-26 | failure | keep: Failing since 11-24; a fix is open (#1446). |
 | Knowledge keys | The knowledge store's lookup tool lets an agent in by its own key, and reaches the store as the store's own login. | F125 | 2026-11-19 | success | not reviewed yet |

@@ -1,4 +1,4 @@
-// Don (2026-11-01): "pages and posts should be categorized separately … a shelf for upcoming N days. and then
+// The PM (2026-11-01): "pages and posts should be categorized separately … a shelf for upcoming N days. and then
 // another shelf for venues (Pages) … categorized differently too for kinds of venues." Typed result rows, as Spotify
 // and Yelp group theirs. A group holds Pages or posts, never both. Things happening come first (by when), then Pages
 // by kind, then posts by kind. A post sits in at most one time group and one kind group; an empty group is left out.

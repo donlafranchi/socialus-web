@@ -9,7 +9,7 @@ import { syncVenueShows, remindVenueFollowers, type VenueShow } from '@/lib/uncl
 import { memberReminderEveryForPage } from '@/actions/member/reminders'
 import { SYSTEM_MEMBER_ID } from '@/lib/system-member'
 
-// #997 (Don, 2026-10-22) — a venue's real shows, imported from its own calendar: one post per night and title, updated
+// #997 (the PM, 2026-10-22) — a venue's real shows, imported from its own calendar: one post per night and title, updated
 // in place, cancelled and over ones off, and "Remind me every time" on the venue reminds each show, imported ones too.
 
 const DATABASE_URL = process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL

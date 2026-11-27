@@ -9,7 +9,7 @@
 // That read correctly on a laptop and wrongly everywhere else: every Vercel
 // build — preview and production alike — runs with NODE_ENV=production, so a
 // verification page rendered for whoever was sitting at the machine and 404'd
-// for the person who actually needed to look at it. Don works from his phone,
+// for the person who actually needed to look at it. The PM works from his phone,
 // away from the machine, so that was exactly backwards.
 //
 // VERCEL_ENV is the variable that distinguishes them: 'production' | 'preview'

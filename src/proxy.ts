@@ -88,7 +88,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // #1139 (Don, 2026-11-01) — an old /g/ link forwards, permanently, to the readable address. No row (a draft, a
+  // #1139 (the PM, 2026-11-01) — an old /g/ link forwards, permanently, to the readable address. No row (a draft, a
   // Page with no address yet) or a failed read: the old route answers, as before. The fragment rides along.
   const old = request.method === 'GET' || request.method === 'HEAD' ? oldAddress(request.nextUrl.pathname) : null
   if (old) {

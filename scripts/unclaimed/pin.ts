@@ -2,7 +2,7 @@
 // #936 — pins unclaimed Pages at their street addresses (the free US Census
 // geocoder), moving each off its town's shared area Location. Idempotent: a
 // Page already at its address is left alone. Reports every Page that would not
-// geocode, and checks Vino Tahoe (Don's report) by name.
+// geocode, and checks Vino Tahoe (the PM's report) by name.
 //
 //   tsx scripts/unclaimed/pin.ts            dry run: looks each address up, writes nothing
 //   tsx scripts/unclaimed/pin.ts --apply    do it; needs DATABASE_URL
@@ -39,7 +39,7 @@ async function main() {
     summary(Object.entries(tally).map(([k, v]) => `${k} ${v}`).join(' · '))
     if (failed.length) summary(`Would not geocode (left at their town):\n${failed.map((f) => `- ${f}`).join('\n')}`)
 
-    // Read-only check of the Page Don named.
+    // Read-only check of the Page the PM named.
     const { rows } = await db.query(
       `select g.name, l.kind, l.description, st_x(l.geography::geometry) as lng, st_y(l.geography::geometry) as lat
          from public.groups g join public.locations l on l.id = g.anchor_location_id

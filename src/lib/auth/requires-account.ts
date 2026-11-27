@@ -1,6 +1,6 @@
 // Signed out is read-only. Anything that touches another person needs an account.
 //
-// Don's ruling, 2026-09-18. The line is not about identity — he has already
+// The PM's ruling, 2026-09-18. The line is not about identity — he has already
 // ruled that accountability here is visibility and peer pressure, not
 // verification (2026-09-14). **An account buys CONTINUITY.** It is persistent,
 // rate-limitable and revocable; an anonymous actor is none of those. The target
@@ -43,13 +43,13 @@ interface Prompt {
 // a demand and this is meant to be a reason.
 const PROMPTS: Record<GatedAction, Prompt> = {
   follow: {
-    // Don, 2026-10-04: signed out, nobody can follow — the button leads to sign-up.
+    // The PM, 2026-10-04: signed out, nobody can follow — the button leads to sign-up.
     title: 'Sign up to join',
     why: 'Joining is kept with your account, so you can find it again and leave.',
     signUp: true,
   },
   'get-updates': {
-    // #1171 — Follow is Get updates now; Don, 2026-10-04: signed out, it leads to sign-up.
+    // #1171 — Follow is Get updates now; the PM, 2026-10-04: signed out, it leads to sign-up.
     title: 'Sign up to get updates',
     why: 'Updates arrive in the app, on your account, never in your inbox.',
     signUp: true,

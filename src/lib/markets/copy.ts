@@ -1,4 +1,4 @@
-// #955 — every word about vendors at markets. Placeholder ([public-is-draft]): new copy goes to Don in a human-review PR.
+// #955 — every word about vendors at markets. Placeholder ([public-is-draft]): new copy goes to the PM in a human-review PR.
 export const MARKET_COPY = {
   findUsWeekly: (weekdays: string, hours: string, market: string) => `Find us ${weekdays} ${hours} at ${market}`,
   findUsOn: (date: string, hours: string, market: string) => `Find us ${date}, ${hours} at ${market}`,

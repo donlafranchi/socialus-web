@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { controlsForKind, appearsOnMap, hasSocialLinks, GROUP_KINDS } from './kind-controls'
 
-// Don's ruling, 2026-09-16: "Vendors go. Those are now absorbed by page types.
+// The PM's ruling, 2026-09-16: "Vendors go. Those are now absorbed by page types.
 // And the page types gets its various type of control. E.g. map and address
 // control"
 //

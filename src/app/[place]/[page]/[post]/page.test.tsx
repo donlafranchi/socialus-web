@@ -1,4 +1,4 @@
-// #1139 (Don, 2026-11-01) — a post at its readable address: /<place>-<st>/<page-slug>/<post-slug>. The Page landed on
+// #1139 (the PM, 2026-11-01) — a post at its readable address: /<place>-<st>/<page-slug>/<post-slug>. The Page landed on
 // the post, to whoever could already read it there; anyone else gets not found.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Suspense } from 'react'

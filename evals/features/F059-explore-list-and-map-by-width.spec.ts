@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 // F059 criterion 5 (the PM, 2026-11-25): Explore is a list at every width — no List | Map switch, no Map pill.
 // A map appears only as part of an answer (today, a Page's map). Signed out, against the persona seed's metro.
-// Don, 2026-11-01 — one top row (mark, search pill, ➕, You); no bottom bar.
+// The PM, 2026-11-01 — one top row (mark, search pill, ➕, You); no bottom bar.
 
 // [guards F059.5 partial: signed out only; a member's ➕ menu is guarded in BrowseSurface.layout.test.tsx]
 test.describe('F059 — a list at every width', () => {

@@ -1,5 +1,5 @@
 // F133 — the three answers: who comes back, what they use, where they drop off. Counts only; no member is stored
-// with a count, and a member who turned sharing off on You or a builder is in none of them. Words are drafts for Don.
+// with a count, and a member who turned sharing off on You or a builder is in none of them. Words are drafts for the PM.
 
 export interface UsageWeekRow {
   week: string

@@ -1,4 +1,4 @@
-// What a Page kind carries — Don's ruling, 2026-09-16:
+// What a Page kind carries — the PM's ruling, 2026-09-16:
 //
 //   "Vendors go. Those are now absorbed by page types. And the page types gets
 //    its various type of control. E.g. map and address control"

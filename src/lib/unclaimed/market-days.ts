@@ -1,4 +1,4 @@
-// Don, 2026-10-19 — a market whose own site states its day and hours gets real "Market day" posts, not Samples:
+// The PM, 2026-10-19 — a market whose own site states its day and hours gets real "Market day" posts, not Samples:
 // one weekly post_series (so Remind me can say "every time") and its next three dates as posts, crediting the source.
 // A finished one moves on to the next date not yet posted, the way samples roll.
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'

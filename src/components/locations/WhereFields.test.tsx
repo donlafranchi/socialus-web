@@ -1,4 +1,4 @@
-// #348 — where a Page is: one question, three answers (Don, 2026-10-04).
+// #348 — where a Page is: one question, three answers (the PM, 2026-10-04).
 
 import { useState } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -71,7 +71,7 @@ describe('#896 — one question, seven answers', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
-  // Don, 2026-10-18 [always]: no chip or pill UI — a plain radio list, no switches.
+  // The PM, 2026-10-18 [always]: no chip or pill UI — a plain radio list, no switches.
   it('a plain radio list: no chips, pills or switches', async () => {
     const { container } = render(<Harness />)
     for (const name of [/^street address/i, /^neighborhood only/i, /^i go to them/i]) {

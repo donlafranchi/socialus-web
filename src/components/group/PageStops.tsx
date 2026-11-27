@@ -2,7 +2,7 @@
 
 // #896 — a Page's locations, or where and when it moves: one row each, each
 // with Directions in the phone's maps app (Apple Maps on iPhone, Google
-// elsewhere) — the one thing that leaves the app (Don, 2026-10-18).
+// elsewhere) — the one thing that leaves the app (the PM, 2026-10-18).
 
 import { useSyncExternalStore } from 'react'
 import { isAppleMobile, mapsLinks } from '@/lib/maps/links'

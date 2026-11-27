@@ -177,7 +177,7 @@ test.describe('F033 — Viewer finds a venue page', () => {
       await signIn(page, VIEWER.email, VIEWER.password)
       await page.goto(DRAKES.url)
       // #336 — hosting is a dated Post from a Page; /you/sell is retired, so
-      // the venue's Host goes to Create (Don, 2026-10-05).
+      // the venue's Host goes to Create (the PM, 2026-10-05).
       await expect(page.getByTestId('venue-host-cta')).toHaveAttribute('href', '/create')
     })
 

@@ -1,5 +1,5 @@
 // #904 — every word a member reads about notifications, in one place, so the monthly review can list and change
-// them by one PR. New copy: Don approves ([public-is-draft]).
+// them by one PR. New copy: the PM approves ([public-is-draft]).
 
 export const NOTIFY_COPY = {
   rowLabel: 'Alerts',

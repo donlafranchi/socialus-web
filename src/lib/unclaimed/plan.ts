@@ -14,15 +14,15 @@ export interface MakerRow {
   confidence: string
   /** #936 — its street address, when the row gives one outright. */
   address?: string | null
-  /** TikTok and Instagram first: the profiles its own site links (Don, 2026-10-16). Links only. */
+  /** TikTok and Instagram first: the profiles its own site links (the PM, 2026-10-16). Links only. */
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
   /** #1318 — what it carries, from the PM's item list (2026-11-13); data only, no Page field yet. */
   carries?: string[]
   /** #909 — 3–6 things it sells or offers, each from a page on its own site. Price in dollars, optional. */
   products?: { name: string; url: string; price?: number; kind?: 'product' | 'service' }[]
-  /** A market whose own site states its day and hours: real Market day posts instead of Samples (Don, 2026-10-19). */
+  /** A market whose own site states its day and hours: real Market day posts instead of Samples (the PM, 2026-10-19). */
   schedule?: MarketSchedule
-  /** #997 — a venue's own events page or feed: its real shows are posted daily instead of Samples (Don, 2026-10-22). */
+  /** #997 — a venue's own events page or feed: its real shows are posted daily instead of Samples (the PM, 2026-10-22). */
   events?: VenueEvents
 }
 
@@ -78,7 +78,7 @@ export interface SampleProduct {
 
 export const SAMPLE_PRODUCTS_MIN = 3
 export const SAMPLE_PRODUCTS_MAX = 6
-/** Marketplaces and directories: a lead source at most, never what a sample is copied from (#353, Don 2026-10-16). */
+/** Marketplaces and directories: a lead source at most, never what a sample is copied from (#353, the PM 2026-10-16). */
 const MARKETPLACE = /(^|\.)(etsy|amazon|ebay|facebook|instagram|tiktok|yelp|google|nextdoor|craigslist|faire|walmart|target|shopify)\.com$/i
 
 const hostOf = (u: string): string | null => {
@@ -205,7 +205,7 @@ export function interestsFor(pool: string, what: string): string[] {
   return base
 }
 
-/** #816 a3 (cap-2) — a batch of 8 or more Pages spans at least 5 towns and 4 interest tags; a smaller one loads what qualifies (Don, 2026-10-18). */
+/** #816 a3 (cap-2) — a batch of 8 or more Pages spans at least 5 towns and 4 interest tags; a smaller one loads what qualifies (the PM, 2026-10-18). */
 export const BATCH_SPREAD_FROM = 8
 export const BATCH_MIN_TOWNS = 5
 export const BATCH_MIN_INTERESTS = 4
@@ -241,7 +241,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
   const skipped: { name: string; reason: SkipReason }[] = []
   const keep: { row: MakerRow; rank: number; nonprofit: boolean }[] = []
   for (const row of rows) {
-    // Every shop goes in (Don, 2026-10-09). Only a salon (not a maker) or a row with no site is left out.
+    // Every shop goes in (the PM, 2026-10-09). Only a salon (not a maker) or a row with no site is left out.
     const reason: SkipReason | null = PERSONAL_CARE.test(`${row.name} ${row.makes}`) ? 'personal-care' : !/^https?:\/\//i.test(row.site) ? 'no-site' : null
     if (reason) skipped.push({ name: row.name, reason })
     else keep.push({ row, rank: RANK(row.confidence), nonprofit: NONPROFIT_OR_GALLERY.test(`${row.name} ${row.makes} ${row.confidence}`) })

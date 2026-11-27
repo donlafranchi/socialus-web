@@ -205,7 +205,7 @@ export async function loadBrowse(
     const following = await followingPromise
     const happening = await happeningPromise
     const now = new Date()
-    // #876 (Don, 2026-10-16) — everything mixed: Pages, posts, and the updates of Pages the member
+    // #876 (the PM, 2026-10-16) — everything mixed: Pages, posts, and the updates of Pages the member
     // follows, each once, in the session's place-and-time order.
     const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
     const mixed = markFollowed(uniqueResults([...results, ...following]), followIds)

@@ -7,7 +7,7 @@ export interface SiteMeta {
   social: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
 }
 
-// Pictures whose file names say an AI made them (Don, 2026-10-16): a Page shows the business's real photos, or stock.
+// Pictures whose file names say an AI made them (the PM, 2026-10-16): a Page shows the business's real photos, or stock.
 const AI_MADE = /chatgpt[_-]?image|dall[·_-]?e|midjourney|stable[_-]?diffusion|firefly|high[_-]resolution[_-][a-z_]*style/i
 const NOT_A_PHOTO = /logo|icon|favicon|sprite|avatar|placeholder|spacer|pixel|badge|button|payment|visa|mastercard|paypal|arrow|star|rating|flag|qr|banner-ad|\.svg|\.gif|\.ico|data:image|gravatar|emoji|loading|blank/i
 
@@ -43,7 +43,7 @@ export function normaliseUsPhone(raw: string | null | undefined): string | null 
   return /^[2-9]\d{9}$/.test(ten) ? `+1${ten}` : null
 }
 
-// TikTok and Instagram first (Don, 2026-10-16): owners use them to share about themselves.
+// TikTok and Instagram first (the PM, 2026-10-16): owners use them to share about themselves.
 const SOCIAL: [keyof SiteMeta['social'], RegExp][] = [
   ['tiktok', /^https:\/\/(www\.)?tiktok\.com\/@[A-Za-z0-9._]{2,30}\/?$/i],
   ['instagram', /^https:\/\/(www\.)?instagram\.com\/(?!p\/|reel|explore|accounts|share)[A-Za-z0-9._]{2,30}\/?$/i],

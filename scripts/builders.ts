@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-// #280 — builder accounts (Don, 2026-10-01). One per test persona.
+// #280 — builder accounts (the PM, 2026-10-01). One per test persona.
 //
 //   tsx scripts/builders.ts provision         create any missing account, mark it a builder
 //   tsx scripts/builders.ts disable <persona> switch one off: ban the login, stamp disabled_at

@@ -2,7 +2,7 @@
 
 // The composer's links-out control.
 //
-// Rendered only for Page kinds that carry it — Don's ruling, 2026-09-16: a
+// Rendered only for Page kinds that carry it — the PM's ruling, 2026-09-16: a
 // control belongs to the Page kind. The caller passes the kind; this asks
 // `kind-controls` and renders nothing when the answer is no. It does not decide
 // for itself and it does not assume every Page has an Instagram.

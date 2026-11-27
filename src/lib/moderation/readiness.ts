@@ -1,6 +1,6 @@
 // #640 (F100.11, the PM's call C, 2026-10-11) — "AI readiness": the harness numbers against the ruled targets
 // and the days of shadow reads, each green / amber / red, plus one "ready to go live" light. Pure; the data
-// comes from the last recorded harness run and the shadow reads. This shows Don the numbers for his own
+// comes from the last recorded harness run and the shadow reads. This shows the PM the numbers for his own
 // checklist; software refusing the flip is the production step.
 
 export const RECALL_TARGET = 0.95

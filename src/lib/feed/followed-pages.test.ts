@@ -66,7 +66,7 @@ describe('T156 — resolveFollowedPageIds', () => {
     expect(call.is).toContainEqual(['left_at', null])
   })
 
-  // Privacy decides which word is written (Don, 2026-09-15): a private Page is
+  // Privacy decides which word is written (the PM, 2026-09-15): a private Page is
   // joined as a member, anything else is followed. Both are subscriptions to
   // that Page's updates, so both belong in this set.
   it('counts a follower and a member alike', async () => {

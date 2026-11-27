@@ -4,7 +4,7 @@ import { resolvePageContact } from './page-contact'
 const supabaseWith = (row: unknown) =>
   ({ from: () => ({ select: () => ({ eq: () => ({ maybeSingle: vi.fn(async () => ({ data: row, error: null })) }) }) }) }) as never
 
-describe('#293 / Don 2026-10-04 — a group shows hours and phone only once added', () => {
+describe('#293 / the PM 2026-10-04 — a group shows hours and phone only once added', () => {
   const filled = { contact_phone: '+19165550142', opening_hours: { mon: [{ open: '07:00', close: '15:00' }] } }
   it('a shop shows them', async () => {
     expect(await resolvePageContact(supabaseWith({ kind: 'business', metadata: {}, ...filled }), 'g')).toEqual(

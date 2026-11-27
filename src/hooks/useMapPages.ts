@@ -9,7 +9,7 @@
 //
 // Pages live in `groups`, pinned through `anchor_location_id → locations`.
 // Which kinds belong on the map is `kind-controls`' call, not this module's —
-// Don's ruling, 2026-09-16: the control belongs to the Page kind.
+// The PM's ruling, 2026-09-16: the control belongs to the Page kind.
 //
 // Bounds are applied client-side. `locations.geography` is a PostGIS geography
 // column and PostgREST cannot express a bbox filter over one without an RPC;

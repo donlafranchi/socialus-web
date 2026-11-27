@@ -3,7 +3,7 @@ name: Moderation eval
 # #638 (F100.9) — the evaluation harness runs on every prompt change. Filtered to the files that make up the prompt, the
 # models and the labelled set. It always validates the set (no key, no cost). The full run costs real money, so it needs
 # the repo secret ANTHROPIC_MODERATION_KEY and is skipped, with a visible note, when the secret is absent (a fork, or
-# before the key is added). The numbers go into the run summary; `-- --record` is Don's, on his own machine.
+# before the key is added). The numbers go into the run summary; `-- --record` is the PM's, on his own machine.
 
 on:
   pull_request:

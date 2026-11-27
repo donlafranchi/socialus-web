@@ -10,7 +10,7 @@
      This file is the single source for visual values. */
   --nav-top-h: 56px;
   --action-bar-h: 64px;
-  /* Don, 2026-11-01 — no bottom bar at any width: pages and toasts keep clear of the home indicator only. */
+  /* The PM, 2026-11-01 — no bottom bar at any width: pages and toasts keep clear of the home indicator only. */
   --dock-clearance: calc(16px + env(safe-area-inset-bottom, 0px));
   --float-offset: calc(var(--dock-clearance) + 8px);
   --panel-w: 360px;
@@ -65,7 +65,7 @@
   --color-nav-inactive: #717171;
   --color-nav-border: #ebebeb;
 
-  /* #325 — Anodised (Don, 2026-10-04; socialus-design/palette/palette-tokens.css).
+  /* #325 — Anodised (the PM, 2026-10-04; socialus-design/palette/palette-tokens.css).
      Navy for actions; gold a highlight under 5% of a screen. Gold-300/400 only
      on blue-700 or darker; on light, gold-600 for marks and gold-700 for text.
      Gold is never the only cue for a state, and at most one gold fill a screen. */
@@ -107,7 +107,7 @@
   --color-focus: var(--color-blue-700);
   --color-focus-on-frame: var(--color-gold-300);
 
-  /* Map pins (Don, 2026-10-05): every pin and cluster navy; the selected pin
+  /* Map pins (the PM, 2026-10-05): every pin and cluster navy; the selected pin
      gold, the highlight. Gold is 2.4:1 on the light base map, so the selected
      pin also gets a deep-navy ring and grows: never colour alone. */
   --color-pin: var(--color-blue-700);
@@ -151,7 +151,7 @@
   --text-title-1-lg: 1.75rem; --text-title-1-lg--line-height: 2.125rem; --text-title-1-lg--font-weight: 700;
   --text-display: 2rem;       --text-display--line-height: 2.375rem;   --text-display--font-weight: 700;
 
-  /* The signed-out front door only (Don's concept, 2026-10-31): a serif voice and
+  /* The signed-out front door only (the PM's concept, 2026-10-31): a serif voice and
      larger editorial sizes than the app's 32 ceiling. Terracotta is deepened from
      #c86d51 wherever text sits on it, so it reads at 4.5:1. */
   --text-lede: 1.125rem;       --text-lede--line-height: 1.75rem;
@@ -223,7 +223,7 @@ a:hover {
 }
 
 /* A card is not a sentence. Underlining a whole card — image included — on
- * hover is what Don asked to remove, and the affordance it provided is
+ * hover is what the PM asked to remove, and the affordance it provided is
  * replaced by the lift plus a colour shift on the card's title. Scoped to
  * cards rather than dropped globally: a link inside a paragraph still
  * underlines, because there it is the only signal. */
@@ -295,7 +295,7 @@ a:hover {
 
 /* THE MOTION VOCABULARY.
  *
- * Don's correction, 2026-09-17: he asked for "more of that" after the card
+ * The PM's correction, 2026-09-17: he asked for "more of that" after the card
  * lift, and what he meant was more of that KIND of feedback — not the same
  * effect applied to everything. One lift on cards, buttons, rows and pills
  * alike is a single gesture copy-pasted, and it makes a button feel like a
@@ -318,7 +318,7 @@ a:hover {
  *
  * COMPOSABILITY — the reason these use `translate:` and `scale:` rather than
  * `transform:`. A scroll-responsive header that shrinks as you scroll (the
- * Airbnb behaviour Don has pointed at) wants to drive `scale` while hover
+ * Airbnb behaviour the PM has pointed at) wants to drive `scale` while hover
  * drives `translate`. With the `transform` shorthand those two fight: whoever
  * writes last wins and the other is lost. The individual transform properties
  * compose, so scroll-shrink can land later without rewriting any of this.

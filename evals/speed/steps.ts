@@ -34,7 +34,7 @@ export const STEPS: Step[] = [
   // ── Consumer, signed out (a visitor from a shared link) ──
   { name: 'Explore card → Page', kind: 'consumer', who: 'signedOut', from: '/explore', tap: (p) => p.locator('[data-testid="tile-card"] a[href^="/"]').first(), ready: '[data-testid="page-header"]', notReady: SKELETON, expectsUrl: true, quick: true },
   { name: 'Page → back to Explore', kind: 'consumer', who: 'signedOut', from: '@first-page', tap: (p) => p.locator('body'), back: true, ready: '[data-testid="browse-results"]', notReady: SKELETON, expectsUrl: true, quick: true },
-  // Don, 2026-11-01 — the search is the header's pill; Where and More filters are inside it.
+  // The PM, 2026-11-01 — the search is the header's pill; Where and More filters are inside it.
   { name: 'Explore: search pill opens', kind: 'consumer', who: 'signedOut', from: '/explore', tap: (p) => p.getByTestId('search-pill'), ready: '[data-testid="search-input"]', expectsUrl: false, quick: true },
   { name: 'Explore: More filters opens sheet', kind: 'consumer', who: 'signedOut', from: '/explore', pre: async (p) => { await p.getByTestId('search-pill').tap(); await p.getByTestId('search-panel').waitFor() }, tap: (p) => p.getByTestId('search-filters'), ready: '[data-testid="filter-sheet-body"]', expectsUrl: false },
   { name: 'Explore: Where opens picker', kind: 'consumer', who: 'signedOut', from: '/explore', pre: async (p) => { await p.getByTestId('search-pill').tap(); await p.getByTestId('search-panel').waitFor() }, tap: (p) => p.getByTestId('search-where'), ready: '[data-testid="scope-sheet"]', expectsUrl: false },

@@ -47,7 +47,7 @@ export default function CardGalleryPage() {
         ))}
       </CardGrid>
 
-      {/* Don's ruling, 2026-09-17. It sits here next to the real tiles on
+      {/* the PM's ruling, 2026-09-17. It sits here next to the real tiles on
           purpose: the comparison is the review. The example cards should read
           as the same SHAPE and unmistakably not the same THING. */}
       <h2 className="text-[17px] font-semibold mt-10 text-[var(--color-fg)]">Examples</h2>

@@ -1,5 +1,5 @@
 // The Page's body, read and rendered behind its outline (#537). Shared by the Page's address and a post's own
-// address under it (Don, 2026-10-31), which is the same Page landed on one post.
+// address under it (the PM, 2026-10-31), which is the same Page landed on one post.
 
 import { createClient } from '@/lib/supabase-server'
 import { viewerId } from '@/lib/auth/viewer'

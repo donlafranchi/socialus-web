@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-// Don, 2026-10-16 — keep every unclaimed Page's sample posts in its next 1–3 weeks: a finished sample rolls three
+// The PM, 2026-10-16 — keep every unclaimed Page's sample posts in its next 1–3 weeks: a finished sample rolls three
 // weeks on, and one off the Page's weekly pattern is re-dated to it. Samples only (sample_kind set), never a real post.
 //
 //   tsx scripts/unclaimed/roll.ts            counts what it would move (writes nothing)
@@ -48,7 +48,7 @@ async function main() {
       moved += n
       if (n) touchedPages++
     }
-    // Don, 2026-10-19 — a market's real Market day posts keep its next three dates.
+    // The PM, 2026-10-19 — a market's real Market day posts keep its next three dates.
     let marketDays = 0
     for (const p of readPlanned().listed.filter((x) => x.schedule)) {
       const { rows: [g] } = await db.query(`select id, photo_url from public.groups where unclaimed_at is not null and unclaimed_hidden_at is null and public_info_url = $1`, [p.publicInfoUrl])

@@ -1,5 +1,5 @@
-// #400 — the operator preview pass (Don, 2026-10-05). A secret link that signs
-// one named account in on a PREVIEW deployment, so Don stops getting a magic
+// #400 — the operator preview pass (the PM, 2026-10-05). A secret link that signs
+// one named account in on a PREVIEW deployment, so the PM stops getting a magic
 // link by email on every preview domain. Pure checks only; the privileged steps
 // are in src/actions/_lib/preview-pass-link.ts.
 //

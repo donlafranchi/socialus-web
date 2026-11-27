@@ -4,7 +4,7 @@ import { PURPOSES, PURPOSE_COPY, nounFor } from './purpose'
 // F087 (draft) — the words follow the answer.
 
 describe('the purpose set', () => {
-  it('is exactly the three Don named', () => {
+  it('is exactly the three the PM named', () => {
     expect([...PURPOSES]).toEqual(['shop', 'service', 'group'])
   })
 
@@ -15,7 +15,7 @@ describe('the purpose set', () => {
   })
 
   it('has no fourth option — a one-time gathering is not ruled on', () => {
-    // F087's story mentions hosting a gathering; Don's three do not include
+    // F087's story mentions hosting a gathering; the PM's three do not include
     // it, and inventing it here would be deciding something he has not.
     expect(PURPOSES).toHaveLength(3)
   })
@@ -47,7 +47,7 @@ describe('voice-and-tone.md mechanics', () => {
   })
 
   it('never shows the person the word Page', () => {
-    // Don ruled it: Page is what the docs and the code call it, not the person.
+    // The PM ruled it: Page is what the docs and the code call it, not the person.
     for (const s of strings) expect(s.toLowerCase()).not.toContain('page')
   })
 })

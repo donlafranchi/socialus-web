@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // Don, 2026-10-31: the Rules page is gone; its rules live in the Terms.
+      // The PM, 2026-10-31: the Rules page is gone; its rules live in the Terms.
       { source: '/rules', destination: '/terms', statusCode: 301 },
       // The old /landing preview is gone; `/` is the front door.
       { source: '/landing/:path*', destination: '/', permanent: false },

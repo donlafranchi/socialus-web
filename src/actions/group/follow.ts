@@ -5,7 +5,7 @@
 // at all. This adds the verb on the row that already models attachment to a
 // Page, rather than a second table.
 //
-// PRIVACY DECIDES WHICH RELATIONSHIP IS WRITTEN (Don, 2026-09-15):
+// PRIVACY DECIDES WHICH RELATIONSHIP IS WRITTEN (the PM, 2026-09-15):
 // a private Page is joined as a member, anything else is followed. F067
 // acceptance 1 keyed this on kind; that is superseded. A bakery and a run club
 // can both be open to anyone, and what differs is whether the thing is closed.

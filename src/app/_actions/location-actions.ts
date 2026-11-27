@@ -153,7 +153,7 @@ export async function createLocationAction(
             'neighborhood_not_found',
           )
         }
-        // #348 — Don, 2026-10-04: a neighbourhood's pin is its centre point
+        // #348 — the PM, 2026-10-04: a neighbourhood's pin is its centre point
         // (the boundary layers carry one). Only a place without one falls back
         // to a point drawn inside its shape.
         const point =

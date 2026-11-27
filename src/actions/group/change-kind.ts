@@ -1,4 +1,4 @@
-// #363 — a Page's purpose, and its type, are changeable in settings (Don ruled
+// #363 — a Page's purpose, and its type, are changeable in settings (the PM ruled
 // A, 2026-10-05: purpose first, type for listing). A new purpose brings its
 // type unless the owner names one. The managing role follows the type
 // (managingRoleForKind), so the founder's role swaps with it, or they lose

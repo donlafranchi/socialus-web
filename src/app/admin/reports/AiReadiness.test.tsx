@@ -65,7 +65,7 @@ describe('AiReadiness', () => {
     expect(screen.getByTestId('ai-readiness-sev1')).toHaveTextContent(/no severity-1 cases/i)
   })
 
-  it('says it is for the flip Don does himself, and that the software does not stop it yet', () => {
+  it('says it is for the flip the PM does himself, and that the software does not stop it yet', () => {
     render(<AiReadiness readiness={readiness({ run: RUN, shadowDays: 14, now: NOW })} />)
     expect(screen.getByTestId('ai-readiness')).toHaveTextContent(/nothing stops the switch yet/i)
   })

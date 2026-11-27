@@ -1,4 +1,4 @@
-// #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Explore's default mixes
+// #876 (the PM, 2026-10-16, on #796): "Target by type or category or date." Explore's default mixes
 // everything; three opt-in filter groups narrow it, combine with each other and with search, and
 // are pushed into the feed read.
 import { describe, it, expect } from 'vitest'

@@ -188,7 +188,7 @@ describe('sending', () => {
     renderControl()
     openAndSend()
     const status = await screen.findByRole('status')
-    // Don, 2026-11-02: "The thanks for being helpful line could instead say thanks for looking out".
+    // The PM, 2026-11-02: "The thanks for being helpful line could instead say thanks for looking out".
     expect(status).toHaveTextContent('Thanks for looking out.')
     expect(status).not.toHaveTextContent(/decent/i)
     expect(status).toHaveTextContent(/courtesy notice/i)

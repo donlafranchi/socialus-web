@@ -1,5 +1,5 @@
-// F078 criterion 5 — a sensitive-content or threat-of-harm report texts Don
-// at once. Twilio's REST API; the account, number and Don's phone are env
+// F078 criterion 5 — a sensitive-content or threat-of-harm report texts the PM
+// at once. Twilio's REST API; the account, number and the PM's phone are env
 // only. Never throws: the report and the hide already stand without it.
 
 type Env = Record<string, string | undefined>

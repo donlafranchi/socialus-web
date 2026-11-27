@@ -74,7 +74,7 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
   // who wants to report something should never have to guess whether they are
   // allowed to.
   //
-  // Reporting sits inside the wall by Don's ruling of 2026-09-18, and the
+  // Reporting sits inside the wall by the PM's ruling of 2026-09-18, and the
   // reasoning is worth keeping at the call site: requiring an account buys no
   // identity — accountability here is visibility and peer pressure, already
   // ruled — it buys CONTINUITY. An account is persistent, rate-limitable and

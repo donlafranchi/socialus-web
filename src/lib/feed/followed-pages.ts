@@ -2,7 +2,7 @@
 //
 // Browse carries a signed-in person's own announcements and upcoming things,
 // and signed out that half is absent — **server-side, never rendered and
-// hidden** (Don, 2026-09-17; F059 criteria 2b/2c). This resolves the set the
+// hidden** (the PM, 2026-09-17; F059 criteria 2b/2c). This resolves the set the
 // query withholds on.
 //
 // THE LINK IS THE EXISTING ONE. `src/ontology/links.ts` already declares *a
@@ -11,7 +11,7 @@
 // `group.unfollow` (ruled 2026-09-17). Nothing new is introduced here, so
 // nothing in that file changes — this only reads what it names.
 //
-// BOTH RELATIONSHIPS COUNT. Privacy decides which word gets written (Don,
+// BOTH RELATIONSHIPS COUNT. Privacy decides which word gets written (the PM,
 // 2026-09-15): a private Page is joined as a member, anything else is
 // followed. Both are subscriptions to that Page's updates, and a member of a
 // private Page who stopped receiving its announcements because the column said

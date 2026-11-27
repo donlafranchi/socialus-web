@@ -1,6 +1,6 @@
 name: Builder content
 
-# #388 — what the builder agents made, all at once (Don, 2026-10-05). From the
+# #388 — what the builder agents made, all at once (the PM, 2026-10-05). From the
 # GitHub iOS app: Actions → Builder content → Run workflow → pick an action.
 #   status  the switch, and how many Pages and Posts
 #   hide    hidden from members at once; show undoes it

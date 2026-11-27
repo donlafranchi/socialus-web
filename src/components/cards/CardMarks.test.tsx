@@ -1,4 +1,4 @@
-// #796 (Don, 2026-10-16) — every card says what it is (a megaphone for a post, a page for a Page), and a
+// #796 (the PM, 2026-10-16) — every card says what it is (a megaphone for a post, a page for a Page), and a
 // seeder sample is marked as one wherever it shows: a "Sample" label (small-caps text, never a chip) and a faint
 // diagonal SAMPLE watermark (decorative). And no partial ring on the post you tapped.
 import { describe, it, expect, afterEach, vi } from 'vitest'
@@ -22,7 +22,7 @@ const result = (over: Partial<BrowseResult> = {}): BrowseResult =>
   }) as BrowseResult
 
 describe('Explore cards', () => {
-  // plan #230 (Don, 2026-10-31) — a post card says what it is in its lead line (its kind), not with a mark.
+  // plan #230 (the PM, 2026-10-31) — a post card says what it is in its lead line (its kind), not with a mark.
   it('a post says its kind first, in words', () => {
     render(<BrowseResultCard result={result()} />)
     expect(screen.queryByTestId('card-type')).not.toBeInTheDocument()

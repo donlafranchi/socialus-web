@@ -1,4 +1,4 @@
-// `/` — Don's reviewed copy, word for word, the copywriter's final (2026-10-31); pending bits left out with a TODO.
+// `/` — the PM's reviewed copy, word for word, the copywriter's final (2026-10-31); pending bits left out with a TODO.
 
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
@@ -20,7 +20,7 @@ describe('the front door', () => {
     for (const a of ctas) expect(a.getAttribute('href')).toBe('/auth/login')
   })
 
-  it('carries Don’s 2026-11-01 copy: Why SocialUs, Third spaces, the launch line, the hobby sentence', () => {
+  it('carries the PM’s 2026-11-01 copy: Why SocialUs, Third spaces, the launch line, the hobby sentence', () => {
     render(<HomeLanding />)
     expect(screen.getByRole('heading', { name: 'Made to work for you. Not the other way around.' })).toBeTruthy()
     expect(screen.getByText(/rather than keeping you in the app\.$/)).toBeTruthy()

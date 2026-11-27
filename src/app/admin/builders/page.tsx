@@ -1,5 +1,5 @@
 // #388 — builder content, for the operator: one switch and one delete, all at
-// once (Don, 2026-10-05). Phone-first. A non-operator gets 404.
+// once (the PM, 2026-10-05). Phone-first. A non-operator gets 404.
 
 import { requirePagePermission } from '@/lib/staff/page-guard'
 import { fetchBuilderContentState } from '@/lib/admin/builder-content'

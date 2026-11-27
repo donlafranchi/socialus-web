@@ -60,7 +60,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   const pagePath = addressOf(shop)
   const isDraft = shop.lifecycleState === 'draft'
   const contact = contactRow ?? { phone: null, hours: null }
-  // Don, 2026-10-04 — hours and phone: on for shops and services, off for a
+  // The PM, 2026-10-04 — hours and phone: on for shops and services, off for a
   // group until its owner adds them.
   const metadata = (meta as { metadata?: unknown } | null)?.metadata
   const contactOn = componentOn(shop.kind, metadata, 'contact')

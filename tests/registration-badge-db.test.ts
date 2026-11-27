@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// #246 — a business registration is collected and never displayed (Don,
+// #246 — a business registration is collected and never displayed (the PM,
 // 2026-09-29). The public artifact is the "Claimed local owner" badge, a
 // boolean; the legal name, zip and state are for the member who registered.
 

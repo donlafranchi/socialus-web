@@ -470,7 +470,7 @@ describe('F078/F080 — the reporter picks a reason', () => {
   })
 })
 
-describe('F080 — sensitive content hides at any bar and texts Don', () => {
+describe('F080 — sensitive content hides at any bar and texts the PM', () => {
   beforeEach(() => textOperator.mockClear())
 
   // [guards F080.4 partial: the hide and the text are triggered; delivery is Twilio's]
@@ -492,7 +492,7 @@ describe('F080 — sensitive content hides at any bar and texts Don', () => {
     expect(res.photoHidden).toBe(false)
   })
 
-  it('texts Don for sensitive content and threat of harm, and only those', async () => {
+  it('texts the PM for sensitive content and threat of harm, and only those', async () => {
     for (const category of ['sensitive_content', 'threat_of_harm'] as const) {
       installQueryRouter()
       await reportCreate(ctx(), { subjectKind: 'group', category, subjectId: GROUP_ID, body: 'x' })
@@ -503,7 +503,7 @@ describe('F080 — sensitive content hides at any bar and texts Don', () => {
     expect(textOperator).toHaveBeenCalledTimes(2)
   })
 
-  it('never texts Don about a builder\'s report on a real Page', async () => {
+  it('never texts the PM about a builder\'s report on a real Page', async () => {
     installQueryRouter({ builderOnReal: true })
     await reportCreate(ctx(), { subjectKind: 'group', category: 'sensitive_content', subjectId: GROUP_ID, body: 'x' })
     expect(textOperator).not.toHaveBeenCalled()
@@ -921,7 +921,7 @@ describe('report.create — child-safety content is preserved (#648)', () => {
   })
 })
 
-// #625 (Don, 2026-10-16, option A): a Page's own words — its name and description — are reportable on the
+// #625 (the PM, 2026-10-16, option A): a Page's own words — its name and description — are reportable on the
 // courtesy-first flow. A first report sends the owner a notice; a repeat from someone else hides only the words,
 // and the Page stays up; threat of harm and child content hide at once.
 describe('report.create — a Page\'s own words (#625)', () => {
@@ -980,7 +980,7 @@ describe('report.create — a Page\'s own words (#625)', () => {
   })
 })
 
-// #909 (Don, 2026-10-18) — a Page's featured product or service is reportable on the same courtesy-first flow.
+// #909 (the PM, 2026-10-18) — a Page's featured product or service is reportable on the same courtesy-first flow.
 describe('report.create — a featured product or service', () => {
   const ITEM_ID = '66666666-6666-6666-6666-666666666666'
   function installItemRouter(opts: { others?: number; locked?: string | null; exists?: boolean } = {}) {

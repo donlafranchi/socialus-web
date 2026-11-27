@@ -1,4 +1,4 @@
-// #904 (Don, 2026-10-18, option A) — a member's notification choices and their push subscriptions.
+// #904 (the PM, 2026-10-18, option A) — a member's notification choices and their push subscriptions.
 //   member.notifications.set     which kinds, quiet hours, pause. Each change also adds to this week's counts.
 //   member.push.subscribe        saves this browser's push endpoint for the member (upsert on the endpoint).
 //   member.push.unsubscribe      forgets one endpoint.

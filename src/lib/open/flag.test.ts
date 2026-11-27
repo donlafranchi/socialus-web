@@ -1,4 +1,4 @@
-// Don, 2026-10-27 (web #1093): Open your town is held back until after soft launch; code and migrations stay.
+// The PM, 2026-10-27 (web #1093): Open your town is held back until after soft launch; code and migrations stay.
 import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 

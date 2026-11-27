@@ -79,7 +79,7 @@ export function FollowButton({ vendorId, vendorName, size = 'md' }: Props) {
       ? 'inline-flex min-h-11 items-center gap-1 text-xs font-medium underline-offset-4 hover:underline transition-colors'
       : 'inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium border transition-colors'
 
-  // #951 — the small one is a quiet text link, not a chip (Don, 2026-10-18 [always]).
+  // #951 — the small one is a quiet text link, not a chip (the PM, 2026-10-18 [always]).
   const classes =
     size === 'sm'
       ? `${base} ${following ? 'text-[var(--color-accent)]' : 'text-neutral-900'}`

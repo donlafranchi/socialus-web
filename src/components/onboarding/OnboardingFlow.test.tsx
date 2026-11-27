@@ -177,10 +177,10 @@ describe('F103 — the zip decides the market, and the screen shows it', () => {
     expect(screen.queryByTestId('waitlist-market')).toBeNull()
   })
 
-  // #1090 — one sign-up path: outside an open market, Don's line and the role question; no count.
+  // #1090 — one sign-up path: outside an open market, the PM's line and the role question; no count.
   const joined = vi.fn(async () => ({ open: false as const, metroName: 'Yuba County, CA', standing: { combined: 1, target: 300 }, message: '' }))
 
-  it('says it isn’t open there yet, in Don’s words, above the role question', async () => {
+  it('says it isn’t open there yet, in the PM’s words, above the role question', async () => {
     render(<OnboardingFlow actions={waitingActions()} onNavigate={vi.fn()} onJoinWaitlist={joined} />)
     fill({ zip: '95901' })
     fireEvent.click(continueBtn())

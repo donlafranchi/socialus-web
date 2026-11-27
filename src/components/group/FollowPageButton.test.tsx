@@ -1,7 +1,7 @@
 // F067 — the control on a Page.
 //
 // Privacy decides the word: a private Page is joined, anything else is
-// followed (Don, 2026-09-15). voice-and-tone.md applies to every string here: no
+// followed (the PM, 2026-09-15). voice-and-tone.md applies to every string here: no
 // person-nouns, no em dashes, and nothing is called a shop.
 
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
@@ -86,7 +86,7 @@ describe('a private Page is joined', () => {
 })
 
 describe('signed out', () => {
-  // #297 / Don, 2026-10-04 — a signed-out visitor cannot follow, and nothing
+  // #297 / The PM, 2026-10-04 — a signed-out visitor cannot follow, and nothing
   // says they can: the button leads to sign-up.
   it('says sign up to follow, never plain Follow', () => {
     renderBtn({ loggedIn: false })
@@ -94,7 +94,7 @@ describe('signed out', () => {
     expect(screen.queryByRole('button', { name: /^Get updates$/i })).toBeNull()
   })
 
-  // Don, 2026-10-04: secondary; the front door's main button is "Sign in to see what's happening".
+  // The PM, 2026-10-04: secondary; the front door's main button is "Sign in to see what's happening".
   it('is the secondary button, not the primary', () => {
     renderBtn({ loggedIn: false })
     const btn = screen.getByRole('button', { name: 'Sign up to get updates' })

@@ -1,4 +1,4 @@
-// #348 — where a Page is: one question, three answers (Don, 2026-10-04).
+// #348 — where a Page is: one question, three answers (the PM, 2026-10-04).
 
 import { describe, it, expect, vi } from 'vitest'
 import { whereInput, applyWhere } from './where'

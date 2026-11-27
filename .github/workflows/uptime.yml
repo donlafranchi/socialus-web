@@ -11,7 +11,7 @@ name: Uptime
 # Keyword checks, not bare 200s — an error page answers 200 too. Three tries a
 # minute apart before anything counts as down (scripts/uptime-check.sh).
 #
-# Down opens ONE Issue and pings Don (GitHub emails him). Still down: silent, so
+# Down opens ONE Issue and pings the PM (GitHub emails him). Still down: silent, so
 # an outage is one email, not one every ten minutes. Back up: a comment, and the
 # Issue closes. Same open-or-update shape as main-build-alarm.yml.
 #

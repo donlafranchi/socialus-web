@@ -123,7 +123,7 @@ describe('#1127 — an imported venue show is recognised from its calendar line'
   })
 })
 
-// Don, 2026-11-02: "Also should show a line or two about the post". The card's words under the headline: the post's
+// The PM, 2026-11-02: "Also should show a line or two about the post". The card's words under the headline: the post's
 // own text, never repeating the headline, never the sample disclaimer or an import's source line; null when nothing is left.
 describe('the card preview: a line or two of the post itself', () => {
   it('is the body after the line the headline came from, when the post has no headline of its own', () => {

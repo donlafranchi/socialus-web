@@ -2,7 +2,7 @@
 // 2026-10-04): anyone can ask to remove it, signed in or out, and an operator
 // restores one that was hidden. Claiming it is claim.ts (#987).
 //
-// A REMOVAL REQUEST HIDES THE PAGE AT ONCE, before anyone reviews it (Don's
+// A REMOVAL REQUEST HIDES THE PAGE AT ONCE, before anyone reviews it (the PM's
 // guardrail, stricter than Yelp, Google or Tripadvisor). Abuse protection never
 // delays that hide: a device past its daily limit is refused outright, and only
 // an operator can bring a Page back.
@@ -10,7 +10,7 @@
 // These are the second anonymous write path after metro.waitlist_join_anonymous
 // (F076). The account-only rule for reports (report/create.ts) still stands for
 // member content; an unclaimed Page has no member behind it to ask, and the
-// person it is about may never have an account (Don, 2026-10-04, newer).
+// person it is about may never have an account (the PM, 2026-10-04, newer).
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
@@ -57,7 +57,7 @@ export type UnclaimedRemovalScope = (typeof UNCLAIMED_REMOVAL_SCOPES)[number]
 
 export const groupUnclaimedRemoveInput = z.object({
   groupId: z.string().uuid(),
-  // The whole Page, or just its photo (Don, 2026-10-05). Both hide at once.
+  // The whole Page, or just its photo (the PM, 2026-10-05). Both hide at once.
   scope: z.enum(UNCLAIMED_REMOVAL_SCOPES).default('page'),
   contact,
   reason: z.string().trim().max(1000).optional(),

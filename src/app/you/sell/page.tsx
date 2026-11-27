@@ -1,4 +1,4 @@
-// #336 — /you/sell is retired (Don, 2026-10-05): "this is useful stuff but it
+// #336 — /you/sell is retired (the PM, 2026-10-05): "this is useful stuff but it
 // should be product/service based and from a page not from you". It redirects to
 // Create. The list-a-product / offer-a-service / host-a-gathering flow is KEPT,
 // unrouted, for when product and service listings are due ("let's not throw it

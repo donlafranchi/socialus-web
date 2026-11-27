@@ -5,7 +5,7 @@ import { databaseWriteSafety } from './support/write-safe'
 import { resolveActionContext } from '@/lib/action-context'
 import { memberHeartSet, memberSaveSet } from '@/actions/member/hearts-saves'
 
-// #1171 (plan #269, Don 2026-11-02): a heart and a save, as separate things. A heart tells the poster who, by name
+// #1171 (plan #269, the PM 2026-11-02): a heart and a save, as separate things. A heart tells the poster who, by name
 // (option A); it subscribes no one. A save is private. Against a real database: who reads a row, what can be hearted
 // or saved, and the names a Page's managers see.
 

@@ -54,7 +54,7 @@ describe('resolvePageById', () => {
   })
 })
 
-// #1139 (Don, 2026-11-01) — the readable address: /<place>-<st>/<page-slug>.
+// #1139 (the PM, 2026-11-01) — the readable address: /<place>-<st>/<page-slug>.
 describe('resolvePageByAddress', () => {
   it('finds the Page by its place and slug', async () => {
     resolveShop.mockResolvedValueOnce(SHOP)

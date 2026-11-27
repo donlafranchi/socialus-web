@@ -7,7 +7,7 @@
 // The behaviour half seeds inside a transaction and rolls it back.
 //
 // The load-bearing case is the follow set. "Signed out, the personal half is
-// absent — server-side, never rendered and hidden" (Don, 2026-09-17) is a
+// absent — server-side, never rendered and hidden" (the PM, 2026-09-17) is a
 // claim about the database, so it is tested against one.
 
 import { describe, it, expect } from 'vitest'
@@ -46,7 +46,7 @@ describe('T156 — the migration file', () => {
     expect(sql).toMatch(/drop function if exists public\.browse_posts/i)
   })
 
-  // The absence is the decision. Free-versus-priced is Don's and unmade, and
+  // The absence is the decision. Free-versus-priced is the PM's and unmade, and
   // there is no price on a Page or a post to filter on. Asserted by word so
   // that adding the parameter means deleting a test that says why it is not
   // there — the same device the page_posts migration uses for payment.

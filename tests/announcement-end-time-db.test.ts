@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// #262 (F072 criterion 3, Don 2026-09-30): an announcement may carry an end
+// #262 (F072 criterion 3, the PM 2026-09-30): an announcement may carry an end
 // time, only beside a start and after it, and Explore returns it.
 
 const DATABASE_URL =

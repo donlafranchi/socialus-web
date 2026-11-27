@@ -46,7 +46,7 @@ describe('#296 — the footer', () => {
   })
 })
 
-// Don, 2026-10-31 — the Rules page is gone; /rules redirects to the Terms and the footer no longer links it.
+// The PM, 2026-10-31 — the Rules page is gone; /rules redirects to the Terms and the footer no longer links it.
 describe('the Rules page is gone', () => {
   it('the footer has no Rules link', () => {
     render(<SiteFooter />)

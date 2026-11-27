@@ -39,7 +39,7 @@ export interface ResolvedShop {
   /** Issue #175 — what the canonical address resolves by. The slug beside it
    *  in that address is cosmetic and may change; this does not. */
   publicId: string
-  /** #1139 (Don, 2026-11-01) — the readable address, /<place>/<page>: null on a draft, frozen once set. */
+  /** #1139 (the PM, 2026-11-01) — the readable address, /<place>/<page>: null on a draft, frozen once set. */
   placeUrlSlug?: string | null
   pageUrlSlug?: string | null
   /** The Page kind. Always 'business' while this resolver filters on it, but
@@ -184,7 +184,7 @@ export interface ResolveShopOptions {
    * that exists.
    *
    * It is a parameter rather than a constant because whether SocialUs has two
-   * Page kinds or three is Don's, and unruled. A caller that genuinely needs
+   * Page kinds or three is the PM's, and unruled. A caller that genuinely needs
    * one kind passes it; the ruling, when it lands, lands at the call sites
    * instead of forcing this read to be rewritten.
    */
@@ -208,7 +208,7 @@ export async function resolveShop(
   // CORRECTED 2026-09-19 (T156). This was `.eq('kind', 'business')`, which
   // 404'd every Page that is not a business — a run club, an interest Page, a
   // practice — even though each one resolves, renders and is owned exactly
-  // like a Shop. Don hit it himself with SacRiver Floaters.
+  // like a Shop. The PM hit it himself with SacRiver Floaters.
   let query = supabase
     .from('groups')
     .select(
@@ -367,7 +367,7 @@ export function featuredFromRow(r: ItemRow): ShopItem {
 /**
  * Beat 2 — "Claimed local owner" badge (F037 read path over T075's substrate).
  *
- * #246 — a registration is collected and never displayed (Don, 2026-09-29), so
+ * #246 — a registration is collected and never displayed (the PM, 2026-09-29), so
  * this never reads member_business_jurisdictions. page_local_owner_badge()
  * answers true if the Page has any active registration (the owner's claim, #874), and returns nothing but that boolean. No "not locally owned"
  * negative space: false, an error or no anchor all render nothing.

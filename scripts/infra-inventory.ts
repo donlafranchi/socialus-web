@@ -1,5 +1,5 @@
 // Rebuilds docs/INFRA-INVENTORY.md: everything in the project that runs on its
-// own or by hand, so the PM can decide what to keep, restore or remove (Don,
+// own or by hand, so the PM can decide what to keep, restore or remove (the PM,
 // 2026-11-26, option A: a generated list, with the reasons kept in the
 // knowledge store rather than a hand-kept register).
 //

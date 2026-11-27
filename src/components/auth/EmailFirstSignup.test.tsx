@@ -163,7 +163,7 @@ describe('T090 — EmailFirstSignup', () => {
 
 describe('F081 criterion 5 — the signup screen says what the app is for', () => {
   // [guards F081.5 partial: the line's presence; that no line about selling member information appears is not checked here]
-  it('shows Don\'s line when an account is being created', async () => {
+  it('shows the PM\'s line when an account is being created', async () => {
     const { COPY } = await import('@/lib/copy')
     const deps = makeDeps({ checkEmailRegistered: vi.fn(async () => false) })
     render(<EmailFirstSignup onAuthenticated={vi.fn()} deps={deps} />)

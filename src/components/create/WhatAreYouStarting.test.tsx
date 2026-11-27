@@ -19,14 +19,14 @@ describe('#301 — What are you starting?', () => {
     expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled()
   })
 
-  // Don, 2026-10-04: each kind is a question, with one line on what the Page is for.
-  it('asks each kind as a question, in Don\'s words, with one line on what it is for', () => {
+  // The PM, 2026-10-04: each kind is a question, with one line on what the Page is for.
+  it('asks each kind as a question, in the PM\'s words, with one line on what it is for', () => {
     render(<WhatAreYouStarting onStart={vi.fn()} />)
     const business = screen.getByRole('radio', { name: 'Have a business where you sell products or services?' })
     expect(business).toHaveAccessibleDescription(/^A Page for /)
     const group = screen.getByRole('radio', { name: 'Do you manage a group or meetup, or host events regularly?' })
     expect(group).toHaveAccessibleDescription(/^A Page for /)
-    // The first three are questions (2026-10-04); the fourth is Don's own "Be creative" (2026-10-05).
+    // The first three are questions (2026-10-04); the fourth is the PM's own "Be creative" (2026-10-05).
     const radios = screen.getAllByRole('radio')
     for (const radio of radios.slice(0, 3)) {
       expect(radio.getAttribute('aria-label') ?? radio.closest('label')!.textContent).toMatch(/\?/)
@@ -34,7 +34,7 @@ describe('#301 — What are you starting?', () => {
     expect(screen.getByRole('radio', { name: 'Be creative' })).toHaveAccessibleDescription('Start anything that helps you find your people.')
   })
 
-  // Don ruled A, 2026-10-05: each answer is the Page's purpose.
+  // The PM ruled A, 2026-10-05: each answer is the Page's purpose.
   it('starts each with its purpose', async () => {
     for (const [label, kind] of [
       [/sell products or services/i, 'sell'],

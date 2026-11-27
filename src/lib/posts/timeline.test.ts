@@ -11,7 +11,7 @@ const post = (id: string, o: { createdAt?: string; startsAt?: string | null; end
 })
 const ids = (xs: { id: string }[]) => xs.map((x) => x.id)
 
-// plan #230 (Don, 10-31) — a timeline anchored at now: past above, latest at now, coming up below.
+// plan #230 (the PM, 10-31) — a timeline anchored at now: past above, latest at now, coming up below.
 describe('pageTimeline', () => {
   it('coming up: dated posts not yet started, soonest first', () => {
     const t = pageTimeline([post('far', { startsAt: '2026-11-20T02:00:00.000Z' }), post('soon', { startsAt: '2026-11-02T02:00:00.000Z' })], now)

@@ -4,7 +4,7 @@ import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { searchRaw, searchTsQuery } from '@/lib/search/query'
 
-// #916 (Don, 2026-10-18: "I did a search for flowers (plural) and it didn't return anything but flower
+// #916 (the PM, 2026-10-18: "I did a search for flowers (plural) and it didn't return anything but flower
 // (singular) did.") — Explore's search runs in browse_feed over every row the reader may see in the market.
 
 const DATABASE_URL =

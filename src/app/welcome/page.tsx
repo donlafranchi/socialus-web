@@ -1,5 +1,5 @@
 // A new member's first screen after sign-up: what SocialUs is about, in the live landing copy
-// (Don, 2026-10-31). Reached only from the end of onboarding; once per member, and a member who
+// (the PM, 2026-10-31). Reached only from the end of onboarding; once per member, and a member who
 // arrived by a shared link, and so never saw the front door, still lands where they were headed.
 
 import Link from 'next/link'

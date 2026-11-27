@@ -1,5 +1,5 @@
 // The motion vocabulary is four DIFFERENT gestures sharing one set of tokens.
-// That distinction is the whole change — Don asked for "more of that kind of
+// That distinction is the whole change — the PM asked for "more of that kind of
 // feedback", and the failure mode is one effect copy-pasted onto everything.
 // A regression here looks like a button quietly acquiring `lift` again, which
 // reads as a card. These assertions are what notice.

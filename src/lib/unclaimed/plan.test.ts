@@ -8,7 +8,7 @@ import rows from '../../../scripts/unclaimed/makers.json'
 const r = (o: Partial<MakerRow> = {}): MakerRow => ({ name: 'Temple Coffee Roasters', category: 'Food & drink', makes: 'Coffee roaster, subscriptions', area: 'Midtown/Downtown', site: 'https://templecoffee.com/', confidence: 'Medium-high', ...o })
 
 describe('planMakers (#517)', () => {
-  it('lists every researched row, including the ten Don is visiting and the ones marked HOLD (Don, 2026-10-09: every shop goes in)', () => {
+  it('lists every researched row, including the ten the PM is visiting and the ones marked HOLD (the PM, 2026-10-09: every shop goes in)', () => {
     const p = planMakers(rows as MakerRow[])
     expect(p.listed).toHaveLength(52)
     expect(p.skipped).toEqual([])
@@ -155,7 +155,7 @@ describe('a3 — batch coverage', () => {
     expect(c.towns).toBe(5)
     expect(c.interests).toBeGreaterThanOrEqual(4)
     expect(c.ok).toBe(true)
-    expect(batchCoverage(rows.slice(0, 2)).ok).toBe(true) // a small batch loads what qualifies (Don)
+    expect(batchCoverage(rows.slice(0, 2)).ok).toBe(true) // a small batch loads what qualifies (the PM)
   })
   it('asks for the spread only of a batch of 8 or more Pages', () => {
     const same = (n: number) => Array.from({ length: n }, (_, i) => r({ name: `P${i}`, site: `https://p${i}.example/`, area: 'Davis (Yolo)', category: 'Farm' }))
@@ -170,7 +170,7 @@ describe('a3 — batch coverage', () => {
   })
 })
 
-describe('a maker row carries its own social links (Don, 2026-10-16)', () => {
+describe('a maker row carries its own social links (the PM, 2026-10-16)', () => {
   it('passes TikTok and Instagram through to the planned Page', () => {
     const social = { tiktok: 'https://www.tiktok.com/@tahoedogco', instagram: 'https://www.instagram.com/tahoedogco' }
     const { listed } = planMakers([{ name: 'Tahoe Dog Co.', category: 'Goods & crafts', makes: 'dog gear', area: 'Tahoma (El Dorado)', site: 'https://tahoedogco.com/', confidence: 'High', social }])
@@ -198,7 +198,7 @@ describe('#936 — the street address', () => {
   })
 })
 
-// #909 (Don, 2026-10-18) — an unclaimed Page shows 3–6 sample products and services, taken from the business's
+// #909 (the PM, 2026-10-18) — an unclaimed Page shows 3–6 sample products and services, taken from the business's
 // own website, labelled Sample and credited. Never from a marketplace.
 describe('sample products from the business’s own site (#909)', () => {
   const site = 'https://www.fieldandfarm.com/'

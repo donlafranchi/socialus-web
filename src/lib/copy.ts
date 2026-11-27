@@ -1,8 +1,8 @@
 // The app's words, one typed module (F084, draft). A missing key fails the
-// build. Copy is Don's and a draft until he says otherwise ([public-is-draft]).
+// build. Copy is the PM's and a draft until he says otherwise ([public-is-draft]).
 
 export const COPY = {
-  // F080 criterion 5 — shown wherever a member posts. Placeholder, Don's 2026-09-30 short line.
+  // F080 criterion 5 — shown wherever a member posts. Placeholder, the PM's 2026-09-30 short line.
   postingSafety:
     "Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves.",
   // F080 criterion 5 — ticked for each photo before it can be chosen. Placeholder ([public-is-draft]).
@@ -27,7 +27,7 @@ export const COPY = {
   aNeighbor: 'A neighbor',
   // #260 — downloads an .ics. Placeholder ([public-is-draft]).
   addToCalendar: 'Add to calendar',
-  // F081 criterion 5 — what the app is for, on the signup screen. Don's words, ruled 2026-10-01.
+  // F081 criterion 5 — what the app is for, on the signup screen. The PM's words, ruled 2026-10-01.
   signupLine:
     'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
   // F081 — the text-message code at signup (2026-10-01). Placeholders ([public-is-draft]).
@@ -40,12 +40,12 @@ export const COPY = {
   phoneCodeTitle: 'Enter your code',
   phoneCodeSent: 'We texted you a 6-digit code.',
   phoneCodeWrong: "That code didn't match. Check it, or send a new one.",
-  // F091 — Don's stem, 2026-09-19; each row completes it. The ellipsis is his.
+  // F091 — the PM's stem, 2026-09-19; each row completes it. The ellipsis is his.
   happeningStem: 'What’s happening…',
   happeningToday: 'today',
   happeningThisWeek: 'this week',
   happeningThisWeekend: 'this weekend',
-  // #353 — real businesses added from public info (Don, 2026-10-04). Placeholders ([public-is-draft]).
+  // #353 — real businesses added from public info (the PM, 2026-10-04). Placeholders ([public-is-draft]).
   unclaimedLabel: 'Unclaimed: added from public info',
   unclaimedDescriptionCredit: 'From their website',
   unclaimedBoxTitle: 'Is this your business?',
@@ -145,7 +145,7 @@ export const COPY = {
   wonderPost: 'Propose it',
 } as const
 
-// #1171 (socialus-plan #269, Don 2026-11-02) — ♡ and Save, and Follow as Get updates. Draft copy (human-review).
+// #1171 (socialus-plan #269, the PM 2026-11-02) — ♡ and Save, and Follow as Get updates. Draft copy (human-review).
 export const HEART_COPY = {
   heartPost: 'Heart this post',
   heartPage: 'Heart this Page',

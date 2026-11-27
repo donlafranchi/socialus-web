@@ -1,5 +1,5 @@
-// #1139 (Don, 2026-11-01) — a post at its address: /<place>-<st>/<page-slug>/<post-slug>. The Page landed on the post,
-// so whoever opens it sees what they would see on the Page (Don, 2026-10-31; signed out the same, F134). A post this
+// #1139 (the PM, 2026-11-01) — a post at its address: /<place>-<st>/<page-slug>/<post-slug>. The Page landed on the post,
+// so whoever opens it sees what they would see on the Page (the PM, 2026-10-31; signed out the same, F134). A post this
 // reader could not read there is not found here.
 
 import { cache, Suspense } from 'react'

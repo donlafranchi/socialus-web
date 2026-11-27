@@ -1,7 +1,7 @@
 // #896 — what a Page's map shows and where Directions go. Only a Page at a
 // street address or a landmark has a map; one that shares only an area, serves
 // an area, moves or is online has none and never sends a point (Google's
-// service-area businesses; Don, 2026-10-18).
+// service-area businesses; the PM, 2026-10-18).
 
 import type { Placement } from './resolve-page-placement'
 import type { PageWhere } from './page-where'
@@ -23,7 +23,7 @@ const STYLE = 'mapbox/streets-v12'
 const PIN = '24405a'
 
 export function pageMapView(placement: Placement | undefined, mode: PageWhere['mode'] | null, name?: string): PageMapView | null {
-  // #894 — it moves: no fixed place. #896 — Don, 2026-10-18: an area, a service area, more than one
+  // #894 — it moves: no fixed place. #896 — the PM, 2026-10-18: an area, a service area, more than one
   // location or online has no map at all, just a line saying where (and never a point).
   if (mode === 'roaming' || mode === 'travel' || mode === 'multi' || mode === 'online') return null
   const label = placement?.label.trim()

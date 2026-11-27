@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { sortSaved, type SavedPost } from './saved-posts'
 
-// #1171 (plan #269, Don 2026-11-02) — the Saved list on You: upcoming first, soonest first; then undated, newest saved
+// #1171 (plan #269, the PM 2026-11-02) — the Saved list on You: upcoming first, soonest first; then undated, newest saved
 // first; past ones drop to the end, most recent first.
 const NOW = new Date('2026-11-02T12:00:00Z')
 const s = (id: string, startsAt: string | null, savedAt: string, endsAt: string | null = null) =>

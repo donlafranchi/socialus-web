@@ -1,10 +1,10 @@
 // #394 — Vercel's Ignored Build Step. Exit 0 skips the build, exit 1 builds.
 // Production (main) always builds. Everything else follows PREVIEWS_MODE in
 // Vercel's environment:
-//   off (the default) — no previews at all. Don, 2026-10-05: until the 10-23
+//   off (the default) — no previews at all. The PM, 2026-10-05: until the 10-23
 //     feature freeze socialus.org is the review surface; nobody uses it yet.
 //   labelled — previews only for a branch whose open PR is labelled
-//     human-review (or needs-don), Don's earlier C; labelling later re-triggers a
+//     human-review (or needs-don), the PM's earlier C; labelling later re-triggers a
 //     build (.github/workflows/preview-on-label.yml). Reads labels with
 //     GITHUB_READ_TOKEN (Pull requests: read); without it, #386's rule (skip
 //     docs- and test-only pushes); if GitHub can't be asked, it builds.

@@ -1,6 +1,6 @@
 name: Notifications
 
-# #904 (Don, 2026-10-18, option A) — opt-in web push. Every 15 minutes: followed Pages' new posts, batched and
+# #904 (the PM, 2026-10-18, option A) — opt-in web push. Every 15 minutes: followed Pages' new posts, batched and
 # capped, and #945 reminders (push, else email). Thursday evening: this weekend near you (hourly 5–9 pm Pacific, so quiet hours can end; once a week each).
 # Monday: the counts to the notify-history branch, for the dashboard. The 1st of the month: the review Issue.
 # By hand: gh workflow run notify.yml -f job=follow|weekend|stats|review

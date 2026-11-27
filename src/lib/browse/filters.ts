@@ -37,7 +37,7 @@ import { shiftDays } from '@/lib/metro/metro-week'
 import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
 import { SAMPLE_POST_KIND, type PostKind } from '@/lib/posts/kinds'
 
-// #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Explore mixes everything by
+// #876 (the PM, 2026-10-16, on #796): "Target by type or category or date." Explore mixes everything by
 // default; three opt-in groups narrow it, combine with each other and with search, and are pushed into
 // the feed read (feedOptsFor). The old Updates view is the posts-only Type.
 export type ResultType = 'all' | 'pages' | 'posts'

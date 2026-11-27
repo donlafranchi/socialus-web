@@ -155,7 +155,7 @@ jobs:
   # costs: a migration merged, the deploy went out against a database without
   # it, and every Page URL 404'd for an hour while this job sat green saying
   # "expected on a push". Only the daily schedule would have failed, by which
-  # time Don had already found it himself.
+  # time the PM had already found it himself.
   #
   # It fails on push now. A red main build the minute a migration is pending is
   # the point — the window between merge and apply is exactly the window the

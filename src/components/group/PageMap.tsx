@@ -1,7 +1,7 @@
 'use client'
 
 // #896 — the Location map: a static street map (no map library on the Page).
-// Tapping it opens our own map, on this Page (Don, 2026-10-18: "shouldn't the
+// Tapping it opens our own map, on this Page (the PM, 2026-10-18: "shouldn't the
 // map open our own map? Do we want people leaving the app."). Only Directions
 // leaves: Apple Maps on iPhone and iPad, Google Maps everywhere else.
 
@@ -12,7 +12,7 @@ import { mapsTargetOf, staticMapUrl, type PageMapView } from '@/lib/groups/page-
 import { isAppleMobile, mapsLinks } from '@/lib/maps/links'
 import { mapFocusHref } from '@/lib/browse/map-focus'
 
-// #896 — quiet text links (Don, 2026-10-18: no chips or pills); 44px tall to tap.
+// #896 — quiet text links (the PM, 2026-10-18: no chips or pills); 44px tall to tap.
 const LINK = 'press inline-flex min-h-tap items-center gap-2 text-body-sm font-medium text-[var(--color-accent)] underline'
 const noSubscribe = () => () => {}
 

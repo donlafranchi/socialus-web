@@ -235,7 +235,7 @@ describe('#293 — business phone and opening hours', () => {
   })
 })
 
-describe('#285 — tags on a live Page can be edited any time (Don, 2026-10-01)', () => {
+describe('#285 — tags on a live Page can be edited any time (the PM, 2026-10-01)', () => {
   it('#1180 — replaces the Page\'s labels with the new set, in the same transaction', async () => {
     install()
     const out = await groupUpdate(ctx(), { groupId: GROUP, tags: ['Bakery', 'Gardening'] })
@@ -298,7 +298,7 @@ describe('#348 — where it is, on a live Page', () => {
   })
 })
 
-// Don, 2026-10-04: hours and phone are a component an owner can add to a group.
+// The PM, 2026-10-04: hours and phone are a component an owner can add to a group.
 describe('hours and phone, switched on or off', () => {
   it('records the choice in the Page metadata, touching nothing else', async () => {
     install()

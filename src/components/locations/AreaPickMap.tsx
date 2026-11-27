@@ -79,7 +79,7 @@ export function AreaPickMap({
       <p className="text-caption text-[var(--color-fg-muted)]">
         {kinds.includes('neighborhood') ? 'Or tap your neighborhood on the map.' : 'Or tap a town on the map.'}
       </p>
-      {/* Don, 2026-10-04: the cities' neighbourhood data, used with visible credit. */}
+      {/* the PM, 2026-10-04: the cities' neighbourhood data, used with visible credit. */}
       <p data-testid="area-pick-credit" className="text-caption text-[var(--color-fg-muted)]">
         Neighborhoods: City of Sacramento and City of West Sacramento open data. Towns and counties: US Census Bureau.
       </p>

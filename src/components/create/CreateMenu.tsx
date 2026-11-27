@@ -1,6 +1,6 @@
 'use client'
 
-// Don, 2026-11-01 — the one ➕, every width, signed in only. A small menu: Start a Page and Propose
+// The PM, 2026-11-01 — the one ➕, every width, signed in only. A small menu: Start a Page and Propose
 // something, then on Explore the List/Map switch the ⋯ used to hold. A Page's own posts start from its
 // owner bar (Announce). Precedents: Apple HIG pull-down menus, Material's speed dial, Google Maps' ➕.
 

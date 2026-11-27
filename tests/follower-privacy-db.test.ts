@@ -8,12 +8,12 @@
 // outside. The guarantee rests on the handler writing the right source, which
 // a migration cannot enforce — hence a test that reads as real people.
 //
-// WHO MAY SEE THE FOLLOWER LIST (Don, 2026-09-15):
+// WHO MAY SEE THE FOLLOWER LIST (the PM, 2026-09-15):
 //   the Page's owner        YES — knowing who follows you is the point
 //   an ordinary member      no
 //   a stranger              no
 //   another follower        UNDECIDED. Closed here, because closed is
-//                           reversible and open is not. Don's call.
+//                           reversible and open is not. The PM's call.
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
@@ -117,7 +117,7 @@ describe.skipIf(!RUNNABLE)('F067 — an open Page hides who follows it', () => {
   })
 
   it('the Page owner CAN see the follower list', async () => {
-    // Don, 2026-09-15, reversing the earlier narrowing. Knowing who follows
+    // The PM, 2026-09-15, reversing the earlier narrowing. Knowing who follows
     // you is the point of being followed. F067 acceptance 2 said "nobody,
     // including the Page's own visitors"; that wording is superseded and is
     // being amended in ops-pattern.
@@ -135,7 +135,7 @@ describe.skipIf(!RUNNABLE)('F067 — an open Page hides who follows it', () => {
   })
 
   it('a follower cannot see another follower — undecided, kept closed', async () => {
-    // Don has not ruled on this. Closed because closed is reversible: once a
+    // The PM has not ruled on this. Closed because closed is reversible: once a
     // follower list has been shown to other followers it cannot be unshown.
     const rows = await readAs(FOLLOWER)
     expect(rows.map((r) => r.member_id)).not.toContain(OTHER_FOLLOWER)

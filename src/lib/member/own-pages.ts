@@ -1,6 +1,6 @@
 // The Pages a member made, shown back to them.
 //
-// Don created "SacRiver Floaters" and "Stare at the stars" on 2026-09-16, both
+// The PM created "SacRiver Floaters" and "Stare at the stars" on 2026-09-16, both
 // active and listed with a real anchor location, and could not see either one
 // anywhere in the product. Not a regression — no surface has ever listed a
 // member's own Pages. `SellCta` calls `getDraftGroup`, which finds a DRAFT to
@@ -125,7 +125,7 @@ export async function getOwnPages(
   //
   // This used to resolve a place path and hand back `href: null` when it could
   // not, which was always, because nothing populates `locations.place_id` for
-  // a member-created Location. Don saw two Pages he had made and neither was
+  // a member-created Location. The PM saw two Pages he had made and neither was
   // clickable — and the owner bar, which is the only way to edit a Page or
   // announce anything, lives ON the Page. A dead card here was a dead creator
   // surface.

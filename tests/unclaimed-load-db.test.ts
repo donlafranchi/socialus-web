@@ -164,7 +164,7 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await count(`select count(*) n from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [E.publicInfoUrl])).toBe(1)
   })
 
-  // Don, 2026-10-16 — TikTok and Instagram first: a complete Page missing either has its own site read for them, links only.
+  // the PM, 2026-10-16 — TikTok and Instagram first: a complete Page missing either has its own site read for them, links only.
   it('backfills a missing TikTok from the Page\'s own site, then stops looking once both are there', async () => {
     let calls = 0
     const socials = async () => (calls++, { social: { tiktok: 'https://www.tiktok.com/@t517e', instagram: 'https://www.instagram.com/other' }, siteUrl: E.publicInfoUrl })
@@ -235,7 +235,7 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await tagsOf()).toHaveLength(2)
   })
 
-  // Don, 2026-10-16 — a Page loaded before has its samples moved onto its weekly pattern, once; samples only.
+  // the PM, 2026-10-16 — a Page loaded before has its samples moved onto its weekly pattern, once; samples only.
   it('moves a sample off the weekly pattern onto its weekday, and leaves real posts alone', async () => {
     const M = page('m')
     await loadUnclaimed(client, [M])
@@ -254,7 +254,7 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await enrichPage(client, M, async () => enrichment, later)).toBe('complete')
   })
 
-  // Don, 2026-11-26 — one sample each, not full of text: a Page loaded with three is cut to one, without new pictures.
+  // the PM, 2026-11-26 — one sample each, not full of text: a Page loaded with three is cut to one, without new pictures.
   it('cuts a Page loaded with three samples to its event, keeps its picture and credit, rewrites it short, and leaves real posts alone', async () => {
     const T = page('t')
     await loadUnclaimed(client, [T])

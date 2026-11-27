@@ -118,7 +118,7 @@ export const PHOTOS_PER_PAGE = 4
 const SOCIAL_FIELDS = ['tiktok', 'instagram', 'facebook', 'x', 'youtube']
 
 /**
- * Brings one Page up to what Don asked for (#556): a cover photo with its credit, a few more pictures (on
+ * Brings one Page up to what the PM asked for (#556): a cover photo with its credit, a few more pictures (on
  * its sample posts), a phone and profiles where its own site gives them, and sample posts that are not
  * stale. Only what is missing is written, so a re-run changes nothing; `gather` is not called for a Page
  * that already has all of it. A picture in `retired` (its file name in the media bucket) comes off: the
@@ -198,7 +198,7 @@ export async function enrichPage(
       }
       touched = true
     }
-    // Don, 2026-10-16 — a Page missing its TikTok or Instagram has its own site read again for them (links only); older Pages backfill.
+    // The PM, 2026-10-16 — a Page missing its TikTok or Instagram has its own site read again for them (links only); older Pages backfill.
     else if (socials && !(g.social_links?.tiktok && g.social_links?.instagram) && (await mergeSocial(db, g, await socials()))) touched = true
     // #816 a2 — the Page and its samples carry its interest tags; missing rows are added, so older Pages are backfilled.
     if (page.interests?.length && (await tagInterests(db, g.id, page.interests))) touched = true
@@ -231,7 +231,7 @@ type SampleRow = { id: string; sample_kind: SampleKind; starts_at: Date | null; 
 type TrimRow = SampleRow & { body: string }
 
 /**
- * Don, 2026-11-26 — one sample a Page, short. A Page loaded with three keeps its event (or its oldest), loses the
+ * the PM, 2026-11-26 — one sample a Page, short. A Page loaded with three keeps its event (or its oldest), loses the
  * others, and the one it keeps is rewritten to the current wording with its picture and credit kept, so no
  * pictures are fetched again. `rows` is cut to the one kept. True when it changed anything.
  */
@@ -251,7 +251,7 @@ export async function trimSamples(db: Db, rows: TrimRow[], page: Pick<PlannedPag
 }
 
 /**
- * Don, 2026-10-16 — a finished sample rolls three weeks on; one off the Page's weekly pattern (dated before it, or
+ * The PM, 2026-10-16 — a finished sample rolls three weeks on; one off the Page's weekly pattern (dated before it, or
  * without a date) is re-dated to it. Without a slug and pool the pattern is unknown, so it only rolls. Returns how many moved.
  */
 export async function redateSamples(db: Db, rows: SampleRow[], slug: string | null, pool: string | null, now: Date): Promise<number> {

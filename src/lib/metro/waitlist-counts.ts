@@ -1,6 +1,6 @@
 // F076 — the waiting count, served from a cache rather than read live.
 //
-// RULED 2026-09-23, reversing 2026-09-22 (#196). Don: *"how would anyone know
+// RULED 2026-09-23, reversing 2026-09-22 (#196). The PM: *"how would anyone know
 // about anybody elses emails with just a count? ... Nobody would be able to
 // know anything else except someone else somewhere else also found this site.
 // they could have even chosen the wrong area."*
@@ -63,7 +63,7 @@ import { createAnonClient } from '@/lib/supabase-anon'
 /**
  * How stale the number is allowed to be.
  *
- * One hour. Short enough that Don can watch a metro fill over a day, long
+ * One hour. Short enough that the PM can watch a metro fill over a day, long
  * enough that a submission is very unlikely to be the only thing inside the
  * window — and the residual above is about being the only thing, not about the
  * length as such.

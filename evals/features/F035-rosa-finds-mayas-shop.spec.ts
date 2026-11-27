@@ -51,7 +51,7 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
       await expect(page.getByTestId("shop-name")).toHaveText(SHOP.brandName);
 
       // Then — the founder's name, as text: there is no public member profile
-      // to link to (#303; Don, 2026-10-01). The named human stays visible as
+      // to link to (#303; the PM, 2026-10-01). The named human stays visible as
       // accountability (groups.md § No-personhood guarantees).
       const founder = page.getByTestId("shop-founder");
       await expect(founder).toContainText(MAYA.displayName);
@@ -87,7 +87,7 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
     test("Given no featured items exist for this Shop | When a visitor views the page | Then the section is hidden", async ({
       page,
     }) => {
-      // #909 (Don, 2026-10-18) replaces beat 3's visible empty state: an empty section shows only to the
+      // #909 (the PM, 2026-10-18) replaces beat 3's visible empty state: an empty section shows only to the
       // Page's owner, as an "add your first" prompt. The visitor here is signed in; signed out reads the same (F134).
       await signIn(page, ROSA.email, ROSA.password);
       await page.goto(SHOP.url);

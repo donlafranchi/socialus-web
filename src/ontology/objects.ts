@@ -20,7 +20,7 @@
 // see tests/ci-enforcement-rule-5.test.ts. That is what makes a wrong status a
 // red build rather than a sentence nobody rereads.
 //
-// ROLES ARE NOT NOUNS. Don, 2026-09-19: "Person" is rejected as a noun — it is
+// ROLES ARE NOT NOUNS. The PM, 2026-09-19: "Person" is rejected as a noun — it is
 // generic and means nothing in this app — and the words that replace it in
 // conversation (creator, organizer, follower, member, patron) are NOT object
 // types either. They are one person in different relations to a Page, and the
@@ -134,7 +134,7 @@ export const OBJECT_TYPES: readonly ObjectType[] = [
 /**
  * The words that name a relation to a Page, not a kind of person. Never nouns.
  *
- * "Member" was on Don's list too and is the exception, because it is doing two
+ * "Member" was on the PM's list too and is the exception, because it is doing two
  * jobs: the ACCOUNT (one real human, the object type above) and the RELATION
  * (a member of a Page, which is group_memberships). Only the second is a role,
  * and it is a link. That collision is worth knowing before someone reads the

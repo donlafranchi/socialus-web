@@ -36,7 +36,7 @@ describe('#293 — the contact block', () => {
   })
 })
 
-// Don, 2026-10-05: hours are hidden for now (they clutter the Page), behind a
+// The PM, 2026-10-05: hours are hidden for now (they clutter the Page), behind a
 // flag. The data stays; the phone stays as one tap-to-call line.
 describe('hours hidden for now', () => {
   it('shows the phone, never the hours, even with hours on file', () => {

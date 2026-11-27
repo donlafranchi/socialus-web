@@ -8,9 +8,9 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import type { Purpose } from '@/lib/groups/page-kind'
 
-// #363 — each answer is the Page's purpose (Don ruled A, 2026-10-05: purpose
-// first, type for listing). Don, 2026-10-04: each is a question with one line on
-// what the Page is for; Don, 2026-10-05: a fourth, in his words, "A be creative
+// #363 — each answer is the Page's purpose (the PM ruled A, 2026-10-05: purpose
+// first, type for listing). The PM, 2026-10-04: each is a question with one line on
+// what the Page is for; the PM, 2026-10-05: a fourth, in his words, "A be creative
 // option… we exist to help you find your people." Placeholder ([public-is-draft]).
 export type StartKind = Purpose
 

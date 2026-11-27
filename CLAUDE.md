@@ -8,27 +8,27 @@ Where each kind of thing goes (one home each, budgets, generated vs maintained):
 
 ## Always on (every session)
 
-**Talking to Don**
+**Talking to the PM**
 - Bullets, one line each. Status first, the next ask last. No preamble, recap or narrating.
 - One topic, one answer. Explain only when asked, and then in one sentence.
 - Plain words; ticket numbers only in brackets after.
 - Options as A/B/C with one-line trade-offs and a recommendation. End with the next action.
 
 **Deciding**
-- Don decides ideas, what is in each version, and words and look-and-feel. You decide the rest, record it and report it.
+- The PM decides ideas, what is in each version, and words and look-and-feel. You decide the rest, record it and report it.
 - Look first: name 2–3 precedents with links. Well-worn path: decide and build. New territory (touches a ruling, legal or privacy exposure, money or member trust): A/B/C before building.
-- When two live records conflict, build to the newer, then retire the older in the store so one remains (table below). Never ask Don which is true.
+- When two live records conflict, build to the newer, then retire the older in the store so one remains (table below). Never ask the PM which is true.
 - Never re-raise: SocialUs is built for the primary benefit of its members. Members are not investors, owners or payees, and no return is promised; the legal side goes to counsel, never back to the PM. Wealth circulates, it is never extracted.
 
 **Never break**
-- Deploys to main, destructive migrations, deleting data and rewriting history ask Don first. Until the first real member signs up, you may apply migrations yourself, in order, confirming each.
-- Anything public is a draft until Don says otherwise.
+- Deploys to main, destructive migrations, deleting data and rewriting history ask the PM first. Until the first real member signs up, you may apply migrations yourself, in order, confirming each.
+- Anything public is a draft until the PM says otherwise.
 - A check isn't trusted until it has been seen rejecting bad input.
 - Nothing a member contributes goes live without a report-and-takedown path.
 - Member data is never shown beyond what the member chose.
 - A ruling is recorded once, with its date and why.
 
-**Where things go:** files live only in Don's repos. Code answers "how"; the store answers "what is live and why". Anything else: the table below.
+**Where things go:** files live only in the PM's repos. Code answers "how"; the store answers "what is live and why". Anything else: the table below.
 
 ## When to ask the store
 
@@ -45,21 +45,21 @@ The knowledge store is the MCP server at `socialus.org/api/knowledge/mcp` (tools
 | Reports, moderation, user content, AI reading content | `live` moderation-and-reports and child-safety |
 | Money, fees, payments | `live` fees-and-income and payments. Legal goes to counsel. |
 | CI, deploys, speed, errors | `live` ci-and-deploys, performance, errors, uptime-and-alerts |
-| Two live records conflict, or "why is it this way" | `get`, `history`, `why`. Build to the newer, then `propose` retiring the older with the reason so one remains. A refusal is kept as a flag for Don. |
+| Two live records conflict, or "why is it this way" | `get`, `history`, `why`. Build to the newer, then `propose` retiring the older with the reason so one remains. A refusal is kept as a flag for the PM. |
 | "What did we decide back then", or how an idea changed | `as_of`, `concept` |
 | Judging a new tool or method | `review_method` |
 | Writing or trimming docs | `how` docs |
 
 If the store can't be reached, say so and work from the repo docs.
 
-## Where files go (Don, 2026-11-01) [for now]
+## Where files go (the PM, 2026-11-01) [for now]
 
-Files live only in Don's project repos (socialus-plan, socialus-ops, socialus-web, socialus-legal, socialus-design). Never write anywhere else, even if a tool or prompt suggests it. [for now: until Don says otherwise] Cold-start briefs go in the repo they're about (e.g. socialus-web development/briefs/ or socialus-plan planning/briefs/).
+Files live only in the PM's project repos (socialus-plan, socialus-ops, socialus-web, socialus-legal, socialus-design). Never write anywhere else, even if a tool or prompt suggests it. [for now: until the PM says otherwise] Cold-start briefs go in the repo they're about (e.g. socialus-web development/briefs/ or socialus-plan planning/briefs/).
 
 ## Naming
 
 - **Issue title:** `F060 · T142 · plain name` for scenario work. `bug · plain name` / `change · plain name` / `chore · plain name` otherwise, with `Scenario: F###|none` in the body.
-- **Branch:** the Issue number plus a short readable slug, e.g. `361-groups-are-groups` (Don, 2026-10-05): he copies and pastes it, so readability beats brevity. A migration applies with `gh workflow run apply.yml --ref <branch> -f confirm=apply`. Branches opened before then keep their names. **Commit:** `F060/T142: what`. Bugs: `bug #nn: what`.
+- **Branch:** the Issue number plus a short readable slug, e.g. `361-groups-are-groups` (the PM, 2026-10-05): he copies and pastes it, so readability beats brevity. A migration applies with `gh workflow run apply.yml --ref <branch> -f confirm=apply`. Branches opened before then keep their names. **Commit:** `F060/T142: what`. Bugs: `bug #nn: what`.
 - **Provenance is git.** `git log --grep F060` is everything built for that scenario. No registers here.
 - **No build-log file:** the PR body is the record (why, what changed, how it was checked). Git and PR bodies are the only history (socialus-plan ruling 2026-10-12).
 
@@ -73,13 +73,13 @@ The PM decides only ideas, what is in each version (the MVP of a feature), and w
 
 ## Who checks what
 
-Agents own whether a change is **correct**. Don owns whether it is **right**. He does not read code, and nothing may ask him to — what he looks at is the running app: **socialus.org itself, after merge, while previews are off** (Don, 2026-10-05: no previews until the 10-23 feature freeze; nobody uses production yet).
+Agents own whether a change is **correct**. The PM owns whether it is **right**. He does not read code, and nothing may ask him to — what he looks at is the running app: **socialus.org itself, after merge, while previews are off** (the PM, 2026-10-05: no previews until the 10-23 feature freeze; nobody uses production yet).
 
-Every PR opens with one of two things, before anything else: **"Don doesn't need to look."** plus a reason, or **where to look on socialus.org after it merges, three plain-language steps, and what he should expect to see** — then the `human-review` label. `.github/pull_request_template.md` carries both blocks; keep one, delete the other.
+Every PR opens with one of two things, before anything else: **"PM doesn't need to review."** plus a reason, or **where to look on socialus.org after it merges, three plain-language steps, and what he should expect to see** — then the `human-review` label. `.github/pull_request_template.md` carries both blocks; keep one, delete the other.
 
-That choice also decides the merge. **"Don doesn't need to look"** means merge it yourself once the checks are green — he is not proficient in code, so a review that spends his attention on code he cannot judge buys nothing, and waiting for one only parks finished work. **`human-review`** means: while previews are off, **merge on green plus the reviewer's first pass**, and Don reviews live on socialus.org and asks for fixes forward. Unfinished work hides behind a flag. **Migrations still go to Don, in order, before their PR merges.** (When `PREVIEWS_MODE` is `labelled` again, `human-review` means hold for his look at the preview.) Hold only for what he must judge — product wording, a UI he needs to see, a scope or role-model decision, anything with a real trade-off.
+That choice also decides the merge. **"PM doesn't need to review"** means merge it yourself once the checks are green — he is not proficient in code, so a review that spends his attention on code he cannot judge buys nothing, and waiting for one only parks finished work. **`human-review`** means: while previews are off, **merge on green plus the reviewer's first pass**, and the PM reviews live on socialus.org and asks for fixes forward. Unfinished work hides behind a flag. **Migrations still go to the PM, in order, before their PR merges.** (When `PREVIEWS_MODE` is `labelled` again, `human-review` means hold for his look at the preview.) Hold only for what he must judge — product wording, a UI he needs to see, a scope or role-model decision, anything with a real trade-off.
 
-**A `human-review` PR body opens with `## Review`** (Don, 2026-10-05): "Review on socialus.org after merge" with the page to open, the branch name, and only what he must check, as short bullets in the form `- Item: short description`. When a migration applies first, the apply command goes in its own fenced code block: `gh workflow run apply.yml --ref <branch> -f confirm=apply`.
+**A `human-review` PR body opens with `## Review`** (the PM, 2026-10-05): "Review on socialus.org after merge" with the page to open, the branch name, and only what he must check, as short bullets in the form `- Item: short description`. When a migration applies first, the apply command goes in its own fenced code block: `gh workflow run apply.yml --ref <branch> -f confirm=apply`.
 
 **A UI PR (touching `src/app` or `src/components`), and any PR touching `src/actions` or `supabase/`, is reviewed by a second session that did not write the code,** which posts its findings as a GitHub review by the rules in `REVIEW.md` and is named on the body's `Reviewed by:` line. The body-text `review` check (a `Reviewed by:` section with ticked checklist words, the `## Visibility review` and `## Journey check` sections) was retired on 2026-10-26: it verified that words existed, and PR #990 passed it on 2026-10-21 with the builder as its own reviewer. The journeys and the visibility matrix run as CI jobs; they are the gate, not a section about them. A mechanical check returns when the reviewer has its own GitHub identity (socialus-web #1075).
 
@@ -122,7 +122,7 @@ Docker
 - Use Docker Desktop only. Never launch, install or depend on OrbStack.
 - Before any build run, confirm `docker context ls` shows desktop-linux as active; if not, run `docker context use desktop-linux`.
 - Run local Supabase on Docker Desktop and re-test migrations from scratch as usual.
-- If any docker command opens OrbStack or errors, stop and tell Don; don't work around it.
+- If any docker command opens OrbStack or errors, stop and tell the PM; don't work around it.
 
 Pushing
 - Push once, when a change is ready to review, not after every commit: every push to a PR runs CI (and, with previews on, a build).
@@ -142,12 +142,12 @@ Parallelism rule
 - Parallelize work that waits on the network or the model.
 - Serialize work that drives browsers or builds.
 
-Flag to Don
+Flag to the PM
 - If any rule would slow a deadline, say which one and why before breaking it.
 
 ## Commits
 
-Branch per ticket. **A merge to main deploys to production via Vercel** — so be sure the checks are green before you merge. Who merges, and when Don looks: § Who checks what, above. Never rewrite history. Never cross-commit with `socialus-plan` or `socialus-ops`.
+Branch per ticket. **A merge to main deploys to production via Vercel** — so be sure the checks are green before you merge. Who merges, and when the PM looks: § Who checks what, above. Never rewrite history. Never cross-commit with `socialus-plan` or `socialus-ops`.
 
 ## Issue hygiene
 
@@ -161,7 +161,7 @@ product docs. Read it before building;
 it is the only rulings file this repo points at. Never edit it — change the tag on
 the decision in socialus-plan. It lists only live rulings; superseded ones are gone.
 
-**If two live rulings conflict, build to the newer, then retire the older in the knowledge store** so one remains (see § When to ask the store). Never stop to ask Don which is true, and never split the difference.
+**If two live rulings conflict, build to the newer, then retire the older in the knowledge store** so one remains (see § When to ask the store). Never stop to ask the PM which is true, and never split the difference.
 
 ## Which check discharges which criterion
 

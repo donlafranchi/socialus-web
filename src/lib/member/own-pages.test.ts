@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// The bug: Don made two Pages, both active and listed with a real anchor
+// The bug: the PM made two Pages, both active and listed with a real anchor
 // location, and could see neither anywhere in the product. No surface has ever
 // listed a member's own Pages — SellCta finds a DRAFT to resume and lets an
 // active Page fall through.
@@ -134,7 +134,7 @@ describe('getOwnPages', () => {
     expect(out[0].lifecycleState).toBe('draft')
   })
 
-  // Issue #175 — the whole reported symptom. Don saw the Pages he had made and
+  // Issue #175 — the whole reported symptom. The PM saw the Pages he had made and
   // not one of them was clickable, because the href was derived from
   // `locations.place_id`, which nothing populates for anything a member makes.
   it('links every Page to its canonical address, carrying no place path', async () => {

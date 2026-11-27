@@ -1,8 +1,8 @@
-# Cold-start brief: readable URLs (Don, 2026-11-01)
+# Cold-start brief: readable URLs (the PM, 2026-11-01)
 
-Work in `~/Projects/socialus-web` on your own new worktree. TDD, own PRs, merge when green, fix forward. Docker Desktop only, at most 2 builds. Don reviews by tapping live socialus.org links. Report context % in every message; end with the three-line report and SAFE TO CLOSE / NOT SAFE TO CLOSE.
+Work in `~/Projects/socialus-web` on your own new worktree. TDD, own PRs, merge when green, fix forward. Docker Desktop only, at most 2 builds. The PM reviews by tapping live socialus.org links. Report context % in every message; end with the three-line report and SAFE TO CLOSE / NOT SAFE TO CLOSE.
 
-## The ruling (Don, chat, 2026-11-01; newer than the 2026-10-06 ID-only ruling, which it replaces)
+## The ruling (the PM, chat, 2026-11-01; newer than the 2026-10-06 ID-only ruling, which it replaces)
 - Page: `socialus.org/<place>-<st>/<page-slug>`, e.g. `/sacramento-ca/plant-foundry`, `/granite-bay-ca/<page>`.
 - Post: `socialus.org/<place>-<st>/<page-slug>/<post-slug>`; post slug from the headline, short suffix only when a headline repeats on that Page.
 - Place segment: the home town **set once at creation, never derived from the current address, then frozen**; Page slug frozen with it. A move across town or cities changes nothing in the URL; the real address shows on the Page.
@@ -16,10 +16,10 @@ Work in `~/Projects/socialus-web` on your own new worktree. TDD, own PRs, merge 
 ## First, before building
 1. Read `socialus-plan/planning/research/URL-IDENTITY.md` and `url-plan-2026-10-06.md`; record this ruling as a dated entry there (replaces the ID-only amendment; ID still resolves internally). Update `verbs.md`'s "slug may not be renamed" line to "frozen at creation".
 2. Read `socialus-web/src/lib/groups/resolve-page-address.ts`, `src/app/g/[handle]`, `src/lib/posts/resolve-shared-post.ts`, `src/app/p/`, the places/boundaries loader (`scripts/boundaries/`, `place_for_coords`), and `supabase/seeds/README.md` (the seeds are privileged: verify against a row made through the real handler, bug #175).
-3. Label the PR "Path: new territory" (it reverses a ruling; Don approved in chat).
+3. Label the PR "Path: new territory" (it reverses a ruling; the PM approved in chat).
 
 ## Build, in order
-1. **Migration** (goes to Don before merge; give the `apply.yml` command): `places` table gets `url_slug` (unique, state-suffixed); `groups` gets `place_url_slug` + `page_url_slug`, unique pair, immutable (trigger); posts get `url_slug` unique per Page. Backfill every existing Page (unclaimed too, e.g. Plant Foundry: `/sacramento-ca/plant-foundry`) and post.
+1. **Migration** (goes to the PM before merge; give the `apply.yml` command): `places` table gets `url_slug` (unique, state-suffixed); `groups` gets `place_url_slug` + `page_url_slug`, unique pair, immutable (trigger); posts get `url_slug` unique per Page. Backfill every existing Page (unclaimed too, e.g. Plant Foundry: `/sacramento-ca/plant-foundry`) and post.
 2. **Slug generator** (pure, tested): name to slug, collision handling, reserved list, county rule, override table.
 3. **Creation paths**: member-created Pages (handler) and the unclaimed seeder both assign the place and slugs at creation.
 4. **Routing**: `[place]/[page]` and `[place]/[page]/[post]` at the site root, beating the reserved routes; unknown place or page is a 404. ID-based resolution stays as the internal fallback.
@@ -29,5 +29,5 @@ Work in `~/Projects/socialus-web` on your own new worktree. TDD, own PRs, merge 
 ## Done means
 Each item names its check plus a live link: https://www.socialus.org/sacramento-ca/plant-foundry, a post under it, and the old https://www.socialus.org/g/81bjk0 redirecting.
 
-## Open items Don knows about
-Plant Foundry's phone, hours and links migration was applied by Don; its street address needs the unclaimed-pin workflow run. The F082 scenario in socialus-plan still describes the removed four-rule step.
+## Open items the PM knows about
+Plant Foundry's phone, hours and links migration was applied by the PM; its street address needs the unclaimed-pin workflow run. The F082 scenario in socialus-plan still describes the removed four-rule step.

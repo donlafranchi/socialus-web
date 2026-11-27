@@ -1,6 +1,6 @@
 // bug #211 — the card and the Page have to agree about the announcement.
 //
-// Don tapped a card reading "THU, SEP 24, 2:12 AM", landed on the Page, and
+// The PM tapped a card reading "THU, SEP 24, 2:12 AM", landed on the Page, and
 // found "Wednesday, September 23 at 7:12pm". Same instant, two surfaces, two
 // different days — which reads as the information not being there.
 //
@@ -64,7 +64,7 @@ describe('the card renders metro time, the same as the Page', () => {
     expect(lead.className).toMatch(/font-bold/)
   })
 
-  // #256 (Don, 2026-09-30): an announcement with no time keeps its posted date.
+  // #256 (the PM, 2026-09-30): an announcement with no time keeps its posted date.
   it('says when an undated announcement was posted', () => {
     render(<BrowseResultCard result={post({ startsAt: null, postedAt: '2026-09-02T18:00:00Z' })} />)
     expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Update · Sep 2/)
@@ -127,7 +127,7 @@ describe('#299 — no photo shows default art, never the emoji', () => {
   })
 })
 
-// Don, 2026-10-12 (matches #619, #621: plain words, no hashtags): the tags stay on the data and on
+// The PM, 2026-10-12 (matches #619, #621: plain words, no hashtags): the tags stay on the data and on
 // the Page itself; the Explore card does not show them.
 describe('a card shows no hashtags', () => {
   it('a card whose result has tags shows none, as chips or as text', () => {
@@ -158,7 +158,7 @@ describe('the kind line', () => {
   })
 })
 
-// Don, 2026-10-31: "I can't share an anouncment?" — a quiet Share on every post card, outside the card's own link.
+// The PM, 2026-10-31: "I can't share an anouncment?" — a quiet Share on every post card, outside the card's own link.
 describe('Share on a post card', () => {
   it('offers Share, outside the card’s link, with the post’s own address', async () => {
     const { fireEvent, waitFor } = await import('@testing-library/react')

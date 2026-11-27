@@ -47,7 +47,7 @@ describe('#301 — Before you publish', () => {
   })
 })
 
-// Don, 2026-10-31 — one line, no four-rule step and no checkbox.
+// The PM, 2026-10-31 — one line, no four-rule step and no checkbox.
 describe('publishing says the Terms apply, in one line', () => {
   const ready = { ...base, hasName: true, hasPlace: true, hasDescription: true }
 

@@ -305,7 +305,7 @@ describe('#318 — the owner deletes their own post', () => {
   })
 })
 
-// #262 (F072 criterion 3, Don 2026-09-30): an optional end time.
+// #262 (F072 criterion 3, the PM 2026-09-30): an optional end time.
 describe('group.post — an end time', () => {
   it('writes one when given, beside the start', async () => {
     install()
@@ -348,7 +348,7 @@ describe('group.post — an end time', () => {
   })
 })
 
-// #314 (Don, 2026-10-02) — an undated post shows for 14 days unless its owner sets a "show until" date.
+// #314 (the PM, 2026-10-02) — an undated post shows for 14 days unless its owner sets a "show until" date.
 describe('group.post — show until', () => {
   const LATER = '2026-10-15T06:59:00.000Z'
   it('writes one on an undated post', async () => {
@@ -700,7 +700,7 @@ describe('group.post_create — a weekly series', () => {
   })
 })
 
-// plan #230 (Don, 2026-10-31) — a post's kind is picked first, and it has a one-line headline.
+// plan #230 (the PM, 2026-10-31) — a post's kind is picked first, and it has a one-line headline.
 describe('group.post — kind and headline', () => {
   const insertParams = () => calls(/insert into public\.page_posts/i)[0]!
   const START = '2026-09-20T02:00:00.000Z'

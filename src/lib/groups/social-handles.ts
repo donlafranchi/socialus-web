@@ -1,6 +1,6 @@
 // Social links as HANDLES, not URLs.
 //
-// THE BUG THIS FIXES. Don added an Instagram account and the save failed. He
+// THE BUG THIS FIXES. The PM added an Instagram account and the save failed. He
 // suspected a bogus handle and no validation; it was the opposite. The field
 // demanded a full `https://` URL and refused everything else, so a real handle
 // was rejected for not being a URL. Reproduced exactly:

@@ -12,7 +12,7 @@ import type { UnclaimedResult } from '@/app/_actions/unclaimed-actions'
 interface Props {
   groupId: string
   pagePath: string
-  /** Offers "Just the photo" when there is one to remove (Don, 2026-10-05). */
+  /** Offers "Just the photo" when there is one to remove (the PM, 2026-10-05). */
   hasPhoto: boolean
   loggedIn: boolean
   claim: ClaimHandlers

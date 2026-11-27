@@ -1,4 +1,4 @@
-// T109 / #962 — the Following page. Pages first (Don, 2026-10-19: "Shouldn't I be able to see which businesses I
+// T109 / #962 — the Following page. Pages first (the PM, 2026-10-19: "Shouldn't I be able to see which businesses I
 // follow from within the app?"): every Page the member follows, soonest upcoming post first. People and places
 // they follow follow below, from the unified reader (T108); its Groups are the Pages above, so they're left out.
 

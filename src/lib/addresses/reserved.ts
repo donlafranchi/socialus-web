@@ -1,4 +1,4 @@
-// #1139 (Don, 2026-11-01) — words no place, Page or post slug may take: every top-level route, the old address
+// #1139 (the PM, 2026-11-01) — words no place, Page or post slug may take: every top-level route, the old address
 // markers, and a post's own sub-paths. The database's url_reserved() holds the same list; a test compares them and
 // fails when a new top-level route is not here.
 export const RESERVED_WORDS: readonly string[] = [

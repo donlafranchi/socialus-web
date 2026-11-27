@@ -1,4 +1,4 @@
-// #796 — Explore's first look (ruled A, Don 2026-10-14): only what is new or happening soon — tonight,
+// #796 — Explore's first look (ruled A, the PM 2026-10-14): only what is new or happening soon — tonight,
 // this weekend, last-minute openings, Pages new since the last visit — reshuffled each visit, and
 // never something this browser was already shown on an earlier visit. With nothing new it falls back
 // to the #557 rotation of Pages. Posts never lead otherwise; they live behind the Updates filter.

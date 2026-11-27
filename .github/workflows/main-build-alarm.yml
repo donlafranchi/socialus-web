@@ -1,6 +1,6 @@
 name: Main build alarm
 
-# A production deploy of main that fails to build opens (or updates) one Issue and pings Don.
+# A production deploy of main that fails to build opens (or updates) one Issue and pings the PM.
 # Two PRs green on their own can break main together (#911 + #944, 2026-10-18: a duplicate import);
 # requiring up-to-date branches (#426) is on hold for Actions minutes, so catch it within minutes instead.
 # Reads Vercel's deployment status: no build runs here.

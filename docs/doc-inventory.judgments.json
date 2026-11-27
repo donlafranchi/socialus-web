@@ -7,7 +7,7 @@
     "reviewed": "2026-10-11"
   },
   ".github/pull_request_template.md": {
-    "purpose": "PR body template: Don-looks or doesn't-look block, reviewer first pass",
+    "purpose": "PR body template: PM-looks or doesn't-look block, reviewer first pass",
     "origin": "hand",
     "rec": "keep",
     "note": "10-30: cut to look/no-look, Path, Verified, Reviewed by, Closes by #1077 (2026-10-25); the PREVIEWS_MODE note is gone; matches CLAUDE.md § Who checks what",

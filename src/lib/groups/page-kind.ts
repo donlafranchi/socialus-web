@@ -1,4 +1,4 @@
-// #363 — purpose first, type for listing (Don ruled A, 2026-10-05). Every Page
+// #363 — purpose first, type for listing (the PM ruled A, 2026-10-05). Every Page
 // has ONE primary purpose: what it mainly accomplishes. Beta's four match
 // Create's four answers, each a loop in socialus-plan
 // product/needs/member-journey.md. Type (business or social group) follows from

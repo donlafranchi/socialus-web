@@ -1,8 +1,8 @@
-<!-- Don reads the top of the PR and nothing more. Keep ONE of the two openings
+<!-- the PM reads the top of the PR and nothing more. Keep ONE of the two openings
      (socialus-ops/process/PIPELINE.md § Who checks what), then the three lines
      below it. The diff is the record of what changed; don't restate it. -->
 
-## Don doesn't need to look.
+## PM doesn't need to review.
 <!-- One line saying why not, e.g. "Test-only; no behaviour changes." Merge yourself on green. -->
 
 ## Review

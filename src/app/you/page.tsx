@@ -1,4 +1,4 @@
-// #303 — L21 You (Don, 2026-10-01): private, for managing your own things —
+// #303 — L21 You (the PM, 2026-10-01): private, for managing your own things —
 // the Pages you manage, the Pages you follow, your name and area. Nobody else
 // can reach it; there is no public member profile (/m/[handle] is retired).
 // T4 Manage list page: one 720 column of sections, rows with their action on
@@ -68,7 +68,7 @@ export default async function YouPage() {
         <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Only you see this page.</p>
       </header>
 
-      {/* #962 — Don, 2026-10-19: "Shouldn't I be able to see which businesses I follow from within the app?" */}
+      {/* #962 — the PM, 2026-10-19: "Shouldn't I be able to see which businesses I follow from within the app?" */}
       <Link
         href="/you/following"
         data-testid="you-following-row"
@@ -79,7 +79,7 @@ export default async function YouPage() {
         <ChevronRight size={18} aria-hidden="true" className="text-[var(--color-fg-muted)]" />
       </Link>
 
-      {/* #1171 (plan #269, Don 2026-11-02) — what the member saved for later, upcoming first. */}
+      {/* #1171 (plan #269, the PM 2026-11-02) — what the member saved for later, upcoming first. */}
       <Link
         href="/you/saved"
         data-testid="you-saved-row"

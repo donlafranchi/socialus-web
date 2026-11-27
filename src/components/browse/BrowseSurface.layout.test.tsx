@@ -112,7 +112,7 @@ describe('T187 — nothing sits between rows of results', () => {
   }
 })
 
-describe('Don, 2026-11-01 — no bottom bar: the search is the header pill', () => {
+describe('the PM, 2026-11-01 — no bottom bar: the search is the header pill', () => {
   it('has no bottom bar and no floating dock', () => {
     renderAt(390)
     expect(screen.queryByTestId('mobile-bar')).toBeNull()
@@ -200,7 +200,7 @@ describe("#331 — a Page's map shows the tunable mix, narrowed by search and fi
 })
 
 describe('F134 — signed out, Explore lays out as signed in', () => {
-  it('signed out there is no ➕ (Don, 2026-11-01)', () => {
+  it('signed out there is no ➕ (the PM, 2026-11-01)', () => {
     renderAt(390, { signedIn: false })
     expect(screen.queryByTestId('create-menu')).toBeNull()
   })

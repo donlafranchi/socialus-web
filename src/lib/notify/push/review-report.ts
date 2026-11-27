@@ -37,7 +37,7 @@ export function reviewMarkdown(r: { at: string; state: string; kinds: KindSummar
     '',
     '### Propose',
     '',
-    'One PR with the changes (frequency, triggers, copy), labelled `human-review`, and one P2 to-do for Don. A red kind comes first.',
+    'One PR with the changes (frequency, triggers, copy), labelled `human-review`, and one P2 to-do for the PM. A red kind comes first.',
     '',
   )
   return lines.join('\n')

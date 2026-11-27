@@ -32,7 +32,7 @@ export function MapPreview({ latitude, longitude }: MapPreviewProps) {
 
     handleMapErrors(map)
 
-    // Every pin is navy (Don, 2026-10-05); ownership no longer colours pins.
+    // Every pin is navy (the PM, 2026-10-05); ownership no longer colours pins.
     const el = document.createElement('div')
     stylePin(el)
     el.style.cursor = ''

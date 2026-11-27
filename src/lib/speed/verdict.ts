@@ -15,7 +15,7 @@ export const regressed = (now: number | null, base: number | null | undefined): 
 export type Status = 'green' | 'amber' | 'red'
 export interface Verdict { status: Status; flags: Flag[]; regressed: boolean; over: boolean; waived: boolean }
 
-/** Re-benchmark when membership passes these (Don, 2026-10-08). */
+/** Re-benchmark when membership passes these (the PM, 2026-10-08). */
 export const CHECKPOINTS = [100, 500, 1000, 5000] as const
 
 /** The highest checkpoint reached that has not been benchmarked yet. */

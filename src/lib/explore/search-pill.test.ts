@@ -3,7 +3,7 @@ import { pillSummary, toggleKind, withWhen } from './search-pill'
 
 const TAGS = ['music', 'food']
 
-describe('pillSummary (Airbnb-style pill, Don 2026-11-01)', () => {
+describe('pillSummary (Airbnb-style pill, the PM 2026-11-01)', () => {
   it('idle, it reads Anything · Anywhere nearby · Any time', () => {
     expect(pillSummary('', TAGS, null)).toEqual({ what: 'Anything', where: 'Anywhere nearby', when: 'Any time' })
   })

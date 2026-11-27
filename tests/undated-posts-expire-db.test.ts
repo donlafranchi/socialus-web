@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// #314 (Don, 2026-10-02) — an undated post drops off Explore 14 days after it was posted, unless its owner
+// #314 (the PM, 2026-10-02) — an undated post drops off Explore 14 days after it was posted, unless its owner
 // set a "show until" date. browse_feed reads one rule, post_current_until.
 
 const DATABASE_URL =

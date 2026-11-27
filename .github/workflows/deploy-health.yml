@@ -2,7 +2,7 @@ name: Deploy health
 
 # Does the deployed app have a working database connection?
 #
-# On 2026-09-16 Don could not create a Page. The cause was that DATABASE_URL had
+# On 2026-09-16 the PM could not create a Page. The cause was that DATABASE_URL had
 # never been set in any Vercel environment — since 2026-05-11, when the action
 # layer's pool landed. Every write in the app was down for four months: signup,
 # Page creation, follows, posts, reports, the lot. Reads were fine, because they
@@ -165,6 +165,6 @@ jobs:
           cache: npm
       - run: npm ci
       # Silent and green when clean. Red, with both lists, when a declaration's
-      # handler or table has gone — which is what emails Don.
+      # handler or table has gone — which is what emails the PM.
       - name: Report drift
         run: npx tsx scripts/ontology-drift.ts

@@ -1,5 +1,5 @@
 // F081 — a member is verified as a person by a text-message code to their
-// phone, at signup (Don, 2026-10-01). Builders are the named exception: no
+// phone, at signup (the PM, 2026-10-01). Builders are the named exception: no
 // text code (#280).
 
 export { normalizeUsPhone } from '@/lib/phone'

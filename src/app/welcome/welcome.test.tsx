@@ -1,4 +1,4 @@
-// A member's first sign-up ends on a one-time welcome built from the live landing copy (Don, 2026-10-31).
+// A member's first sign-up ends on a one-time welcome built from the live landing copy (the PM, 2026-10-31).
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'

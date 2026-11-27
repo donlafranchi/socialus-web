@@ -1,4 +1,4 @@
-// #962 — the Pages a member follows, shaped for the Following page (Don, 2026-10-19: "Shouldn't I be able to see
+// #962 — the Pages a member follows, shaped for the Following page (the PM, 2026-10-19: "Shouldn't I be able to see
 // which businesses I follow from within the app?"). Which Pages comes from the one reader, getMemberFollows
 // (F065.5); this adds what a row shows. Runs as the member.
 

@@ -1,4 +1,4 @@
-// #331 — what the map shows by default: a mix of four buckets (Don,
+// #331 — what the map shows by default: a mix of four buckets (the PM,
 // 2026-10-05), in proportions the PM tunes in `app_settings.map_mix` without a
 // deploy. Revisit with beta data by 2026-11-15.
 

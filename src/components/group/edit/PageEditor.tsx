@@ -2,7 +2,7 @@
 
 // #302 — edit by section: each opens a sheet with only that section's fields
 // and one Save that saves and closes (Google Business Profile's Edit profile
-// sections, Airbnb's listing editor). Don, 2026-10-05: each Add opens only its
+// sections, Airbnb's listing editor). The PM, 2026-10-05: each Add opens only its
 // own fields, with pickers rather than long lists, and one primary button
 // (Save); the header's close is the way out. #412 — the PM, 2026-10-06: the
 // sheets open from the Edit Page's cards (EditCards) and the draft checklist,
@@ -187,7 +187,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
       <div className="flex flex-col gap-4">
         {section === 'kind' && (
           <div className="flex flex-col gap-4">
-            {/* Don ruled A, 2026-10-05: purpose first; the type follows it, and the owner can change it. */}
+            {/* the PM ruled A, 2026-10-05: purpose first; the type follows it, and the owner can change it. */}
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-1 text-sm font-semibold text-[var(--color-fg)]">What it&rsquo;s mainly for</legend>
               {PURPOSES.map((p) => (

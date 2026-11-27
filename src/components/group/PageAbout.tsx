@@ -1,6 +1,6 @@
 'use client'
 
-// plan #230 (Don, 10-31) — a Page's business info: a right column on a laptop, and on a phone a sheet
+// plan #230 (the PM, 10-31) — a Page's business info: a right column on a laptop, and on a phone a sheet
 // behind a quiet About in the header (Facebook Page's About). One copy of the info, shown two ways.
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'

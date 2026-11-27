@@ -46,7 +46,7 @@ describe('the declarations match the code today', () => {
 
   // The worked example, and the reason the file exists: two different links
   // between the same pair of nouns. If these ever collapse into one entry,
-  // the distinction Don ruled on has been lost.
+  // the distinction the PM ruled on has been lost.
   it('support and get-updates are two separate links between Member and Page', () => {
     const between = LINK_TYPES.filter((l) => l.from === 'Member' && l.to === 'Page')
     const support = between.find((l) => l.name.includes('supports'))

@@ -717,7 +717,7 @@ scenario and not an integration.
 
 ### 16. Push notifications
 
-**What it is.** Reaching a member who does not have the tab open: opt-in only (Don, 2026-10-18, #904).
+**What it is.** Reaching a member who does not have the tab open: opt-in only (the PM, 2026-10-18, #904).
 
 **Who provides it.** Nobody: the Web Push API with our own VAPID keys and the `web-push` library, no vendor.
 Android and desktop browsers work from the browser; iPhone only on iOS 16.4+ once SocialUs is on the Home Screen.

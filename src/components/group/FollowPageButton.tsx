@@ -2,7 +2,7 @@
 
 // F067 — the follow control on a Page.
 //
-// Privacy decides the word (Don, 2026-09-15): a private Page is joined,
+// Privacy decides the word (the PM, 2026-09-15): a private Page is joined,
 // anything else is followed. The same action serves both; only the label
 // differs, because what the person is doing genuinely differs.
 //
@@ -47,7 +47,7 @@ export function FollowPageButton({
   const idle = isPrivate || join ? 'Join' : 'Get updates'
   const done = isPrivate || join ? 'Joined' : 'Getting updates'
 
-  // #297 — signed out, nobody can follow (Don, 2026-10-04): the button says
+  // #297 — signed out, nobody can follow (the PM, 2026-10-04): the button says
   // so and opens the sign-up sheet. F134.4: the tap is kept, and back signed in it completes.
   const gate = useSignInFirst({
     action: isPrivate || join ? 'follow' : 'get-updates',

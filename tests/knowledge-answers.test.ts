@@ -43,7 +43,7 @@ describe('plain words', () => {
 
   it('marks the PM as You and everyone else as Code', () => {
     expect(whoOf('the PM')).toBe('You')
-    expect(whoOf('Don')).toBe('You')
+    expect(whoOf('the PM')).toBe('You')
     expect(whoOf('code')).toBe('Code')
     expect(whoOf(null)).toBe('Code')
   })

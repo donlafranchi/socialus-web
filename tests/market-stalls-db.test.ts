@@ -7,7 +7,7 @@ import { groupMarketStallSet, groupMarketStallSkip, groupMarketStallRemove, grou
 import { runReminders } from '@/lib/notify/push/reminder-sender'
 import { SYSTEM_MEMBER_ID } from '@/lib/system-member'
 
-// #955 (Don, 2026-10-18: "Go") — a vendor Page attaches to a market Page with a schedule; only its managers edit it;
+// #955 (the PM, 2026-10-18: "Go") — a vendor Page attaches to a market Page with a schedule; only its managers edit it;
 // "Remind me" on the vendor says when it is at the market, skipping a week cancels it, and the market's reminder lists
 // who is coming.
 

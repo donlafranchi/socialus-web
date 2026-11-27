@@ -3,7 +3,7 @@
 // #301 — L14, on the draft Page in the owner view. Publishing needs a name,
 // where it is (an address or an area) and a description; a photo is optional.
 // #1180 — Listed under is suggested, so it never holds publishing up.
-// Don, 2026-10-31 — one line under Publish, "By posting you agree to the Terms"; the four-rule step is gone.
+// The PM, 2026-10-31 — one line under Publish, "By posting you agree to the Terms"; the four-rule step is gone.
 // Copy is the design's placeholder ([public-is-draft]).
 
 import { useState } from 'react'

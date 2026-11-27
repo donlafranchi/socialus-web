@@ -1,23 +1,23 @@
-// The signed-out home at `/`. The copywriter's final copy (2026-10-31), with Don's 2026-11-01 changes, word for word;
-// layout and look follow Don's concept of the same day.
-// `TODO(Don)` marks something still pending; nothing else here changes without him.
+// The signed-out home at `/`. The copywriter's final copy (2026-10-31), with the PM's 2026-11-01 changes, word for word;
+// layout and look follow the PM's concept of the same day.
+// `TODO(the PM)` marks something still pending; nothing else here changes without him.
 
 export const HOME_TODO = {
-  // Don, 2026-10-26: Sacramento and the towns around it.
+  // The PM, 2026-10-26: Sacramento and the towns around it.
   launchMarket: 'Sacramento',
-  // Don, 2026-10-26: one sign-up path for everyone; the zip decides what comes after.
+  // The PM, 2026-10-26: one sign-up path for everyone; the zip decides what comes after.
   primaryCta: 'Join SocialUs',
 }
 
 const T = HOME_TODO
 
-// TODO(Don): Don's one-line ethos goes here (coming). Null leaves the spot empty on the landing page and the welcome screen.
+// TODO(the PM): the PM's one-line ethos goes here (coming). Null leaves the spot empty on the landing page and the welcome screen.
 export const ETHOS_LINE: string | null = null
 
-// TODO(Don): consent line under the last Join button; the copywriter's final wording and its Terms/Privacy links are pending. Null leaves it off.
+// TODO(the PM): consent line under the last Join button; the copywriter's final wording and its Terms/Privacy links are pending. Null leaves it off.
 export const CONSENT_LINE: string | null = null
 
-// Don's illustrations (2026-10-31): the town square in the hero, the main street under the three blocks, a park beside Third spaces.
+// The PM's illustrations (2026-10-31): the town square in the hero, the main street under the three blocks, a park beside Third spaces.
 export const ART = {
   hero: {
     srcSet: '/home/square-768.webp 768w, /home/square-1200.webp 1200w, /home/square-1536.webp 1536w',
@@ -99,7 +99,7 @@ export const HOME = {
     line: 'Designed to get people together in real life.',
     links: [
       { href: '/about', label: 'About' },
-      // TODO(Don): add Contact here once its destination exists (the socialus.org mailbox).
+      // TODO(the PM): add Contact here once its destination exists (the socialus.org mailbox).
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },
     ],

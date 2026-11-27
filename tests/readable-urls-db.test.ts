@@ -1,4 +1,4 @@
-// #1139 — readable addresses (Don, 2026-11-01), against a real database: the slug generator, place slugs, a Page a
+// #1139 — readable addresses (the PM, 2026-11-01), against a real database: the slug generator, place slugs, a Page a
 // member makes through the real handlers (not a seed, bug #175), the frozen pair, post slugs, and the reads the
 // routes and the /g/ forward use.
 

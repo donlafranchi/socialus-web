@@ -1,7 +1,7 @@
-// #796 (Don, 2026-10-16) — what a card is, at a glance: a megaphone for a post, a page for a Page, with the
+// #796 (the PM, 2026-10-16) — what a card is, at a glance: a megaphone for a post, a page for a Page, with the
 // word for a screen reader. A seeder sample (#556) is marked as one wherever it shows: the "Sample" label is
 // its accessible label; the diagonal watermark (like a DRAFT stamp) is decoration, hidden from assistive tech.
-// #922 (Don, 2026-10-18) — no chip or pill UI anywhere [always]: the label is small-caps text, not a pill.
+// #922 (the PM, 2026-10-18) — no chip or pill UI anywhere [always]: the label is small-caps text, not a pill.
 
 import type { ReactNode } from 'react'
 import { FileText, Megaphone } from 'lucide-react'

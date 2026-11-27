@@ -15,7 +15,7 @@ const DECISION: PastDecision = {
   reasonCode: 'not_suitable',
   reasonNote: null,
   decidedAt: new Date('2026-09-16T10:00:00Z'),
-  decidedByName: 'Don',
+  decidedByName: 'the PM',
   reversesDecisionId: null,
   alreadyReversed: false,
   decidedByAi: false,
@@ -133,7 +133,7 @@ describe('every decision is visible and reversible on the item', () => {
     const hist = screen.getByTestId('decision-history')
     expect(hist).toHaveTextContent('Removed')
     expect(hist).toHaveTextContent('Not suitable here')
-    expect(hist).toHaveTextContent('Don')
+    expect(hist).toHaveTextContent('the PM')
   })
 
   it('offers undo on a past decision — not a support request', async () => {

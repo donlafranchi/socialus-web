@@ -2,7 +2,7 @@
 
 // The prefix is shown; the member types only their handle.
 //
-// Replaces the URL field that rejected Don's Instagram account. That field
+// Replaces the URL field that rejected the PM's Instagram account. That field
 // asked for `https://instagram.com/donlafranchi` and refused `donlafranchi` —
 // which is the part a person actually knows about themselves. Nobody thinks of
 // their handle as a URL.

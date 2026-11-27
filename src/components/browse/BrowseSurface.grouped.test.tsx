@@ -1,4 +1,4 @@
-// Don (2026-11-01): searching "music" comes back sorted into labelled rows, Pages and posts never in one row,
+// The PM (2026-11-01): searching "music" comes back sorted into labelled rows, Pages and posts never in one row,
 // with a way back to one flat list.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'

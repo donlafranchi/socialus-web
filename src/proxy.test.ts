@@ -253,7 +253,7 @@ describe('proxy — the front door at /', () => {
   })
 })
 
-// #1139 (Don, 2026-11-01) — old /g/ links forward, permanently, to the readable address.
+// #1139 (the PM, 2026-11-01) — old /g/ links forward, permanently, to the readable address.
 describe('proxy — an old /g/ address forwards to the readable one', () => {
   const POST = '0b6c1e9a-4a3f-4f7e-9d6b-2c1a5e8f7d10'
   beforeEach(() => getUser.mockResolvedValue({ data: { user: null }, error: null }))

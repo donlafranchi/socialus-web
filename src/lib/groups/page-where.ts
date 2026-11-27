@@ -1,4 +1,4 @@
-// #348 — where a Page is (Don, 2026-10-04), for signed-in visitors only: the
+// #348 — where a Page is (the PM, 2026-10-04), for signed-in visitors only: the
 // columns and page_service_areas are granted to `authenticated`, so a
 // signed-out read would be refused; the loader never makes one.
 
@@ -11,7 +11,7 @@ export interface PageStop {
 }
 
 export interface PageWhere {
-  /** #896 — landmark, multi and online join the first three (Don, 2026-10-18). */
+  /** #896 — landmark, multi and online join the first three (the PM, 2026-10-18). */
   mode: 'visit' | 'landmark' | 'multi' | 'roaming' | 'travel' | 'online' | null
   howToFind: string | null
   usuallyAround: string | null

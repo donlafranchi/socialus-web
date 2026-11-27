@@ -81,7 +81,7 @@ describe('the generator in SQL and the alphabet in TypeScript', () => {
   })
 })
 
-// #1139 (Don, 2026-11-01) — the readable address replaces the id-only ruling above; the id still resolves inside.
+// #1139 (the PM, 2026-11-01) — the readable address replaces the id-only ruling above; the id still resolves inside.
 describe('a Page\'s readable address', () => {
   it('is its home town and its name: /sacramento-ca/plant-foundry', () => {
     expect(pagePath({ publicId: '81bjk0', placeUrlSlug: 'sacramento-ca', pageUrlSlug: 'plant-foundry' })).toBe('/sacramento-ca/plant-foundry')

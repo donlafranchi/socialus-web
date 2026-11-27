@@ -1,7 +1,7 @@
 // #556 — sample posts for an unclaimed Page: what a Page looks like with something happening on it, so a
-// business and a local can see the point. One sample per Page, short (Don, 2026-11-26: "one sample each",
+// business and a local can see the point. One sample per Page, short (the PM, 2026-11-26: "one sample each",
 // "not full of text"); it was an event, a deal and a last-minute opening. EVERY one opens with
-// "Sample" (Don, 2026-10-10) so nobody shows up for a deal that does not exist; the column
+// "Sample" (the PM, 2026-10-10) so nobody shows up for a deal that does not exist; the column
 // `page_posts.sample_kind` marks them for the refresh and for removal once a real post exists.
 import { createHash } from 'node:crypto'
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'
@@ -152,7 +152,7 @@ const span = (kind: SampleKind, ymd: string, hour: number, slug: string): Window
     : { startsAt: wall(ymd, pad(hour)), endsAt: wall(ymd, pad(hour + (kind === 'event' ? 3 : 4))) }
 
 /**
- * Don, 2026-10-16 (cap-1, cap-5; replaces #816 a1's 14-day spread): each Page posts on one weekday, chosen by its slug,
+ * the PM, 2026-10-16 (cap-1, cap-5; replaces #816 a1's 14-day spread): each Page posts on one weekday, chosen by its slug,
  * in weeks 1, 2 and 3 from now — a regular weekly look. The order of the kinds and the hour vary by Page; a deal runs
  * 2–3 days. Days and hours are the metro's own.
  */
@@ -161,7 +161,7 @@ export function sampleSchedule(now: Date, slug: string, pool: string): Record<Sa
   const weekday = WEEKDAYS[h % WEEKDAYS.length]!
   const ahead = ((weekday - metroWeekday(now, METRO_TIME_ZONE) + 7) % 7) || 7
   const first = shiftDays(metroDate(now, METRO_TIME_ZONE), ahead)
-  // The one sample a Page shows is its event, in week 1 (Don, 2026-11-26); the other kinds keep their weeks
+  // The one sample a Page shows is its event, in week 1 (the PM, 2026-11-26); the other kinds keep their weeks
   // only so a Page loaded before can be re-dated until the loader trims it to one.
   const order = ['event' as const, ...KINDS.filter((k) => k !== 'event').sort((a, b) => hash(`${slug}:${a}:order`) - hash(`${slug}:${b}:order`))]
   return Object.fromEntries(order.map((kind, week) => [kind, span(kind, shiftDays(first, week * 7), startHour(kind, slug, pool), slug)])) as Record<SampleKind, Window>
@@ -173,7 +173,7 @@ export function fitsSchedule(kind: SampleKind, w: Window, slug: string, pool: st
   return metroWeekday(w.startsAt, METRO_TIME_ZONE) === WEEKDAYS[hash(slug) % WEEKDAYS.length] && span(kind, ymd, startHour(kind, slug, pool), slug).startsAt.getTime() === w.startsAt.getTime()
 }
 
-/** A finished sample moves on a week, same weekday and wall time, until it is ahead again; null when it isn't finished. One sample a Page (Don, 2026-11-26), so weekly; it was three-weekly with three. */
+/** A finished sample moves on a week, same weekday and wall time, until it is ahead again; null when it isn't finished. One sample a Page (the PM, 2026-11-26), so weekly; it was three-weekly with three. */
 export function rollSample(w: Window, now: Date): Window | null {
   if (w.endsAt > now) return null
   const hm = (d: Date) => new Intl.DateTimeFormat('en-GB', { timeZone: METRO_TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d)

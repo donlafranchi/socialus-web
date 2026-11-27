@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // F067 — following a Page.
 //
-// Privacy decides which relationship is written (Don, 2026-09-15): a private
+// Privacy decides which relationship is written (the PM, 2026-09-15): a private
 // Page is joined as a member, anything else is followed. The `source` written
 // alongside is not cosmetic — `memberships_select_listed_group` returns only
 // source='explicit', so writing a follower as 'soft_via_follow' is what keeps

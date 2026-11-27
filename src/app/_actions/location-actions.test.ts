@@ -107,7 +107,7 @@ describe('a new Location records the Place it falls in', () => {
   })
 })
 
-// Don, 2026-10-04: a neighbourhood has a centre point for its pin, and an
+// The PM, 2026-10-04: a neighbourhood has a centre point for its pin, and an
 // owner who picks a neighbourhood gets that pin, not a random spot.
 describe('#348 — a neighbourhood Location pins at the neighbourhood centre', () => {
   it('writes the place centre as the point', async () => {

@@ -141,7 +141,7 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     await groupActivate(ctx(), { groupId: SECOND, tags: [TAG], rulesVersion: RULES_VERSION })
     expect(await agreements(SECOND)).toEqual([{ member_id: OWNER, rules_version: RULES_VERSION }])
 
-    // The publish step carries the one Terms line, and Publish needs no tick (Don, 2026-10-31).
+    // The publish step carries the one Terms line, and Publish needs no tick (the PM, 2026-10-31).
     render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasPhoto={false} onPublish={async () => {}} />)
     expect(screen.queryByRole('checkbox')).toBeNull()
     expect(screen.getByTestId('publish-terms')).toHaveTextContent('By posting you agree to the Terms.')
@@ -240,7 +240,7 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled())
   })
 
-  // [guards F082.9] (Don, 2026-10-31: the rules page and the four-rule step are gone; the photo rule is in the Terms.)
+  // [guards F082.9] (the PM, 2026-10-31: the rules page and the four-rule step are gone; the photo rule is in the Terms.)
   it('the photo rule is in the Terms', () => {
     expect(TEXT_PAGES.terms.body.join(' ')).toMatch(/No photos of kids/)
   })

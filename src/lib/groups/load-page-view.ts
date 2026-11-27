@@ -46,7 +46,7 @@ export interface PageView {
    *  Zero for anyone else and for a live Page. */
   draftTagCount: number
   /** #302 — for the owner's in-place editor: who's editing, and whether
-   *  hours and phone are on (Don, 2026-10-04). */
+   *  hours and phone are on (the PM, 2026-10-04). */
   viewerMemberId: string | null
   contactOn: boolean
   /** #363 — Products & services: on for a business, added by any other Page. */
