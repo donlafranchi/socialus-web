@@ -499,6 +499,8 @@ export async function syncVenueShows(db: Db, groupId: string, venue: string, sou
     await db.query(`delete from public.page_posts where id = any($1::uuid[])`, [gone.map((g) => g.id)])
     tally.removed = gone.length
   }
+  // #1536 — the Page says when its shows were last read, changed or not.
+  await db.query('update public.groups set shows_read_at = $2 where id = $1', [groupId, now])
   return tally
 }
 

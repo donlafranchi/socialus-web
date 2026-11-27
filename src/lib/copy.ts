@@ -47,6 +47,14 @@ export const COPY = {
   happeningThisWeekend: 'this weekend',
   // #353 — real businesses added from public info (Don, 2026-10-04). Placeholders ([public-is-draft]).
   unclaimedLabel: 'Unclaimed: added from public info',
+  // #1536 (the PM, 2026-11-27: "every venue page, that wording"). Day and month in Sacramento's time; the year only when not this one.
+  showsLastUpdated: (name: string, at: Date, now = new Date()) => {
+    const tz = 'America/Los_Angeles'
+    const year = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric' }).format(d)
+    const day = new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'short', ...(year(at) === year(now) ? {} : { year: 'numeric' }) }).format(at)
+    const owner = /['’]s$/i.test(name) ? name : /s$/i.test(name) ? `${name}'` : `${name}'s`
+    return `Shows last updated ${day}, from ${owner} own site`
+  },
   unclaimedDescriptionCredit: 'From their website',
   unclaimedBoxTitle: 'Is this your business?',
   unclaimedBoxBody: 'We added this Page from public information so neighbors can find you. Claim it to tell your own story, or ask us to take it down.',

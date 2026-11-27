@@ -82,6 +82,17 @@ describe.skipIf(!RUNNABLE)('A venue Page\'s imported shows', () => {
     expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, shows, null, now)).toEqual({ added: 0, updated: 0, removed: 0, kept: 1 })
   })
 
+  // #1536 — the Page says when its shows were last read, even on a morning nothing changed.
+  it('records when the shows were last read, on every read', async () => {
+    const readAt = async () => (await q('select shows_read_at from public.groups where id = $1', [PAGE])).rows[0]!.shows_read_at as Date | null
+    const shows = [show('Modest Mouse', '2026-10-23T20:00:00')]
+    await syncVenueShows(client, PAGE, 'M997 Venue', SRC, shows, null, now)
+    expect((await readAt())!.toISOString()).toBe(now.toISOString())
+    const later = new Date(now.getTime() + 86400_000)
+    await syncVenueShows(client, PAGE, 'M997 Venue', SRC, shows, null, later)
+    expect((await readAt())!.toISOString()).toBe(later.toISOString())
+  })
+
   it('a game gets arena stock and sports tags, a concert the venue\'s own picture, and a re-run keeps both (#1045)', async () => {
     const photoFor = async (_s: VenueShow, _k: string, type: string) => (type === 'sports' ? { url: 'https://media.test/arena.webp', credit: 'Unsplash (stock photo, not this business)' } : { url: 'https://media.test/promo.webp', credit: 'M997 Venue (from their website)' })
     const shows = [show('Grizzlies vs Kings', '2026-10-25T18:00:00'), show('Karan Aujla', '2026-10-26T20:00:00')]

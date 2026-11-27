@@ -90,6 +90,8 @@ export interface ShopUnclaimed {
   /** e.g. "Corner Bakery (from their website)". */
   photoCredit: string | null
   photoSourceUrl: string | null
+  /** #1536 — when the daily venue import last read its shows; null for a Page with none imported. */
+  showsReadAt?: string | null
 }
 
 /** #909 — a Page's featured products and services. */
@@ -160,6 +162,7 @@ interface ShopRow {
   words_removed_at?: string | null
   discoverability: string
   unclaimed_at: string | null
+  shows_read_at: string | null
   public_info_url: string | null
   photo_credit: string | null
   photo_source_url: string | null
@@ -214,7 +217,7 @@ export async function resolveShop(
     .select(
       'id, slug, public_id, place_url_slug, page_url_slug, kind, purpose, name, description, lifecycle_state, category, ' +
         'photo_url, picture_url, picture_hidden_at, picture_removed_at, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
-        'unclaimed_at, public_info_url, photo_credit, photo_source_url, words_hidden_at, words_removed_at, ' +
+        'unclaimed_at, shows_read_at, public_info_url, photo_credit, photo_source_url, words_hidden_at, words_removed_at, ' +
         'group_businesses(display_name, public_description)',
     )
   if (opts.by === 'address') {
@@ -301,7 +304,7 @@ export async function resolveShop(
     discoverability: row.discoverability,
     placements,
     unclaimed: row.unclaimed_at
-      ? { publicInfoUrl: row.public_info_url, photoCredit: row.photo_credit, photoSourceUrl: row.photo_source_url }
+      ? { publicInfoUrl: row.public_info_url, photoCredit: row.photo_credit, photoSourceUrl: row.photo_source_url, showsReadAt: row.shows_read_at }
       : null,
     // An unclaimed Page's founder is the system member, not a person to show.
     founder: founderRow && !row.unclaimed_at
