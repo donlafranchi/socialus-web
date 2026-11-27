@@ -7,13 +7,13 @@
 | | Criteria | Built | Checked | Reviewed | Shipped | Smoked | PM looked | Launch blockers |
 |---|---|---|---|---|---|---|---|---|
 | builders-seed | 6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0 |
-| create-posts | 59 | 44/59 | 26/59 | 16/59 | 41/59 (3?) | 3/59 (41?) | 0/59 | 2 |
-| explore-map | 115 | 71/115 | 40/115 | 33/115 | 60/115 (11?) | 39/115 (32?) | 0/115 | 2 |
+| create-posts | 60 | 44/60 | 26/60 | 16/60 | 42/60 (2?) | 3/60 (40?) | 0/60 | 2 |
+| explore-map | 124 | 71/124 | 40/124 | 33/124 | 60/124 (11?) | 39/124 (32?) | 0/124 | 2 |
 | moderation | 75 | 62/75 | 62/75 | 6/75 | 47/75 (15?) | 6/75 (55?) | 0/75 | 13 |
 | ops | 97 | 78/97 | 61/97 | 74/97 | 78/97 | 0/97 (78?) | 0/97 | 0 |
 | page-editing | 21 | 11/21 | 3/21 | 4/21 | 10/21 (1?) | 0/21 (11?) | 0/21 | 0 |
 | sign-in-you | 50 | 26/50 | 14/50 | 3/50 | 23/50 (3?) | 6/50 (19?) | 0/50 | 14 |
-| **All** | 423 | 292/423 | 206/423 | 136/423 | 259/423 (33?) | 54/423 (236?) | 0/423 | 31 |
+| **All** | 433 | 292/433 | 206/433 | 136/433 | 260/433 (32?) | 54/433 (235?) | 0/433 | 31 |
 
 ## By feature
 
@@ -23,8 +23,8 @@
 | create-posts | [F060 someone starts something without opening a shop](create-posts/F060-start-without-opening-a-shop.md) | none | 5 | 4/5 | 0/5 | 0/5 | 4/5 | 0/5 (4?) | 0/5 | 0 |
 | create-posts | [F061 creating a Page asks one question, its kind](create-posts/F061-create-asks-one-question.md) | none | 3 | 3/3 | 0/3 | 0/3 | 2/3 (1?) | 0/3 (3?) | 0/3 | 0 |
 | create-posts | [F064 someone asks for something that isn't built](create-posts/F064-asks-for-what-isnt-built.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
-| create-posts | [F072 a Page owner announces something, with a time on it](create-posts/F072-announce-with-a-time.md) | none | 6 | 5/6 | 0/6 | 0/6 | 3/6 (2?) | 0/6 (5?) | 0/6 | 0 |
-| create-posts | [F074 a series repeats](create-posts/F074-a-series-repeats.md) | none | 8 | 1/8 | 1/8 | 0/8 | 1/8 | 0/8 (1?) | 0/8 | 0 |
+| create-posts | [F072 a Page owner announces something, with a time on it](create-posts/F072-announce-with-a-time.md) | none | 6 | 5/6 | 0/6 | 0/6 | 4/6 (1?) | 0/6 (4?) | 0/6 | 0 |
+| create-posts | [F074 a series repeats](create-posts/F074-a-series-repeats.md) | none | 9 | 1/9 | 1/9 | 0/9 | 1/9 | 0/9 (1?) | 0/9 | 0 |
 | create-posts | [F082 the rules a member agrees to before publishing a Page](create-posts/F082-rules-before-publish.md) | launch | 10 | 9/10 | 6/10 | 4/10 | 9/10 | 0/10 (9?) | 0/10 | 2 |
 | create-posts | [F099 every post shows a picture, and every Page can have a Page picture](create-posts/F099-every-post-shows-a-picture.md) | none | 13 | 13/13 | 10/13 | 12/13 | 13/13 | 3/13 (10?) | 0/13 | 0 |
 | create-posts | [F117 a member posts a Proposal; others say they're in or offer to help](create-posts/F117-a-wonder-asks-who-is-in.md) | none | 9 | 9/9 | 9/9 | 0/9 | 9/9 | 0/9 (9?) | 0/9 | 0 |
@@ -40,6 +40,7 @@
 | explore-map | [F093 a signed-out visitor sees that something is happening, and is asked in to read it](explore-map/F093-signed-out-sees-something-is-happening.md) (retired, not counted) | launch | 0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0/0 | 0 |
 | explore-map | [F104 Explore shows the whole market, ordered hood, town, market, online, with towns by adjacency](explore-map/F104-explore-ordered-by-towns.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
 | explore-map | [F105 A member looks from a typed place, and home stays the default](explore-map/F105-look-from-a-typed-place.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
+| explore-map | [F113 get specific: a thumbs up teaches SocialUs a member's taste](explore-map/F113-thumbs-up-teaches-taste.md) | none | 9 | 0/9 | 0/9 | 0/9 | 0/9 | 0/9 | 0/9 | 0 |
 | explore-map | [F118 Open your town: neighbours bring in the makers they love until their market opens](explore-map/F118-neighbours-open-their-town.md) | none | 12 | 3/12 | 0/12 | 3/12 | 3/12 | 0/12 (3?) | 0/12 | 0 |
 | explore-map | [F119 A member asks a question, and the app opens the page that answers it](explore-map/F119-ask-bar-opens-the-page.md) | none | 9 | 0/9 | 0/9 | 0/9 | 0/9 | 0/9 | 0/9 | 0 |
 | explore-map | [F121 shelves are data, and we try several to learn which ones help](explore-map/F121-shelves-are-data.md) | none | 18 | 14/18 | 12/18 | 14/18 | 14/18 | 9/18 (5?) | 0/18 | 0 |
@@ -76,11 +77,11 @@
 | Gap | Count | Criteria | Next skill |
 |---|---|---|---|
 | SPEC-CONFLICT | 10 | F060.4, F082.2b, F091.1b, F102.7, F056.1b, F056.3, F030.2, F057.4b, F065.2b, F077.4 | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
-| NOT-BUILT | 123 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.6a, F059.7, F063.1, F063.2, F063.3, F063.4, F076.10b, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3a, F105.4, … (83 more) | `write-tickets` then `build-ticket` |
+| NOT-BUILT | 133 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F074.9, F059.2, F059.4a, F059.6a, F059.7, F063.1, F063.2, F063.3, F063.4, F076.10b, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3a, … (93 more) | `write-tickets` then `build-ticket` |
 | INVARIANT-UNPROVEN | 23 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F082.5, F059.2c, F059.3, F059.4b, F070.2, F076.15, F092.1a, F118.11, F125.2, F125.8, F056.7a, F030.1b, F057.1, F065.2a, F077.3 | `write-tickets` (guard) then `build-ticket` |
 | NO-CHECK | 61 | F061.1, F061.2, F072.3, F082.2a, F082.7, F099.2, F099.9, F099.11, F059.1, F059.2b, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F076.3, F076.7, F076.8, F091.1a, F091.5, F091.7, F118.8, F118.9, F121.1a, F121.3b, F134.2, F134.8, F134.9, F134.10, F125.1, F125.14, F126.8, F128.1, F128.3, F128.4, F128.6, F128.7, F128.9, … (21 more) | `write-tickets` (check) then `build-ticket`, tests seen failing |
 | NOT-REVIEWED | 155 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.5, F082.7, F082.9, F099.8, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, F070.4, F070.5b, … (115 more) | `review-pr-bundle` |
-| NOT-SHIPPED | 33 | F061.3, F072.1a, F072.2a, F059.10, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10a, F076.11, F076.12, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F102.18, F069.3, F057.5, F065.1, F065.4 | CI: `deploy-health` green on the merge commit |
+| NOT-SHIPPED | 32 | F061.3, F072.1a, F059.10, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10a, F076.11, F076.12, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F102.18, F069.3, F057.5, F065.1, F065.4 | CI: `deploy-health` green on the merge commit |
 | NOT-SMOKED | 236 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.10, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, … (196 more) | CI: a `smoke-live` run that covers the route |
 | NOT-LOOKED | 290 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (250 more) | `record-pm-review` (UAT Issue), after the rows above |
 
@@ -93,6 +94,7 @@
 - F046: scenario retired; shown, not counted
 - F063: area 'explore-map' is a guess; no Issue carries an area: label
 - F093: scenario retired; shown, not counted
+- F113: area 'explore-map' is a guess; no Issue carries an area: label
 - F118: area 'explore-map' is a guess; no Issue carries an area: label
 - F127: area 'ops' is a guess; no Issue carries an area: label
 - F128: area 'ops' is a guess; no Issue carries an area: label
@@ -103,7 +105,7 @@
 - F030: area 'sign-in-you' is a guess; no Issue carries an area: label
 - F060: unknown cells: Smoked 4
 - F061: unknown cells: Shipped 1, Smoked 3
-- F072: unknown cells: Shipped 2, Smoked 5
+- F072: unknown cells: Shipped 1, Smoked 4
 - F074: unknown cells: Smoked 1
 - F082: unknown cells: Smoked 9
 - F099: unknown cells: Smoked 10
