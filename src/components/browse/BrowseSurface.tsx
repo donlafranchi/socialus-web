@@ -53,7 +53,8 @@ import {
 } from '@/lib/browse/filters'
 import { leadKey } from '@/lib/browse/lead'
 import { parseReach, type Reach } from '@/lib/browse/reach'
-import { browseFeedAction, browseMapAction, markLeadSeenAction, searchAreasAction } from '@/app/explore/actions'
+import { browseFeedAction, browseMapAction, markLeadSeenAction, searchAreasAction, setVisitorZipAction, forgetVisitorZipAction } from '@/app/explore/actions'
+import { ZipAsk } from '@/components/explore/ZipAsk'
 import { logSearchAction } from '@/app/_actions/search-demand-actions'
 import { useSearchDemand } from './useSearchDemand'
 import type { BrowseSnapshot } from '@/lib/browse/snapshot'
@@ -143,6 +144,31 @@ export function BrowseSurface({
     [metroSlugNow],
   )
   const searchAreas = useCallback((query: string) => searchAreasAction(query), [])
+
+  // F081 (the PM, 2026-11-25) — a visitor names their area by zip; it is kept on this device until they forget it.
+  const submitZip = useCallback(async (zip: string): Promise<string | null> => {
+    const request = ++requestRef.current
+    try {
+      const r = await setVisitorZipAction(zip)
+      if (!r.ok) return r.message
+      if (requestRef.current === request) setSnapshot(r.snapshot)
+      return null
+    } catch {
+      return 'That didn’t go through. Mind trying again?'
+    }
+  }, [])
+  const forgetZip = useCallback(() => {
+    const request = ++requestRef.current
+    startTransition(async () => {
+      try {
+        const next = await forgetVisitorZipAction()
+        if (requestRef.current === request) setSnapshot(next)
+      } catch {
+        /* the zip line stays; nothing was forgotten */
+      }
+    })
+  }, [])
+  const zipAsk = (label: string) => (!snapshot.signedIn ? <ZipAsk label={label} onSubmit={submitZip} /> : null)
 
   const metroSlug = snapshot.chosen ? (snapshot.metro?.slug ?? null) : null
 
@@ -382,6 +408,7 @@ export function BrowseSurface({
                   </li>
                 ))}
               </ul>
+              <div className="mt-3 flex justify-center">{zipAsk('Or your zip:')}</div>
             </div>
           ) : (
             <div className="card p-6 text-center" data-testid={snapshot.prompt?.kind === 'far' ? 'feed-not-near' : 'feed-no-place'}>
@@ -398,6 +425,7 @@ export function BrowseSurface({
               >
                 Choose your area
               </button>
+              <div className="mt-3 flex justify-center">{zipAsk('Or your zip:')}</div>
             </div>
           )}
         </div>
@@ -422,8 +450,29 @@ export function BrowseSurface({
       {/* F121 — the shelves, under the first look; a search or a filter is answered by the list instead. */}
       {!postsOnlyView && !filtered && !rest.trim() && !focus && shelvesFitScope(initial, snapshot) && shelves}
 
+      {/* F081 (the PM, 2026-11-25) — the zip this visitor gave, shown back to them alone, with the one-tap opt-out. Draft copy. */}
+      {!snapshot.signedIn && snapshot.visitorZip && (
+        <p className="px-3 pt-3 text-sm text-neutral-600 md:px-6" data-testid="browse-zip">
+          Showing {metroName}, from your zip {snapshot.visitorZip}.{' '}
+          <button
+            type="button"
+            onClick={forgetZip}
+            className="press inline-flex min-h-tap items-center font-medium text-[var(--color-charcoal-900)] underline underline-offset-4"
+          >
+            Forget my zip
+          </button>
+        </p>
+      )}
+
+      {/* F081 — nothing to go on: the one open market is shown, and they are asked their zip. Draft copy. */}
+      {!snapshot.signedIn && !snapshot.visitorZip && !snapshot.chosen && !snapshot.admitted && (
+        <div className="px-3 pt-3 md:px-6" data-testid="browse-zip-ask">
+          {zipAsk(`Not near ${metroName}? Your zip:`)}
+        </div>
+      )}
+
       {/* F081 (the PM, 2026-11-25) — admitted to the open market near them, nobody picked it: say so, and how to change it. Draft copy. */}
-      {snapshot.admitted && !snapshot.chosen && (
+      {!snapshot.visitorZip && snapshot.admitted && !snapshot.chosen && (
         <p className="px-3 pt-3 text-sm text-neutral-600 md:px-6" data-testid="browse-admitted">
           Showing {metroName}, near you.{' '}
           <button

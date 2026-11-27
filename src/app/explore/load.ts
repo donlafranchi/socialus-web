@@ -42,6 +42,7 @@ import { createClient } from '@/lib/supabase-server'
 import { cachedMetros } from '@/lib/feed/metro-catalog'
 import { viewerId } from '@/lib/auth/viewer'
 import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
+import { ZIP_COOKIE, readZipCookie } from '@/lib/browse/visitor-zip'
 import { getBrowseFeed, getHappening, getNearbyFeed } from '@/lib/feed/browse-feed'
 import { REACH_CAP, REACH_TARGET, type Reach } from '@/lib/browse/reach'
 import { happeningWindows } from '@/lib/metro/happening'
@@ -108,6 +109,8 @@ export async function loadBrowse(
   // then this, then the default.
   const member = userId ? await memberMetros(supabase, userId) : null
   const rememberedSlug = userId ? null : await rememberedMetroSlug()
+  // F081 — the zip a visitor gave on this device, and the market it set.
+  const givenZip = userId ? null : await rememberedZip()
   // #978 — the metros are public and cached; the scope is picked from them, not read again.
   const catalog = await metrosPromise
   const scopeOpts = {
@@ -126,9 +129,11 @@ export async function loadBrowse(
   // popup can show one — the same figure in both places, which is the whole
   // point. A failure costs the ordering and the number, never the picker.
   const metros = withWaitingCounts(catalog, await waitingPromise)
+  // Named only while the zip's own market is the one shown: a later area pick replaces it, never contradicts it.
+  const visitorZip = givenZip && scope?.metro.slug === givenZip.slug ? givenZip.zip : null
 
   const myInterests = await myInterestsPromise
-  const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'], myInterests }
+  const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'], myInterests, ...(visitorZip ? { visitorZip } : {}) }
   if (!scope) {
     return { ...base, results: [], following: [], metro: null, chosen: false, failed: false, prompt: scopePrompt(admission) }
   }
@@ -446,3 +451,12 @@ async function admissionFor(supabase: Awaited<ReturnType<typeof createClient>>, 
 }
 
 const admittedOf = (scope: { admitted?: true }) => (scope.admitted ? { admitted: true as const } : {})
+
+/** F081 — the zip a visitor gave on this device and the market it set, or null. */
+async function rememberedZip(): Promise<{ zip: string; slug: string } | null> {
+  try {
+    return readZipCookie((await cookies()).get(ZIP_COOKIE)?.value)
+  } catch {
+    return null
+  }
+}

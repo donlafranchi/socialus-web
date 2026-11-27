@@ -40,6 +40,8 @@ export interface BrowseSnapshot {
   chosen: boolean
   /** F081 (2026-11-25) — nobody picked it: it is the open market within an hour of where they are. */
   admitted?: true
+  /** F081 — the zip this visitor gave on this device; theirs alone, absent for a member. */
+  visitorZip?: string
   /** F081 — with no metro: choose between the open markets near them, or none is near (the waitlist). */
   prompt?: ScopePrompt | null
   metros: FeedMetro[]
