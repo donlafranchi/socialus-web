@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { instant, isAggregator, parseIcal, parseJsonLd, parseTribe, showBody, showKey, upcoming } from './venue-events'
+import { readPlanned } from '../../../scripts/unclaimed/rows'
+import { readable, instant, isAggregator, parseIcal, parseJsonLd, parseTribe, showBody, showKey, upcoming } from './venue-events'
 
 const now = new Date('2026-10-22T15:00:00Z')
 
@@ -113,5 +114,21 @@ describe('showBody', () => {
   it('credits the picture when it has one', () => {
     expect(showBody('Hall', s, 'https://h.test/e', 'Hall (from their website)')).toMatch(/\n\nPhoto: Hall \(from their website\)$/)
     expect(showBody('Hall', s, 'https://h.test/e')).not.toMatch(/Photo:/)
+  })
+})
+
+describe('stopped venues (#1485)', () => {
+  it('a venue whose reading was stopped is not read', () => {
+    expect(readable({ events: { url: 'https://v.test/', format: 'jsonld' } })).toBe(true)
+    expect(readable({ events: { url: 'https://v.test/', format: 'jsonld', stopped: { on: '2026-11-27', why: 'checkpoint' } } })).toBe(false)
+    expect(readable({})).toBe(false)
+  })
+  it('every stopped venue says when and why', () => {
+    const stopped = readPlanned().listed.filter((p) => p.events?.stopped)
+    expect(stopped.map((p) => p.name)).toContain('Ace of Spades')
+    for (const p of stopped) {
+      expect(p.events!.stopped!.on, p.name).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(p.events!.stopped!.why.length, p.name).toBeGreaterThan(40)
+    }
   })
 })
