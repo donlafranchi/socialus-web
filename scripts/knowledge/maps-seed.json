@@ -451,6 +451,7 @@
     }
   ],
   "features": {
+    "F030": "JY-LAUNCH.A5.T1",
     "F044": "JY-WEEKEND.A1.T1.D2",
     "F045": "JY-WEEKEND.A1.T1.D3",
     "F048": "JY-WEEKEND.A4.T1.D1",
@@ -513,7 +514,8 @@
     "F133": null,
     "F134": "JY-WEEKEND.A1.T1",
     "F135": null,
-    "F136": "JY-BRING.A1.T1"
+    "F136": "JY-BRING.A1.T1",
+    "F137": null
   },
   "ideas": {
     "CO-0003": {
