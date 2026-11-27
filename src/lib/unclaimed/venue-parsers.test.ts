@@ -143,17 +143,6 @@ describe('Fox & Goose (a line in the monthly post)', () => {
   })
 })
 
-describe('The Center for the Arts', () => {
-  it('reads month, day, weekday and time, and leaves out the ad card with no date', () => {
-    const shows = run('centerforthearts-jet', 'center-for-the-arts-events', 'https://thecenterforthearts.org/events/')
-    expect(shows).toHaveLength(24)
-    const p = find(shows, 'Paul Thorn', '2026-10-28')
-    expect(iso(p.startsAt)).toBe('2026-10-28T02:00:00.000Z')
-    expect(p.ticketUrl).toMatch(/salesforce-sites\.com/)
-    expect(shows.at(-1)!.startsAt.toISOString().startsWith('2027-01-31')).toBe(true)
-  })
-})
-
 describe('Harris Center', () => {
   it('reads the timed shows, not the multi-day runs', () => {
     const shows = run('harris-center', 'harris-center-events', 'https://www.harriscenter.net/events?pageSize=30&page=1&showAll=1')
@@ -192,5 +181,23 @@ describe('parseShows with follow pages', () => {
     const src = { url: 'https://foxandgoose.com/events/', format: 'html' as const, parser: 'foxandgoose-monthly' }
     const shows = parseShows(src, page('foxandgoose-events'), NOW, { 'https://foxandgoose.com/events/october-events/': page('foxandgoose-october') })
     expect(shows.length).toBe(15)
+  })
+})
+
+describe('The Center for the Arts (its own box-office feed, #1442)', () => {
+  const base = 'https://thecentergv.org/data/spektrix.json'
+  const feed = readFileSync(join(__dirname, 'fixtures', 'centergv-spektrix.json'), 'utf8')
+  it('reads every performance at its UTC start, with the site\'s own booking link', () => {
+    const shows = parseShows({ url: base, format: 'spektrix' }, feed, NOW)
+    expect(shows).toHaveLength(6)
+    const c = shows.filter((s) => s.title === 'Clara & the Nutcracker')
+    expect(c.map((s) => iso(s.startsAt))).toEqual(['2026-12-05T03:00:00.000Z', '2026-12-05T21:00:00.000Z', '2026-12-06T03:00:00.000Z', '2026-12-06T21:00:00.000Z'])
+    expect(c[0]!.ticketUrl).toBe('https://thecentergv.org/book/1688')
+    expect(c[0]!.cancelled).toBe(false)
+  })
+  it('marks a cancelled performance cancelled and skips one with no start', () => {
+    const one = JSON.stringify({ events: { 1: { name: 'A &amp; B', performances: [{ id: 9, startUtc: '2026-12-01T03:00:00Z', cancelled: true }, { id: 10 }] } } })
+    const shows = parseShows({ url: base, format: 'spektrix' }, one, NOW)
+    expect(shows).toEqual([expect.objectContaining({ title: 'A & B', cancelled: true, ticketUrl: 'https://thecentergv.org/book/9' })])
   })
 })
