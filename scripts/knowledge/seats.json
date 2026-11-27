@@ -56,6 +56,7 @@
     "practice.meta-change-needs-pm-approved": "product manager",
     "practice.migrations-manual-in-order": "release owner",
     "practice.model-md-is-authority": "product manager",
+    "practice.pm-model-md-is-authority": "product manager",
     "practice.new-territory-goes-as-abc": "product manager",
     "practice.no-hand-maintained-indexes": "tech lead",
     "practice.no-new-paid-tools": "product manager",
