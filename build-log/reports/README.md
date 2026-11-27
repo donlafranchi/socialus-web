@@ -12,8 +12,8 @@
 | moderation | 75 | 62/75 | 62/75 | 6/75 | 47/75 (15?) | 6/75 (55?) | 0/75 | 13 |
 | ops | 97 | 78/97 | 61/97 | 74/97 | 78/97 | 0/97 (78?) | 0/97 | 0 |
 | page-editing | 21 | 11/21 | 3/21 | 4/21 | 10/21 (1?) | 0/21 (11?) | 0/21 | 0 |
-| sign-in-you | 42 | 22/42 | 13/42 | 2/42 | 19/42 (3?) | 5/42 (17?) | 0/42 | 14 |
-| **All** | 415 | 288/415 | 205/415 | 135/415 | 255/415 (33?) | 53/415 (234?) | 0/415 | 31 |
+| sign-in-you | 50 | 26/50 | 14/50 | 3/50 | 23/50 (3?) | 6/50 (19?) | 0/50 | 14 |
+| **All** | 423 | 292/423 | 206/423 | 136/423 | 259/423 (33?) | 54/423 (236?) | 0/423 | 31 |
 
 ## By feature
 
@@ -64,24 +64,25 @@
 | page-editing | [F056 A producer edits a shop that already exists](page-editing/F056-owner-edits-shop.md) | none | 11 | 7/11 | 2/11 | 2/11 | 7/11 | 0/11 (7?) | 0/11 | 0 |
 | page-editing | [F069 A non-business Page resolves everywhere, and holding several is ordinary](page-editing/F069-non-business-pages-resolve-everywhere.md) | none | 4 | 3/4 | 1/4 | 1/4 | 2/4 (1?) | 0/4 (3?) | 0/4 | 0 |
 | page-editing | [F106 A Page says where its give-back goes, and the local badge is the receipt](page-editing/F106-page-says-where-giveback-goes.md) | none | 6 | 1/6 | 0/6 | 1/6 | 1/6 | 0/6 (1?) | 0/6 | 0 |
+| sign-in-you | [F030 a newcomer signs up, finishes onboarding and lands in the app](sign-in-you/F030-newcomer-signs-up-and-lands.md) | none | 8 | 4/8 | 1/8 | 1/8 | 4/8 | 2/8 (2?) | 0/8 | 0 |
 | sign-in-you | [F057 someone who isn't selling yet finds the way in](sign-in-you/F057-you-shows-the-way-in.md) | none | 6 | 3/6 | 1/6 | 1/6 | 2/6 (1?) | 2/6 (1?) | 0/6 | 0 |
 | sign-in-you | [F065 someone follows a person, Page or venue, and nothing else changes](sign-in-you/F065-someone-follows-something.md) | none | 6 | 5/6 | 1/6 | 0/6 | 3/6 (2?) | 0/6 (5?) | 0/6 | 0 |
 | sign-in-you | [F077 members see a display name; the legal name stays with the platform](sign-in-you/F077-display-name-public-legal-name-private.md) | none | 4 | 2/4 | 1/4 | 0/4 | 2/4 | 2/4 | 0/4 | 0 |
 | sign-in-you | [F081 everyone signs up the same way, and the zip sets the market](sign-in-you/F081-one-signup-zip-sets-metro.md) | launch | 19 | 7/19 | 5/19 | 1/19 | 7/19 | 0/19 (7?) | 0/19 | 12 |
-| sign-in-you | [F103 a market is a set of towns, and the zip decides which one a person is in](sign-in-you/F103-the-zip-decides-the-market.md) | launch | 7 | 5/7 | 5/7 | 0/7 | 5/7 | 1/7 (4?) | 0/7 | 2 |
+| sign-in-you | [F103 a market is a set of towns, and the zip decides which one a person is in](sign-in-you/F103-the-zip-decides-the-market.md) | launch | 7 | 5/7 | 5/7 | 0/7 | 5/7 | 0/7 (4?) | 0/7 | 2 |
 
 ## Gaps by type
 
 | Gap | Count | Criteria | Next skill |
 |---|---|---|---|
-| SPEC-CONFLICT | 9 | F060.4, F082.2b, F091.1b, F102.7, F056.1b, F056.3, F057.4b, F065.2b, F077.4 | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
-| NOT-BUILT | 120 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.6a, F059.7, F063.1, F063.2, F063.3, F063.4, F076.10b, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3a, F105.4, … (80 more) | `write-tickets` then `build-ticket` |
-| INVARIANT-UNPROVEN | 22 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F082.5, F059.2c, F059.3, F059.4b, F070.2, F076.15, F092.1a, F118.11, F125.2, F125.8, F056.7a, F057.1, F065.2a, F077.3 | `write-tickets` (guard) then `build-ticket` |
-| NO-CHECK | 59 | F061.1, F061.2, F072.3, F082.2a, F082.7, F099.2, F099.9, F099.11, F059.1, F059.2b, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F076.3, F076.7, F076.8, F091.1a, F091.5, F091.7, F118.8, F118.9, F121.1a, F121.3b, F134.2, F134.8, F134.9, F134.10, F125.1, F125.14, F126.8, F128.1, F128.3, F128.4, F128.6, F128.7, F128.9, … (19 more) | `write-tickets` (check) then `build-ticket`, tests seen failing |
-| NOT-REVIEWED | 152 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.5, F082.7, F082.9, F099.8, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, F070.4, F070.5b, … (112 more) | `review-pr-bundle` |
+| SPEC-CONFLICT | 10 | F060.4, F082.2b, F091.1b, F102.7, F056.1b, F056.3, F030.2, F057.4b, F065.2b, F077.4 | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
+| NOT-BUILT | 123 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.6a, F059.7, F063.1, F063.2, F063.3, F063.4, F076.10b, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3a, F105.4, … (83 more) | `write-tickets` then `build-ticket` |
+| INVARIANT-UNPROVEN | 23 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F082.5, F059.2c, F059.3, F059.4b, F070.2, F076.15, F092.1a, F118.11, F125.2, F125.8, F056.7a, F030.1b, F057.1, F065.2a, F077.3 | `write-tickets` (guard) then `build-ticket` |
+| NO-CHECK | 61 | F061.1, F061.2, F072.3, F082.2a, F082.7, F099.2, F099.9, F099.11, F059.1, F059.2b, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F076.3, F076.7, F076.8, F091.1a, F091.5, F091.7, F118.8, F118.9, F121.1a, F121.3b, F134.2, F134.8, F134.9, F134.10, F125.1, F125.14, F126.8, F128.1, F128.3, F128.4, F128.6, F128.7, F128.9, … (21 more) | `write-tickets` (check) then `build-ticket`, tests seen failing |
+| NOT-REVIEWED | 155 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.5, F082.7, F082.9, F099.8, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, F070.4, F070.5b, … (115 more) | `review-pr-bundle` |
 | NOT-SHIPPED | 33 | F061.3, F072.1a, F072.2a, F059.10, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10a, F076.11, F076.12, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F102.18, F069.3, F057.5, F065.1, F065.4 | CI: `deploy-health` green on the merge commit |
-| NOT-SMOKED | 233 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.10, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, … (193 more) | CI: a `smoke-live` run that covers the route |
-| NOT-LOOKED | 286 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (246 more) | `record-pm-review` (UAT Issue), after the rows above |
+| NOT-SMOKED | 236 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.10, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7a, F117.8, F117.9, … (196 more) | CI: a `smoke-live` run that covers the route |
+| NOT-LOOKED | 290 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (250 more) | `record-pm-review` (UAT Issue), after the rows above |
 
 ## Data problems
 
@@ -99,6 +100,7 @@
 - F130: area 'ops' is a guess; no Issue carries an area: label
 - F131: area 'ops' is a guess; no Issue carries an area: label
 - F132: area 'ops' is a guess; no Issue carries an area: label
+- F030: area 'sign-in-you' is a guess; no Issue carries an area: label
 - F060: unknown cells: Smoked 4
 - F061: unknown cells: Shipped 1, Smoked 3
 - F072: unknown cells: Shipped 2, Smoked 5
@@ -132,6 +134,7 @@
 - F056: unknown cells: Smoked 7
 - F069: unknown cells: Shipped 1, Smoked 3
 - F106: unknown cells: Smoked 1
+- F030: unknown cells: Smoked 2
 - F057: unknown cells: Shipped 1, Smoked 1
 - F065: unknown cells: Shipped 2, Smoked 5
 - F081: unknown cells: Smoked 7
