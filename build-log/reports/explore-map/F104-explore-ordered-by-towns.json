@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
    "issues": [
     696
    ],
-   "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`); search covers 'the whole market' in #924's words but reads the metro scope [V]. No market scope on any surface (rechecked 2026-11-06; #1038 only removed the word metro from copy) [V]. #932's rings start from the member's home town (`explore_vantage`), inside the metro. Open #696, deferred to the fortnight after beta. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
+   "note": "Not built: scope is still a metro (`?metro=`, cookie, member default, else `DEFAULT_METRO_SLUG`), picked in `src/lib/browse/scope.ts`; #1484 adds an IP-guessed open market for a signed-out visitor with none, still a metro, not the vantage's market [V]. Rechecked 2026-11-27 [V grep, git log since 11-20]: no adjacency table, no `ST_Touches` in src or migrations, no market scope or bands; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` (Sacramento) unchanged in `src/lib/feed/feed-metro.ts`. #1484 (11-26) admits a signed-out visitor to an open market by IP within 45 miles, which is market admission (F081), not F104 scope or order. Search rings (#1425, open, change) widen one search hood, town, area, beyond and are separate from this scenario by its own note. Open #696 (deferred)."
   },
   {
    "id": "2",
@@ -43,11 +43,11 @@
    "issues": [
     697
    ],
-   "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. What exists instead is #932 (Don, 2026-10-18 [for now, beta]): rings of about 15 minutes' drive as straight-line kilometres from the home town's centroid, widened until a screen is full, capped at an hour; order inside is recency and `mixRuns` (#902). Rechecked 2026-11-06: still no adjacency table or `ST_Touches` use in src or migrations [V grep]. Open #697. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
+   "note": "Not built: no adjacency, bridge table or bands [V grep]; the stand-in is #932's drive-time rings from the home town's centroid, order inside by recency and `mixRuns`. Rechecked 2026-11-27 [V grep, git log since 11-20]: no adjacency table, no `ST_Touches` in src or migrations, no market scope or bands; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` (Sacramento) unchanged in `src/lib/feed/feed-metro.ts`. #1484 (11-26) admits a signed-out visitor to an open market by IP within 45 miles, which is market admission (F081), not F104 scope or order. Search rings (#1425, open, change) widen one search hood, town, area, beyond and are separate from this scenario by its own note. Open #697 (deferred)."
   },
   {
    "id": "3a",
-   "text": "Locality on a card, a Page or any surface but Explore's reach line is a neighbourhood or town name: no miles, minutes, hop count or 'near you'",
+   "text": "Locality on a card, a Page or any surface is a neighbourhood or town name: no miles, minutes, hop count or 'near you'",
    "kind": [
     "invariant"
    ],
@@ -61,7 +61,7 @@
    "issues": [
     697
    ],
-   "note": "Explore cards show no distance [V `BrowseResultCard.tsx`], but distance still shows elsewhere: `venueDistanceMeters` on the place pages `/p/[...slug]`, 'No matches near you yet.' in `FeedEmptyState.tsx`, 'near you' in the site description (`layout.tsx`) and landing copy; `MarketSelector.tsx` still prints miles but nothing imports it; rechecked 2026-11-06: `venueDistanceMeters` on `/p/[...slug]`, 'No matches near you yet.', 'What's happening near you' in `HomeFeed.tsx` and 'near you' in the site, manifest and push copy remain [V grep]. No guard scans for them (#697's checklist). Open #697. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
+   "note": "Not built, and one more surface since 11-20: #1484 (11-26) put \"Showing {market}, near you.\" and \"SocialUs isn't open near you yet.\" on Explore itself (`BrowseSurface.tsx:428`, `:391`), draft words the PR leaves to the PM [V]. Also still: `venueDistanceMeters` on `/p/[...slug]`, \"What's happening near you\" (`HomeFeed.tsx`), \"near you\" in the site description, manifest, og image and push copy, \"Near You\" in the unimported `MarketSelector.tsx` [V grep]. Cards on Explore show no distance [V]. No standing guard. Open #697 (its checklist names the guard); the new Explore words are in the PM queue."
   },
   {
    "id": "3b",
@@ -77,7 +77,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: Don's 2026-10-18 ruling on #796 and #922, built in #932, 'supersedes, for Explore's reach line only, F104 criterion 3 and its Not this line': the top-of-page line may say minutes ('Within 15 minutes of you · Show more nearby') and the filter sheet's How far group sets the ring (15 / 30 / 45 / 60 / Whole area); cards still show no miles or minutes [V #796 comment, #932 body]. The ruling asks socialus-plan to amend F104; `sync-roadmap` does that. Since #1161 (2026-11-02) the reach line itself is gone from Explore; the How far group stays in the filter sheet [V]. Shown, not counted."
+   "note": "Retired: Don's 2026-10-18 ruling on #796 and #922, built in #932, supersedes F104 criterion 3 for Explore's reach line only; minutes may show there and How far sets the ring. The reach line left Explore with #1161; How far stays in the filter sheet [V `filters.ts`]. Shown, not counted."
   },
   {
    "id": "4",
@@ -95,7 +95,7 @@
    "issues": [
     696
    ],
-   "note": "No Page-to-market link or waiting-market filter in the repo [V grep]; a Page's `where_mode` (#944) and anchor decide its pin, not its market. Open #696. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
+   "note": "Not built: no Page-to-market link and no waiting-market filter [V grep]. Rechecked 2026-11-27 [V grep, git log since 11-20]: no adjacency table, no `ST_Touches` in src or migrations, no market scope or bands; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` (Sacramento) unchanged in `src/lib/feed/feed-metro.ts`. #1484 (11-26) admits a signed-out visitor to an open market by IP within 45 miles, which is market admission (F081), not F104 scope or order. Search rings (#1425, open, change) widen one search hood, town, area, beyond and are separate from this scenario by its own note. Open #696 (deferred)."
   },
   {
    "id": "5",
@@ -113,7 +113,7 @@
    "issues": [
     697
    ],
-   "note": "No bands exist [V grep]; #932 starts a member at their home town's ring, which is the nearest thing to the town band and is not it. Open #697. Rechecked 2026-11-20 [V]: no adjacency table, `ST_Touches` or market scope in src or migrations; `resolveFeedMetro` and `DEFAULT_METRO_SLUG` unchanged."
+   "note": "Not built: no bands [V grep]; #932 starts a member at their home town's ring, which is not the town band. Open #697 (deferred)."
   }
  ]
 }

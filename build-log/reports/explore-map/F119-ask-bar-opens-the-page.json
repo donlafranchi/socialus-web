@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     1192
    ],
-   "note": "Not built: no ask bar anywhere in src [V grep]. Rechecked 2026-11-20 [V grep]. Filed #1192."
+   "note": "Not built. Rechecked 2026-11-27 [V grep, gh pr list --search F119]: no ask bar, router, page registry or question log in src; no PR has built any of F119. Open #1192."
   },
   {
    "id": "2",
@@ -43,7 +43,7 @@
    "issues": [
     1193
    ],
-   "note": "Not built. The only model calls in src are moderation's (F100, `assess.ts`, `key-check.ts`) and problem-report triage [V grep]. Rechecked 2026-11-20 [V grep]. Filed #1193."
+   "note": "Not built: the only model calls are moderation (F100) and problem-report triage [V grep]. #1459 (11-26) removed Explore's map and says the map returns as part of an answer under F119 (the 2026-11-25 F059 ruling) [V PR body]. Open #1193 (needs-pm)."
   },
   {
    "id": "3",
@@ -61,7 +61,7 @@
    "issues": [
     1194
    ],
-   "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Rechecked 2026-11-20 [V grep]. Filed #1194."
+   "note": "Not built; Explore search (#924) is the fallback it would use [V]. Open #1194."
   },
   {
    "id": "4",
@@ -79,7 +79,7 @@
    "issues": [
     1195
    ],
-   "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]; Explore's header search now writes its words to the one box in the URL (#1161), which is one more deep link but not a registry [V]. Rechecked 2026-11-20 [V grep]. Filed #1195."
+   "note": "Not built as a set: Explore carries `metro`, `area`, `q`, `category`, `schedule` and `reach` (`src/lib/browse/query.ts`) and You `?tab=`; #1459 dropped `?view=map` (it now opens the list) [V]. No prefilled post draft by URL [A]. Open #1195."
   },
   {
    "id": "5",
@@ -98,7 +98,7 @@
    "issues": [
     1196
    ],
-   "note": "Not built: no page registry in src [V grep]. Rechecked 2026-11-20 [V grep]. Filed #1196."
+   "note": "Not built. Rechecked 2026-11-27 [V grep, gh pr list --search F119]: no ask bar, router, page registry or question log in src; no PR has built any of F119. Open #1196."
   },
   {
    "id": "6",
@@ -116,11 +116,11 @@
    "issues": [
     1197
    ],
-   "note": "Not built; needs a standing guard once the router exists. Rechecked 2026-11-20 [V grep]. Filed #1197."
+   "note": "Not built; needs a standing guard once the router exists. Open #1197."
   },
   {
    "id": "7",
-   "text": "Questions logged by the search-demand rules (F089): anonymous, aggregated with a floor of ten members in one metro, raw rows deleted after 30 days, never tied to a member",
+   "text": "Questions logged by the search-demand rules (F089): anonymous, aggregated with a floor of ten members in one metro, raw rows deleted after 30 days, never tied to a member; a member's own questions join their search history (F136)",
    "kind": [
     "behavior",
     "invariant"
@@ -135,7 +135,7 @@
    "issues": [
     1198
    ],
-   "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Search-demand logging itself exists (`search-demand-actions.ts`, shown on /admin/metrics) [V grep]; F089 stays a draft scenario. Rechecked 2026-11-20 [V grep]. Filed #1198."
+   "note": "Not built for questions. Search-demand logging exists for Explore search (`search-demand-actions.ts`) [V grep]; F136's history is open (#1326). Open #1198 (needs-pm)."
   },
   {
    "id": "8",
@@ -153,7 +153,7 @@
    "issues": [
     1199
    ],
-   "note": "Not built. Rechecked 2026-11-20 [V grep]. Filed #1199."
+   "note": "Not built. Open #1199 (needs-pm)."
   },
   {
    "id": "9",
@@ -171,7 +171,7 @@
    "issues": [
     1200
    ],
-   "note": "Not built. Rechecked 2026-11-20 [V grep]. Filed #1200."
+   "note": "Not built. Open #1200 (needs-pm)."
   }
  ]
 }

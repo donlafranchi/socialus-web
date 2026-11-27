@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -22,7 +22,7 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; Connecticut's 288 zips landed in #959 (#905) [V migrations]. Checked: `[guards F076.1]` in `tests/f076-every-zip-market-db.test.ts` (#907), seen failing on main (CT missing) and against three mutants [V PR body]. Nothing merged for it since 2026-10-23 [V git log]. Reviewed no: #709 review-skipped, #907 and #959 carry no first-pass `Reviewed by:` [V]. Shipped: Deploy health green on 4f571f5c, 4f691c01, 8659ee4a [V]. Smoked: run 39291029395 (2026-10-19, main cd913c7d, after #959) opened join and onboarding, green; run 41328585318 (2026-11-01, main 3df92600, 51 passed) opened join and onboarding again, green, and the daily runs since cover root and explore [V smoke-live.yml]. #843 closed 2026-10-18. Rechecked 2026-11-20 [V]: `[guards F076.1]` still in `tests/f076-every-zip-market-db.test.ts`; #1313 and #1314 take the zip through the same `zip_market_key()`. The last green run covering join and onboarding is 41328585318 (2026-11-01); the 11-18 and 11-19 runs covered explore, page and you only."
+   "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; Connecticut's 288 zips landed in #959 (#905) [V migrations]. Checked: `[guards F076.1]` in `tests/f076-every-zip-market-db.test.ts` (#907), seen failing on main (CT missing) and against three mutants [V PR body]. Nothing merged for it since 2026-10-23 [V git log]. Reviewed no: #709 review-skipped, #907 and #959 carry no first-pass `Reviewed by:` [V]. Shipped: Deploy health green on 4f571f5c, 4f691c01, 8659ee4a [V]. Smoked: run 39291029395 (2026-10-19, main cd913c7d, after #959) opened join and onboarding, green; run 41328585318 (2026-11-01, main 3df92600, 51 passed) opened join and onboarding again, green, and the daily runs since cover root and explore [V smoke-live.yml]. #843 closed 2026-10-18. Rechecked 2026-11-27 [V]: unchanged since; earlier recheck 2026-11-20: `[guards F076.1]` still in `tests/f076-every-zip-market-db.test.ts`; #1313 and #1314 take the zip through the same `zip_market_key()`. The last green run covering join and onboarding is 41328585318 (2026-11-01); the 11-18 and 11-19 runs covered explore, page and you only."
   },
   {
    "id": "2",
@@ -38,7 +38,7 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "`[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls [V]. No IP guess in src; `explore_vantage` reads the member's own zip inside the database (#932) [V]. Reviewed no (#709 review-skipped). Shipped yes (4f571f5c). Smoked: join and onboarding green on 2026-11-01 (run 41328585318, main 3df92600), explore green on 2026-11-04 (run 41884400137, main 49f942f0); explore is green again on 2026-11-19 (run 44594715209, main 05178eab) [V]; the journey's zip step reads the zip's market only (#1313) [V]."
+   "note": "`[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls [V]. No IP guess in src; `explore_vantage` reads the member's own zip inside the database (#932) [V]. Reviewed no (#709 review-skipped). Shipped yes (4f571f5c). Smoked: join and onboarding green on 2026-11-01 (run 41328585318, main 3df92600), explore green on 2026-11-04 (run 41884400137, main 49f942f0); explore is green again on 2026-11-19 (run 44594715209, main 05178eab) [V]; the journey's zip step reads the zip's market only (#1313) [V]. Rechecked 2026-11-27 [V]: #1484 (2026-11-26, F081 ruling 2026-11-25) reads Vercel's city-level IP guess in `src/lib/geo/ip-location.ts` and `src/app/explore/load.ts` to admit a signed-out visitor to an open market within an hour; it never picks a waitlist: beyond every open market the visitor sees 'not open near you yet' and Choose your area (`BrowseSurface.tsx:388`), and the waitlist is still decided by the zip. `src/lib/metro/admission.ts` sits inside the guard's scanned surfaces and the guard stayed green on #1484's CI; `src/lib/geo` and `src/app/explore` are outside the scan, which is right since they serve open-market admission, not the waitlist [V]. Smoked: explore green again in run 45885931303 (2026-11-26, main 71107bcd), red elsewhere, not on explore [V]."
   },
   {
    "id": "3",
@@ -173,7 +173,7 @@
    "issues": [
     1118
    ],
-   "note": "Built since 2026-10-23: one cached read (`waitingCountByMetro`) serves the popup and the area picker, which Explore now receives instead of an empty map (#1031; `load.ts` lines 95 and 123) [V]. The target is `COMBINED_TARGET = 300` (50 + 250) [V waitlist-standing.ts]; the scenario no longer names 300; the floors are now 100 makers and 1,000 supporters (criterion 10b, #1377), so the target follows that change. Checked no: `[guards F076.8 partial]` covers the signed-in popup; the picker's ordering tests in `feed-metro-sort.test.ts` carry no marker [V]. Reviewed no (#217, #764, #1031 as 7). Shipped: a3faf37c, 88724880, 0dbf6d8a green [V]. Smoked: smoke-live run 44594715209 (2026-11-19, main 05178eab, explore, page and you, 15 passed) was green after the last merge here; it loads the route, it does not open the picker [V]."
+   "note": "Built since 2026-10-23: one cached read (`waitingCountByMetro`) serves the popup and the area picker, which Explore now receives instead of an empty map (#1031; `load.ts` lines 95 and 123) [V]. The target is `COMBINED_TARGET = 300` (50 + 250) [V waitlist-standing.ts]; the scenario no longer names 300; the floors are now 100 makers and 1,000 supporters (criterion 10b, #1377), so the target follows that change. Checked no: `[guards F076.8 partial]` covers the signed-in popup; the picker's ordering tests in `feed-metro-sort.test.ts` carry no marker [V]. Reviewed no (#217, #764, #1031 as 7). Shipped: a3faf37c, 88724880, 0dbf6d8a green [V]. Smoked: smoke-live run 45885931303 (2026-11-26, main 71107bcd) opened explore as signed-out, stranger, member and operator, HTTP 200 and passed; red elsewhere (page and page-business timeouts, two sign-in stalls), not on explore; it loads the route, it does not open the picker [V]."
   },
   {
    "id": "9",
@@ -224,7 +224,7 @@
     1377,
     1101
    ],
-   "note": "The scenario's criterion 10 now carries the numbers (the 2026-10-26 ruling in F118 [replaces 2026-09-14: 50 creators and 250 patrons]); it was retired in the last report while the scenario still said 50/250. Not built [V]: `creator_threshold` and `patron_threshold` default to 50 and 250 and `COMBINED_TARGET = 300` (`waitlist-standing.ts:16`). Filed #1377 (launch-blocking, Beta); #1101 item 4 carries the same change inside a bundle."
+   "note": "The scenario's criterion 10 now carries the numbers (the 2026-10-26 ruling in F118 [replaces 2026-09-14: 50 creators and 250 patrons]); it was retired in the last report while the scenario still said 50/250. Not built [V]: `creator_threshold` and `patron_threshold` default to 50 and 250 and `COMBINED_TARGET = 300` (`waitlist-standing.ts:16`). Filed #1377 (launch-blocking, Beta); #1101 item 4 carries the same change inside a bundle. Rechecked 2026-11-27 [V]: `COMBINED_TARGET = 300` still at `waitlist-standing.ts:16`; nothing merged for #1377."
   },
   {
    "id": "11",
@@ -309,7 +309,7 @@
     616,
     1118
    ],
-   "note": "Built since 2026-10-23: #1056 adds `scripts/market/open-market.ts`, which opens the market, sends the ruled words ('SocialUs is open in {market}. See what's going on.') to each address on the landing list through the reminders' Resend sender, deletes each address only after its message went out, and retries failed sends on a re-run [V src/lib/market/open-market.ts]. Nothing can go out yet: `FOLLOW_EMAIL_FROM` (a verified sending domain) is not set in production, an account step for the PM [V PR body; A today]. Checked no: `[guards F076.15 partial: the send and the discard, against a fake database]`; no standing guard that nothing else reads `metro_waitlist.email` [V grep]. Reviewed no (`Reviewed by: build lane`). Shipped: 66e50b13 and 55fb92f2 (#1093 touched the script) green [V]. Smoked unknown: not a route. #616 open (launch-blocking, Beta): the domain step. Filed #1118 (check, launch-blocking, Beta)."
+   "note": "Built since 2026-10-23: #1056 adds `scripts/market/open-market.ts`, which opens the market, sends the ruled words ('SocialUs is open in {market}. See what's going on.') to each address on the landing list through the reminders' Resend sender, deletes each address only after its message went out, and retries failed sends on a re-run [V src/lib/market/open-market.ts]. Nothing can go out yet: `FOLLOW_EMAIL_FROM` (a verified sending domain) is not set in production, an account step for the PM [V PR body; A today]. Checked no: `[guards F076.15 partial: the send and the discard, against a fake database]`; no standing guard that nothing else reads `metro_waitlist.email` [V grep]. Reviewed no (`Reviewed by: build lane`). Shipped: 66e50b13 and 55fb92f2 (#1093 touched the script) green [V]. Smoked unknown: not a route. #616 open (launch-blocking, Beta): the domain step. Filed #1118 (check, launch-blocking, Beta). Rechecked 2026-11-27 [V]: #616 is unchanged in substance and was moved to the 'Sacramento opening 2027-01-06' milestone; `FOLLOW_EMAIL_FROM` still the PM's step [A]."
   },
   {
    "id": "17",
