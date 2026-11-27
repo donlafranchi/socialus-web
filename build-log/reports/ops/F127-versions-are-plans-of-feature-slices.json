@@ -6,7 +6,7 @@
  "area_source": "guess",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -26,7 +26,7 @@
   },
   {
    "id": "2",
-   "text": "A version is a record: outcomes, appetite, slices in and out, each leave-out with a reason and the condition that brings it back",
+   "text": "A version is a record: outcomes, appetite, slices in and left out, each leave-out with a reason and its condition",
    "kind": [
     "behavior"
    ],
@@ -38,7 +38,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built in #1241 [V]. Checked: `[guards F127.2]` in `supabase/tests/knowledge_plans.sql`."
+   "note": "Built in #1241 [V]. The first real version, VN-0001 (Sacramento beta, due 2027-01-06), now comes in from `scripts/knowledge/versions-seed.json` (#1437, 'Reviewed by: none', counted as data, not building the criterion [A]). Checked: `[guards F127.2]` in `supabase/tests/knowledge_plans.sql`."
   },
   {
    "id": "3",
@@ -55,11 +55,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built in #1241 (due_on refused on kinds it does not belong to) [V]. Checked: `[guards F127.3]` in `supabase/tests/knowledge_plans.sql`."
+   "note": "`due_on` refused on other kinds (#1241) [V]. Checked: `[guards F127.3]` in `supabase/tests/knowledge_plans.sql`."
   },
   {
    "id": "4",
-   "text": "A change of plan is a new version with a why naming the outcome that changed; the earlier plan stays readable",
+   "text": "A change of plan is a new version of the plan with a why naming the outcome; the earlier plan stays readable",
    "kind": [
     "behavior"
    ],
@@ -71,7 +71,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`replan` in #1241 [V]. Checked: `[guards F127.4]` in `supabase/tests/knowledge_plans.sql`."
+   "note": "`replan` in #1241; the seed import changes a plan only through `replan` with a why (#1437) [V]. Checked: `[guards F127.4]` in `supabase/tests/knowledge_plans.sql`."
   },
   {
    "id": "5",
@@ -87,7 +87,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`plan` and `plan_changes` verbs in #1241 [V]. Checked: `[guards F127.5]` in `supabase/tests/knowledge_plans.sql`."
+   "note": "`plan` and `plan_changes` (#1241) [V]. Checked: `[guards F127.5]` in `supabase/tests/knowledge_plans.sql`."
   },
   {
    "id": "6",
@@ -107,7 +107,7 @@
   },
   {
    "id": "7",
-   "text": "Today's plan comes in: each scenario becomes a feature with one slice carrying horizon and rank",
+   "text": "Today's plan comes in: each scenario becomes a feature with one slice carrying its horizon and rank",
    "kind": [
     "behavior"
    ],
@@ -118,12 +118,14 @@
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Import in #1241 (slice `F###-S1`) [V]. Checked: `[guards F127.7]` in `tests/knowledge-plans.test.ts`."
+   "issues": [
+    1473
+   ],
+   "note": "Import in #1241 (`F###-S1`) [V]. Checked: `[guards F127.7]` in `tests/knowledge-plans.test.ts`. Open bug #1473: the import sets a feature's status only when it first makes it (F137 stays 'draft' after approval); slice horizon and rank are followed."
   },
   {
    "id": "8",
-   "text": "Nothing breaks: the dashboard and `STATUS.md` are generated from the store after a week side by side with today's generators",
+   "text": "Nothing breaks: the dashboard and `STATUS.md` are generated from the store after a week side by side",
    "kind": [
     "behavior"
    ],
@@ -137,7 +139,7 @@
    "issues": [
     1242
    ],
-   "note": "Not built [V]: #1241 PR body 'F127.8 ... #1242'. #1242 (open) needs a nightly compare job, then seven clean days, then the switch."
+   "note": "Not built [V]: #1241 body sends it to #1242 (open, no change since 2026-11-11)."
   }
  ]
 }
