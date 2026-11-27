@@ -3,6 +3,8 @@ name: weekly-retro
 # #1433 — Mondays: the week's code PRs, which had no review, alarm Issues, how stale the scores are, and the
 # measured experiment, posted on the standing retro Issue (scripts/retro-digest.cjs). The agent pass reads that
 # comment and the week's reviews, writes what repeated, and builds at most one new check.
+# #1520 — also the store's upkeep list (F128.7, folded in from the retired monthly Issue) and what each merged
+# change cost (EX-0001). The store is read only: a key is minted for the run and the transaction rolled back.
 on:
   schedule:
     - cron: '0 15 * * 1'
@@ -12,25 +14,48 @@ permissions:
   contents: read
   issues: write
   pull-requests: read
+  actions: read
 
 jobs:
   digest:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-        with:
-          sparse-checkout: scripts
       - uses: actions/checkout@v5
         with:
           repository: donlafranchi/socialus-ops
           path: .ops
           sparse-checkout: scores
           persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # The same connection apply.yml and knowledge-drift.yml use (scripts/supabase-db-url.sh).
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # A failure here still posts the digest, which then says the upkeep was not read.
+      - name: Read the upkeep list from the store
+        continue-on-error: true
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+        run: npx tsx scripts/knowledge/upkeep-digest.ts --out upkeep.json
       - uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
-            const { render } = require(`${process.env.GITHUB_WORKSPACE}/scripts/retro-digest.cjs`);
+            const { render, closesIssue, costOf } = require(`${process.env.GITHUB_WORKSPACE}/scripts/retro-digest.cjs`);
             const { isAlarm } = require(`${process.env.GITHUB_WORKSPACE}/scripts/check-incident-review.cjs`);
             const MEASURE_START = '2026-11-27';
             const now = new Date();
@@ -45,7 +70,7 @@ jobs:
               const files = (await github.paginate(github.rest.pulls.listFiles, { ...context.repo, pull_number: n, per_page: 100 })).map((f) => f.filename);
               const reviews = await github.rest.pulls.listReviews({ ...context.repo, pull_number: n, per_page: 1 });
               const pr = await github.rest.pulls.get({ ...context.repo, pull_number: n });
-              prs.push({ number: n, title: p.title, files, reviewed: reviews.data.length > 0, mergedAt: pr.data.merged_at });
+              prs.push({ number: n, title: p.title, files, reviewed: reviews.data.length > 0, mergedAt: pr.data.merged_at, head: pr.data.head.ref, body: pr.data.body });
             }
             const week = prs.filter((p) => p.mergedAt.slice(0, 10) >= from);
 
@@ -55,7 +80,22 @@ jobs:
             const tsv = fs.existsSync('.ops/scores/history.tsv') ? fs.readFileSync('.ops/scores/history.tsv', 'utf8').trim().split('\n') : [];
             const scoresLast = (tsv[tsv.length - 1] || '').split('\t')[0] || null;
 
-            const final = render({ from, to, prs: week, measurePrs: prs, alarms, scoresLast, now, measureStart: MEASURE_START });
+            // EX-0001: what each of this week's code PRs cost. A failure leaves the section saying so.
+            let costs = null;
+            try {
+              const { isCodePR } = require(`${process.env.GITHUB_WORKSPACE}/scripts/retro-digest.cjs`);
+              costs = [];
+              for (const p of week.filter((x) => isCodePR(x.files))) {
+                const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, { ...context.repo, branch: p.head, event: 'pull_request', per_page: 100 });
+                const issueNo = closesIssue(p.body);
+                const issue = issueNo ? await github.rest.issues.get({ ...context.repo, issue_number: issueNo }).catch(() => null) : null;
+                costs.push(costOf({ number: p.number, runs, mergedAt: p.mergedAt, issueCreatedAt: issue?.data.created_at }));
+              }
+            } catch (e) { core.warning(`cost: ${e.message}`); costs = null; }
+
+            const upkeep = fs.existsSync('upkeep.json') ? JSON.parse(fs.readFileSync('upkeep.json', 'utf8')) : null;
+
+            const final = render({ from, to, prs: week, measurePrs: prs, alarms, scoresLast, now, measureStart: MEASURE_START, costs, upkeep });
 
             const title = 'chore · weekly retro';
             const open = await github.paginate(github.rest.issues.listForRepo, { ...context.repo, state: 'open', labels: 'retro', per_page: 100 });

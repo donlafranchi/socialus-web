@@ -66,6 +66,8 @@ describe.skipIf(!RUNNABLE)('F125 — the lookup tool', () => {
     pool = new Pool({ connectionString: DATABASE_URL })
     db = await pool.connect()
     await db.query('begin')
+    // These tests read the department limits, which ship switched off: ask for them on, for this transaction only.
+    await db.query(`select set_config('knowledge.department_limits', 'on', true)`)
     const src: Sources = {
       planDir: PLAN,
       opsDir: OPS,

@@ -25,11 +25,15 @@ vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false
 vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
+const setVisitorZipAction = vi.fn()
+const forgetVisitorZipAction = vi.fn()
 const browseMapAction = vi.fn(async (..._args: unknown[]): Promise<unknown[]> => [])
 vi.mock('@/app/explore/actions', () => ({
   browseMapAction: (...args: unknown[]) => browseMapAction(...args),
   browseFeedAction: (...args: unknown[]) => browseFeedAction(...args),
   searchAreasAction: async () => [{ id: 'p-1', name: 'Midtown' }],
+  setVisitorZipAction: (...args: unknown[]) => setVisitorZipAction(...args),
+  forgetVisitorZipAction: (...args: unknown[]) => forgetVisitorZipAction(...args),
 }))
 
 // F134 — Explore's neighbour search and pins run signed out too; neither is what these tests are about.
@@ -223,7 +227,7 @@ describe('F081 — a visitor with no market of their own', () => {
     browseFeedAction.mockResolvedValue(snapshot({ metro: PDX, chosen: true }))
     renderExplore(<BrowseSurface initial={snapshot({ metro: null, results: [], prompt: { kind: 'choose', among: [SAC, PDX] } })} />)
     const prompt = screen.getByTestId('feed-choose-nearby')
-    expect(within(prompt).getAllByRole('button').map((b) => b.textContent)).toEqual([SAC.name, PDX.name])
+    expect(within(within(prompt).getByRole('list')).getAllByRole('button').map((b) => b.textContent)).toEqual([SAC.name, PDX.name])
     fireEvent.click(within(prompt).getByRole('button', { name: PDX.name }))
     await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(PDX.slug))
   })
@@ -233,6 +237,49 @@ describe('F081 — a visitor with no market of their own', () => {
     expect(screen.getByTestId('feed-not-near')).toHaveTextContent('isn’t open near you yet')
     fireEvent.click(screen.getByRole('button', { name: 'Choose your area' }))
     expect(screen.getByTestId('scope-sheet')).toBeInTheDocument()
+  })
+})
+
+// F081 (the PM, 2026-11-25) — "or asked as a zip … stored, with an easy opt-out".
+describe('F081 — a visitor’s zip', () => {
+  it('with nothing to go on, a visitor is asked their zip above the results', async () => {
+    setVisitorZipAction.mockResolvedValue({ ok: true, snapshot: snapshot({ chosen: true, visitorZip: '97201', metro: PDX }) })
+    renderExplore(<BrowseSurface initial={snapshot()} />)
+    const ask = screen.getByTestId('browse-zip-ask')
+    expect(ask).toHaveTextContent(`Not near ${SAC.name}?`)
+    fireEvent.change(within(ask).getByRole('textbox'), { target: { value: '97201' } })
+    fireEvent.click(within(ask).getByRole('button', { name: 'Go' }))
+    await waitFor(() => expect(setVisitorZipAction).toHaveBeenCalledWith('97201'))
+    expect(await screen.findByTestId('browse-zip')).toHaveTextContent(`Showing ${PDX.name}, from your zip 97201.`)
+  })
+
+  it('a refused zip is said in place, and nothing changes', async () => {
+    setVisitorZipAction.mockResolvedValue({ ok: false, message: 'We don’t recognize that zip. Try again?' })
+    renderExplore(<BrowseSurface initial={snapshot()} />)
+    const ask = screen.getByTestId('browse-zip-ask')
+    fireEvent.change(within(ask).getByRole('textbox'), { target: { value: '00000' } })
+    fireEvent.click(within(ask).getByRole('button', { name: 'Go' }))
+    expect(await within(ask).findByRole('alert')).toHaveTextContent('recognize')
+    expect(screen.getByText('Sourdough Co')).toBeInTheDocument()
+  })
+
+  it('a kept zip is shown back with Forget my zip, which forgets it', async () => {
+    forgetVisitorZipAction.mockResolvedValue(snapshot())
+    renderExplore(<BrowseSurface initial={snapshot({ chosen: true, visitorZip: '95816' })} />)
+    expect(screen.queryByTestId('browse-zip-ask')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Forget my zip' }))
+    await waitFor(() => expect(forgetVisitorZipAction).toHaveBeenCalled())
+    expect(await screen.findByTestId('browse-zip-ask')).toBeInTheDocument()
+  })
+
+  it('a member is never asked: their zip is on You', () => {
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true })} />)
+    expect(screen.queryByTestId('zip-ask')).toBeNull()
+  })
+
+  it('near no open market, the zip is asked beside Choose your area', () => {
+    renderExplore(<BrowseSurface initial={snapshot({ metro: null, results: [], prompt: { kind: 'far' } })} />)
+    expect(within(screen.getByTestId('feed-not-near')).getByTestId('zip-ask')).toBeInTheDocument()
   })
 })
 

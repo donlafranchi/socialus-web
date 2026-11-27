@@ -131,6 +131,8 @@ describe.skipIf(!RUNNABLE)('F131: the three answers, from the store', () => {
     pool = new Pool({ connectionString: DATABASE_URL })
     db = await pool.connect()
     await db.query('begin')
+    // These tests read the department limits, which ship switched off: ask for them on, for this transaction only.
+    await db.query(`select set_config('knowledge.department_limits', 'on', true)`)
     await enterStore(db, 'answers-test')
 
     // Two built concepts with a point, one without (not shown), one cut.
