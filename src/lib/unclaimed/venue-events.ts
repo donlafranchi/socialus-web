@@ -24,7 +24,12 @@ export interface VenueEvents {
   parser?: string
   /** Where the post credits, when the feed is not the page people read (defaults to url). */
   page?: string
+  /** #1485: no longer read, and why (the venue's own choice, such as a bot checkpoint). Its posts come off as their dates pass. */
+  stopped?: { on: string; why: string }
 }
+
+/** A venue the daily import reads: it has a feed, and reading it has not been stopped. */
+export const readable = (p: { events?: VenueEvents }) => !!p.events && !p.events.stopped
 
 export const SHOWS_AHEAD_DAYS = 60
 const AGGREGATORS = /(^|\.)(songkick|bandsintown|eventbrite|jambase|allevents|seatgeek|stubhub|vividseats)\.com$/i

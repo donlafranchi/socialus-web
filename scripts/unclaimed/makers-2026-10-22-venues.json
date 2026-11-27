@@ -30,7 +30,11 @@
   },
   "events": {
    "url": "https://www.aceofspadessac.com/shows",
-   "format": "jsonld"
+   "format": "jsonld",
+   "stopped": {
+    "on": "2026-11-27",
+    "why": "The site puts a Vercel Security Checkpoint in front of every page, robots.txt included, so it asks automated visitors not to read it. The PM, 2026-11-27, picked A: stop reading it rather than ask or work around it (#1485). Its posts come off as their dates pass; shows return when Ace claims the Page or lets SocialUsBot through."
+   }
   },
   "confidence": "High; own site checked 2026-10-22: address in its JSON-LD and footer, Instagram and Facebook from its own links (no TikTok linked). /shows carries 36 schema.org MusicEvent blocks with startDate and a Ticketmaster url (offers absent, so the ticket link is the event url). robots.txt allows all. Photos are artist press shots; low child risk."
  },
