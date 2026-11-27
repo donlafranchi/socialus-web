@@ -127,6 +127,21 @@ begin
   assert pg_temp.refused(format('select knowledge.set_condition(%L, %L, %L)', cn, 'met', 'try')) ~ 'operator',
     'off: a building key marked a condition met by hand';
 
+  -- the side doors the review of #1539 found: a record created settled, and a met part
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"decision","concern":"posts","answer":"A post lasts a month.","why":"Try.","audience":"public","settled":true}', 'try')$q$) ~ 'operator',
+    'off: a building key created a record already settled';
+  perform pg_temp.act('ops');
+  perform knowledge.set_condition(cn, 'met', 'the PM marks the part');
+  perform pg_temp.act('build');
+  declare parent text; begin
+    parent := knowledge.record('{"kind":"condition","concern":"payments","answer":"Checkout works","why":"Needs card payments.","owner":"the PM","audience":"public"}', 'a parent');
+    assert pg_temp.refused(format('select knowledge.link(%L, %L, %L)', cn, parent, 'part_of')) ~ 'operator',
+      'off: a building key made a met condition a part of another, marking it met by another door';
+    assert knowledge.condition_status(parent) = 'not started', 'off: the parent became met through a building key''s link';
+  end;
+  perform pg_temp.act('ops');
+  perform knowledge.set_condition(cn, 'not started', 'back, for the checks below');
+
   -- the PM's key still does all three
   perform pg_temp.act('ops');
   perform knowledge.revise(cn, '{"checked_by":{"query":"select 1","at_least":1}}', 'the PM writes the check');
