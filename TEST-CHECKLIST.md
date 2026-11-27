@@ -50,6 +50,7 @@ npm run eval       # Playwright evals
 | F040 | `features/F040-producer-lists-service.spec.ts` | producer lists service |
 | F042 | `features/F042-member-follows-producer-group-venue.spec.ts` | member follows producer group venue |
 | F059 | `features/F059-explore-list-and-map-by-width.spec.ts` | explore list and map by width |
+| F081 | `features/F081-visitor-admitted-by-location.spec.ts` | visitor admitted by location |
 | F101 | `features/F101-report-decisions-at-375.spec.ts` | report decisions at 375 |
 | readable-urls.spec.ts | `features/readable-urls.spec.ts` | readable urls.spec.ts |
 
