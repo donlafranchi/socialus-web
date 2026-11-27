@@ -167,11 +167,11 @@
    "facebook": "https://www.facebook.com/thecenterforthearts"
   },
   "events": {
-   "url": "https://thecenterforthearts.org/events/",
-   "format": "html",
-   "parser": "centerforthearts-jet"
+   "url": "https://thecentergv.org/data/spektrix.json",
+   "format": "spektrix",
+   "page": "https://thecentergv.org/events/"
   },
-  "confidence": "High; own site checked 2026-10-22: address in its footer, Instagram and Facebook from its own links (no TikTok). /events/ is a JetEngine listing grid (25 items: month, day, 'Thu | 7:00pm', title, GET TIX link to its Salesforce PatronTicket box office); no year in the date. robots.txt allows /events/ (Crawl-delay 10). Unsure on photos: it runs arts education, check in preview. Parser and fixture test added in #1000."
+  "confidence": "High; own site checked 2026-10-22: address in its footer, Instagram and Facebook from its own links (no TikTok). /events/ is a JetEngine listing grid (25 items: month, day, 'Thu | 7:00pm', title, GET TIX link to its Salesforce PatronTicket box office); no year in the date. robots.txt allows /events/ (Crawl-delay 10). Unsure on photos: it runs arts education, check in preview. Parser and fixture test added in #1000. 2026-11-27 (#1442): the site moved to thecentergv.org, built by script; its shows come from the venue's own box-office feed /data/spektrix.json (format spektrix, booked at /book/<performance id>); no robots.txt rules."
  },
  {
   "name": "Nevada Theatre",

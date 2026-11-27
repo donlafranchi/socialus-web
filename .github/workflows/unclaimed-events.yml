@@ -1,8 +1,9 @@
 name: Venue shows import
 
 # #997 (Don, 2026-10-22) — every morning, read each venue Page's own events page or feed and post its next 60 days of
-# shows; over, cancelled and dropped shows come off. Idempotent. A venue that fails to read gets an Issue (one open
-# Issue per venue). By hand: gh workflow run unclaimed-events.yml (dry run unless write is ticked; only narrows to one venue).
+# shows; over, cancelled and dropped shows come off. Idempotent. #1485: a venue that fails three mornings in a row gets
+# an Issue (one open Issue per venue); the count of mornings lives in the Actions cache. By hand: gh workflow run
+# unclaimed-events.yml (dry run unless write is ticked; only narrows to one venue; never counts mornings or files).
 on:
   schedule:
     - cron: '15 13 * * *' # daily 06:15 Pacific (05:15 in winter)
@@ -64,6 +65,13 @@ jobs:
           [ -n "$key" ] || { echo "::error::Could not read the service role key."; exit 1; }
           echo "::add-mask::$key"
           echo "key=$key" >> "$GITHUB_OUTPUT"
+      - name: Restore the count of mornings each venue has failed
+        if: github.event_name == 'schedule'
+        uses: actions/cache/restore@v4
+        with:
+          path: .venue-strikes.json
+          key: venue-strikes-${{ github.run_id }}
+          restore-keys: venue-strikes-
       - name: Import
         env:
           DATABASE_URL: ${{ steps.dburl.outputs.url }}
@@ -72,23 +80,31 @@ jobs:
           WRITE: ${{ github.event_name == 'schedule' || inputs.write }}
           ONLY: ${{ inputs.only }}
           BROKEN_FILE: ${{ runner.temp }}/broken.json
+          STRIKES_FILE: ${{ github.event_name == 'schedule' && '.venue-strikes.json' || '' }}
+          FILE_FILE: ${{ runner.temp }}/to-file.json
         run: |
           args=()
           [ "$WRITE" = "true" ] && args+=(--apply)
           [ -n "$ONLY" ] && args+=(--only "$ONLY")
           npx tsx scripts/unclaimed/events.ts "${args[@]}"
-      - name: File an Issue for each venue that broke
+      - name: Save the count of mornings
+        if: always() && github.event_name == 'schedule' && hashFiles('.venue-strikes.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: .venue-strikes.json
+          key: venue-strikes-${{ github.run_id }}
+      - name: File an Issue for each venue broken three mornings in a row
         if: always() && github.event_name == 'schedule'
         env:
           GH_TOKEN: ${{ github.token }}
-          BROKEN_FILE: ${{ runner.temp }}/broken.json
+          FILE_FILE: ${{ runner.temp }}/to-file.json
         run: |
-          [ -s "$BROKEN_FILE" ] || exit 0
-          jq -c '.[]' "$BROKEN_FILE" | while read -r v; do
+          [ -s "$FILE_FILE" ] || exit 0
+          jq -c '.[]' "$FILE_FILE" | while read -r v; do
             name=$(jq -r .name <<<"$v"); url=$(jq -r .url <<<"$v"); err=$(jq -r .error <<<"$v")
             title="bug · Venue shows import broke: $name"
             if gh issue list --state open --search "\"$title\" in:title" --json number -q '.[0].number' | grep -q .; then continue; fi
-            printf '**Kind:** bug\n**Scenario:** none\n**Path:** well-worn — fix the venue parser or its feed address (#997).\n\nThe daily venue shows import could not read **%s** (%s): %s\n\nIts existing posts were left as they are. Run: %s/%s/actions/runs/%s\n' \
+            printf '**Kind:** bug\n**Scenario:** none\n**Path:** well-worn — fix the venue parser or its feed address (#997).\n\nThe daily venue shows import could not read **%s** (%s) three mornings in a row: %s\n\nIts existing posts were left as they are. Run: %s/%s/actions/runs/%s\n' \
               "$name" "$url" "$err" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" > body.md
             gh issue create --title "$title" --body-file body.md
           done

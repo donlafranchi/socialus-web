@@ -39,3 +39,4 @@ speed.log
 
 # Sentry Config File
 .env.sentry-build-plugin
+.venue-strikes.json
