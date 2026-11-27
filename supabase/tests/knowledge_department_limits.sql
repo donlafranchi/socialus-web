@@ -109,6 +109,76 @@ begin
     'off: a key could revoke a key';
 end $$;
 
+-- test: off: settling and unsettling stay with the PM's key (#1535)
+-- [guards F125.7 partial: settling and unsettling stay with the PM's key with the switch off]
+do $$
+begin
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.set_settled(%L, true, %L)', current_setting('t.new_rec'), 'x')) ~ 'operator',
+    'off: a building key settled a record';
+  perform pg_temp.act('ops');
+  perform knowledge.set_settled(current_setting('t.new_rec'), true, 'the PM: do not re-raise');
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.set_settled(%L, false, %L)', current_setting('t.new_rec'), 'x')) ~ 'operator',
+    'off: a building key unsettled a record the PM settled';
+  assert (select settled from knowledge.records where id = current_setting('t.new_rec')), 'off: the record is no longer settled';
+  perform pg_temp.act('ops');
+  assert (knowledge.set_settled(current_setting('t.new_rec'), false, 'the PM reopens it'))->>'settled' = 'false',
+    'off: the PM''s key could not unsettle';
+end $$;
+
+-- test: off: a record cannot be created settled but by the PM's key (#1535)
+do $$
+declare
+  v_id text;
+begin
+  perform pg_temp.act('build');
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"decision","concern":"posts","answer":"x","why":"y","audience":"public","settled":true}', 't')$q$) ~ 'operator',
+    'off: a building key created a settled record';
+  perform pg_temp.act('ops');
+  v_id := knowledge.record('{"kind":"decision","concern":"posts","answer":"x","why":"y","audience":"public","settled":true}', 't');
+  assert (select settled from knowledge.records where id = v_id),
+    'off: the PM''s key could not create a settled record';
+end $$;
+
+-- test: off: a condition's check is written only by the PM's key (#1535)
+do $$
+begin
+  perform pg_temp.act('build');
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"condition","concern":"payments","answer":"x","why":"y","owner":"the PM","audience":"public","checked_by":{"query":"select count(*) from public.members","at_least":1,"line":"members"}}', 't')$q$) ~ 'operator',
+    'off: a building key wrote a condition''s check';
+end $$;
+
+-- test: off: a condition is marked only by the PM's key (#1535)
+do $$
+declare
+  cid text;
+begin
+  perform pg_temp.act('ops');
+  cid := knowledge.record('{"kind":"condition","concern":"payments","answer":"Card payments work","why":"Pre-orders need them.","owner":"the PM","audience":"public"}', 'fixture');
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.set_condition(%L, %L, %L)', cid, 'met', 'x')) ~ 'operator',
+    'off: a building key marked a condition met';
+  perform pg_temp.act('ops');
+  assert (knowledge.set_condition(cid, 'met', 'the PM checked'))->>'status' = 'met', 'off: the PM''s key could not mark a condition';
+end $$;
+
+-- test: off: a part_of link, which makes its parent met, is made only by the PM's key (#1535)
+do $$
+declare
+  v_met text;
+  v_parent text;
+begin
+  perform pg_temp.act('ops');
+  v_met := knowledge.record('{"kind":"condition","concern":"payments","answer":"Take a card","why":"z","owner":"the PM","audience":"public"}', 'fixture');
+  perform knowledge.set_condition(v_met, 'met', 'fixture');
+  v_parent := knowledge.record('{"kind":"condition","concern":"payments","answer":"Payments work","why":"z","owner":"the PM","audience":"public"}', 'fixture');
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.link(%L, %L, %L)', v_met, v_parent, 'part_of')) ~ 'operator',
+    'off: a building key linked a met condition part_of another';
+  assert knowledge.condition_status(v_parent) = 'not started', 'off: the parent became met';
+end $$;
+
 -- test: on: the old refusals return
 -- [guards F125.8 partial: the switch back on]
 reset role;

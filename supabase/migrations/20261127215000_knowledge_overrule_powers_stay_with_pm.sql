@@ -8,7 +8,7 @@
 -- second-session review on #1519 reproduced all three. The PM's ruling: the
 -- store's rules are guidelines only the PM can overrule. Agents keep sight of
 -- every record and do ordinary work; the overrule powers check the key's real
--- knowledge.agents.operator, through knowledge._is_pm_key().
+-- knowledge.agents.operator, through knowledge._pm_key() (20261127210000, #1538), which this builds on.
 --
 -- Sorted, every operator gate in the knowledge migrations:
 --   Overrule, PM key only (changed here): decide; set_settled; settling in
@@ -48,16 +48,6 @@
 --
 -- Tests: supabase/tests/knowledge_department_limits.sql.
 
-create function knowledge._is_pm_key() returns boolean
-language sql stable security definer set search_path = '' as $$
-  select coalesce((
-    select a.operator
-      from knowledge.agents a
-     where a.key_hash = encode(sha256(convert_to(nullif(current_setting('knowledge.key', true), ''), 'UTF8')), 'hex')
-       and a.revoked_at is null), false)
-$$;
-comment on function knowledge._is_pm_key() is
-  'Whether the current key is registered as an operator: the PM''s own, or a job minted for him. Reads knowledge.agents, never the department-limits switch. Every overrule power checks this.';
 
 -- A record that only the PM changes in place: his rulings, and what he has
 -- marked absolute or new territory.
@@ -77,7 +67,7 @@ begin
   if coalesce(btrim(p_reason), '') = '' then
     raise exception 'Every change gives a reason.' using errcode = 'check_violation';
   end if;
-  if p_effective is not null and not knowledge._is_pm_key() then
+  if p_effective is not null and not knowledge._pm_key() then
     raise exception 'Only an operator dates a change in the past.' using errcode = 'insufficient_privilege';
   end if;
   if p_effective > now() then
@@ -93,7 +83,7 @@ create or replace function knowledge.record(p jsonb, p_reason text, p_evidence j
 returns text language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._writer();
-  pm boolean := knowledge._is_pm_key();  -- #1549: the overrule gates read this
+  pm boolean := knowledge._pm_key();  -- #1549: the overrule gates read this
   k text := p->>'kind';
   allowed text[] := array['id', 'kind', 'concern', 'answer', 'why', 'status', 'strength', 'enforced_by', 'scope',
                           'audience', 'departments', 'owner', 'decided_by', 'decided_on', 'path', 'holds', 'until',
@@ -183,7 +173,7 @@ create or replace function knowledge.revise(p_id text, p_changes jsonb, p_reason
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._writer();
-  pm boolean := knowledge._is_pm_key();  -- #1549
+  pm boolean := knowledge._pm_key();  -- #1549
   r knowledge.records;
   allowed text[] := array['concern', 'answer', 'why', 'status', 'strength', 'enforced_by', 'scope', 'audience',
                           'departments', 'owner', 'path', 'holds', 'until', 'as_of', 'source', 'tags', 'embedding',
@@ -289,7 +279,7 @@ declare
   r knowledge.records;
   v integer;
 begin
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only an operator decides a proposal.' using errcode = 'insufficient_privilege';
   end if;
   perform knowledge._context(w, p_reason, null, null);
@@ -331,7 +321,7 @@ begin
   if r.status = 'retired' then
     raise exception '% is already retired.', p_id using errcode = 'check_violation';
   end if;
-  if not knowledge._is_pm_key() then  -- #1549: a philosophy, pattern, practice, new-territory or absolute record is the PM's
+  if not knowledge._pm_key() then  -- #1549: a philosophy, pattern, practice, new-territory or absolute record is the PM's
     perform knowledge._pm_rule_guard(r);
   end if;
   if not w.operator then
@@ -367,7 +357,7 @@ declare
   w knowledge.agents := knowledge._writer();
   v integer;
 begin
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only an operator settles or unsettles a record.' using errcode = 'insufficient_privilege';
   end if;
   perform knowledge._context(w, p_reason, null, null);
@@ -398,7 +388,7 @@ begin
     end if;
     if (tg_op = 'INSERT' and new.checked_by is not null)
        or (tg_op = 'UPDATE' and new.checked_by is distinct from old.checked_by) then
-      if not knowledge._is_pm_key() then  -- #1549
+      if not knowledge._pm_key() then  -- #1549
         raise exception 'Only an operator writes a condition''s check: the scheduled job runs it.'
           using errcode = 'insufficient_privilege';
       end if;
@@ -435,7 +425,7 @@ begin
   if new.type = 'part_of' then
     -- A part changes its parent's computed status, and links are never
     -- removed: only an operator adds one.
-    if not knowledge._is_pm_key() then  -- #1549
+    if not knowledge._pm_key() then  -- #1549
       raise exception 'Only an operator makes one condition a part of another: it changes the parent''s status.'
         using errcode = 'insufficient_privilege';
     end if;
@@ -470,7 +460,7 @@ declare
   allowed text[];
   v integer;
 begin
-  if not knowledge._is_pm_key() then  -- #1549: the PM, or the scheduled check holding an operator key
+  if not knowledge._pm_key() then  -- #1549: the PM, or the scheduled check holding an operator key
     raise exception 'Only an operator marks a condition: the PM, or the scheduled check acting for him.'
       using errcode = 'insufficient_privilege';
   end if;
@@ -505,7 +495,7 @@ end $$;
 create or replace function knowledge._concepts_before() returns trigger
 language plpgsql set search_path = '' as $$
 begin
-  if new.kind <> 'concept' or knowledge._is_pm_key() then  -- #1549
+  if new.kind <> 'concept' or knowledge._pm_key() then  -- #1549
     return new;
   end if;
   if tg_op = 'INSERT' and new.status <> 'idea' then
@@ -530,7 +520,7 @@ begin
     return new;
   end if;
   -- Links are never removed, so a wrong lineage link would be history for good.
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only an operator links a concept''s lineage (%): a link is never removed.', new.type
       using errcode = 'insufficient_privilege';
   end if;
@@ -554,7 +544,7 @@ language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._writer();
 begin
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only an operator records a concept''s names and events: they are dated, often in the past.'
       using errcode = 'insufficient_privilege';
   end if;
@@ -571,7 +561,7 @@ begin
   if new.type <> 'slice_of' then
     return new;
   end if;
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only an operator says which feature a slice belongs to: a link is never removed.'
       using errcode = 'insufficient_privilege';
   end if;
@@ -591,7 +581,7 @@ language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._writer();
 begin
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only an operator changes the plan: what is in a version is the PM''s.'
       using errcode = 'insufficient_privilege';
   end if;
@@ -618,7 +608,7 @@ begin
   end if;
   -- Terms are set once, so only whoever may judge the experiment sets them:
   -- an operator, or the person whose experiment it is.
-  if not knowledge._is_pm_key() and e.decided_by is distinct from w.person then  -- #1549
+  if not knowledge._pm_key() and e.decided_by is distinct from w.person then  -- #1549
     raise exception 'Only an operator, or whoever recorded %, sets its terms: they are set once.', p_experiment
       using errcode = 'insufficient_privilege';
   end if;
@@ -646,7 +636,7 @@ declare
   w knowledge.agents := knowledge._writer();
   v integer;
 begin
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only an operator confirms a practice.' using errcode = 'insufficient_privilege';
   end if;
   perform knowledge._context(w, p_reason, null, null);
@@ -685,7 +675,7 @@ begin
       raise exception 'Only a slice takes items; % is a %.', new.id, new.kind using errcode = 'check_violation';
     end if;
     -- The PM rules on journeys: an agent proposes, an operator decides.
-    if not knowledge._is_pm_key() then  -- #1549
+    if not knowledge._pm_key() then  -- #1549
       if tg_op = 'UPDATE' then
         raise exception 'Only an operator changes a map item: propose it with knowledge.map_propose.'
           using errcode = 'insufficient_privilege';
@@ -718,7 +708,7 @@ language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._writer();
 begin
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only an operator draws or moves a slice: the PM rules on journeys and slices.'
       using errcode = 'insufficient_privilege';
   end if;
@@ -732,7 +722,7 @@ create or replace function knowledge.place(p_item text, p_on text, p_reason text
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._writer();
-  pm boolean := knowledge._is_pm_key();  -- #1549
+  pm boolean := knowledge._pm_key();  -- #1549
   it knowledge.records;
   target knowledge.records;
   cur knowledge.placements;
@@ -788,7 +778,7 @@ declare
   w knowledge.agents := knowledge._writer();
   r knowledge.records;
 begin
-  if not knowledge._is_pm_key() then  -- #1549
+  if not knowledge._pm_key() then  -- #1549
     raise exception 'Only the PM drops an idea.' using errcode = 'insufficient_privilege';
   end if;
   select * into r from knowledge.records where id = p_id;
@@ -846,10 +836,9 @@ end $$;
 comment on function knowledge._run_check(text) is
   'Runs one condition check query as knowledge_check and returns its first value as text. Called by the scheduled job inside a read-only transaction.';
 
-revoke all on function knowledge._is_pm_key(), knowledge._pm_rule_guard(knowledge.records), knowledge._run_check(text)
+revoke all on function knowledge._pm_rule_guard(knowledge.records), knowledge._run_check(text)
   from public, anon, authenticated, service_role, knowledge_store;
--- Triggers run as the caller, so the store's login asks _is_pm_key itself.
-grant execute on function knowledge._is_pm_key() to knowledge_store;
+-- Triggers run as the caller, so the store's login asks _pm_key itself.
 
 -- Hand _run_check to knowledge_check. The new owner needs create in the schema
 -- while ownership moves, and only the owner grants on it afterwards (a grant
