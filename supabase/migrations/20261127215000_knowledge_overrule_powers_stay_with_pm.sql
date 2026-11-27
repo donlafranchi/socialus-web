@@ -46,6 +46,9 @@
 -- check cannot step back up to the caller. Production held no checks when this
 -- was written (2026-11-27), so none breaks.
 --
+-- The security-definer functions in public lose their PUBLIC execute (end of this file), so a check cannot act as a
+-- member through one either.
+--
 -- Tests: supabase/tests/knowledge_department_limits.sql.
 
 
@@ -852,3 +855,23 @@ grant execute on function knowledge._run_check(text) to postgres;
 reset role;
 revoke knowledge_check from current_user;
 revoke create on schema knowledge from knowledge_check;
+
+-- And the functions a check could still reach (second-session review on #1551). Every security-definer function in
+-- public that this migration's owner owns was executable by PUBLIC, so a check could call one and, by setting
+-- request.jwt.claim.sub, act as any member inside it. Each already grants anon, authenticated, service_role and
+-- postgres by name, so revoking PUBLIC changes nothing for the app; the grants below restate that, so no caller loses a
+-- path it had. Functions created later in public start without PUBLIC too (default privileges for this owner).
+do $$
+declare
+  f regprocedure;
+begin
+  for f in
+    select p.oid::regprocedure from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public' and p.prosecdef and pg_get_userbyid(p.proowner) = current_user
+       and (p.proacl is null or exists (select 1 from aclexplode(p.proacl) a where a.grantee = 0 and a.privilege_type = 'EXECUTE'))
+  loop
+    execute format('grant execute on function %s to anon, authenticated, service_role', f);
+    execute format('revoke execute on function %s from public', f);
+  end loop;
+end $$;
+alter default privileges in schema public revoke execute on functions from public;

@@ -359,6 +359,15 @@ do $$ begin
     'a check changed role';
   assert pg_temp.refused('select knowledge._run_check(''reset role'')') ~ 'security-definer',
     'a check reset its role';
+  -- Nor act as a member through a security-definer function in public (review on #1551).
+  assert pg_temp.refused($q$select knowledge._run_check('select public.is_builder(gen_random_uuid())::int')$q$) ~ 'permission denied',
+    'a check called a security-definer function in public';
+  assert pg_temp.refused($q$select knowledge._run_check('select public.current_member_is_builder()::int')$q$) ~ 'permission denied',
+    'a check acted as a member through current_member_is_builder';
+  assert has_function_privilege('anon', 'public.is_builder(uuid)', 'execute')
+     and has_function_privilege('authenticated', 'public.current_member_is_builder()', 'execute')
+     and has_function_privilege('service_role', 'public.member_posts_read(uuid,uuid,uuid,text,integer)', 'execute'),
+    'the app lost a function it calls';
 end $$;
 set local role knowledge_store;
 do $$ begin
