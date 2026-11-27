@@ -153,3 +153,35 @@ begin
   assert not exists (select 1 from knowledge.theme_journeys), 'an unknown key read a theme''s journeys';
   assert knowledge.theme_of('TG') is null, 'an unknown key read a theme';
 end $$;
+
+-- test: with the department limits off, as in production, a theme still goes live or changes only with the PM's key
+-- [guards F137.1]
+do $$
+declare
+  t text;
+begin
+  perform knowledge.theme('{"id":"TG","answer":"Members grow the platform","why":"w","status":"live"}', 'F137 test');
+  perform set_config('knowledge.department_limits', 'off', true);
+  perform pg_temp.act('build');
+  assert pg_temp.refused($q$select knowledge.theme('{"answer":"x","why":"w","status":"live"}', 't')$q$) like '%only an operator records one live%',
+    'with the limits off, a builder recorded a live theme';
+  t := knowledge.theme('{"answer":"A builder''s idea","why":"w"}', 't');
+  assert (select status from knowledge.records where id = t) = 'proposed', 'with the limits off, a builder''s theme is not proposed';
+  assert pg_temp.refused($q$select knowledge.revise('TG', '{"answer":"x"}', 't')$q$) like 'Only an operator changes a theme%',
+    'with the limits off, a builder changed the PM''s theme';
+  perform pg_temp.act('ops');
+  perform knowledge.revise('TG', '{"answer":"Members grow it"}', 'F137 test: the PM may');
+  assert (select answer from knowledge.records where id = 'TG') = 'Members grow it', 'the PM could not change his theme';
+end $$;
+
+-- test: a retired journey no longer names its themes
+-- [guards F137.3]
+do $$
+begin
+  perform knowledge.theme('{"id":"TG","answer":"Members grow the platform","why":"w","status":"live"}', 't');
+  perform knowledge.theme_journey('TG', 'JL', true, 't');
+  assert exists (select 1 from knowledge.themes_for('JL')), 'a journey did not name its theme';
+  perform knowledge.retire('JL', null, 'F137 test: retired');
+  assert not exists (select 1 from knowledge.themes_for('JL.A1.T1')), 'a retired journey still names its themes';
+  assert knowledge.theme_of('TG')->'journeys' = '[]'::jsonb, 'a retired journey still shows under its theme';
+end $$;
