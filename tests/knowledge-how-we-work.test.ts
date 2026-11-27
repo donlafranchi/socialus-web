@@ -8,6 +8,7 @@ import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { enterStore } from '../scripts/knowledge/import'
 import { enforcers, findDrift, readEnforced } from '../scripts/knowledge/practice-drift'
+import { upkeepText } from '../scripts/knowledge/upkeep'
 import { renderPack, packBody, PACK_TOKEN_LIMIT, REVIEW_METHOD_ID, type PackPractice } from '@/lib/knowledge/pack'
 import { packRows } from '@/lib/knowledge/lookups'
 import { runTool } from '@/lib/knowledge/tools'
@@ -179,5 +180,19 @@ describe.skipIf(!RUNNABLE)('F128: how we work, read from the store', () => {
     const ids = (await readEnforced(db)).map((r) => r.id)
     expect(ids).toEqual(expect.arrayContaining(['practice.t-second-review', REVIEW_METHOD_ID]))
     expect((await packRows(db)).steps).toBe(STEPS)
+  })
+})
+
+describe('the monthly upkeep text', () => {
+  // [guards F128.7 partial: the schedule and the Issue the workflow opens]
+  it('lists practices and experiments in their own sections, with none where empty, and any other kind after them', () => {
+    const rows = [
+      { id: 'practice.a', kind: 'practice', answer: 'A.', problem: 'not confirmed since 2026-01-01', since: '2026-01-01' },
+      { id: 'routine.r', kind: 'routine', answer: 'R.', problem: 'no run in 7 days', since: null },
+    ]
+    const text = upkeepText(rows)
+    expect(text).toContain('### Practices not confirmed in 90 days\n- A. (practice.a), not confirmed since 2026-01-01')
+    expect(text).toContain('### Experiments past their verdict date\n- none')
+    expect(text).toContain('### Other: routine\n- R. (routine.r), no run in 7 days')
   })
 })
