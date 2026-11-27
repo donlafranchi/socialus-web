@@ -500,7 +500,7 @@
     "F119": "JY-WEEKEND.A1.T1",
     "F120": "JY-WEEKEND.A1.T1",
     "F121": "JY-WEEKEND.A1.T1",
-    "F122": null,
+    "F122": "JY-BRING.A2.T1",
     "F123": "JY-J25.A1.T1",
     "F124": null,
     "F125": null,
@@ -515,7 +515,8 @@
     "F134": "JY-WEEKEND.A1.T1",
     "F135": null,
     "F136": "JY-BRING.A1.T1",
-    "F137": null
+    "F137": null,
+    "F118": "JY-BRING.A2.T1"
   },
   "ideas": {
     "CO-0003": {
@@ -729,5 +730,25 @@
         "CO-0071"
       ]
     }
-  }
+  },
+  "themes": [
+    {
+      "id": "TH-GROW",
+      "answer": "Members grow the platform",
+      "why": "The PM, 2026-10-26: \"help people be the change and empowered to get this going.\" And 2026-10-31: \"Founders aren't the first people to sign up, they are the first people to get others to sign up.\"",
+      "journeys": [
+        "JY-BRING",
+        "JY-LAUNCH",
+        "JY-WEEKEND"
+      ]
+    },
+    {
+      "id": "TH-LOCAL",
+      "answer": "Who is local here?",
+      "why": "The PM, 2026-11-24: \"for page owners: let people know who you are, or what you stand for, and conversely for supporters: know who you're supporting.\"",
+      "journeys": [
+        "JY-LOCAL"
+      ]
+    }
+  ]
 }
