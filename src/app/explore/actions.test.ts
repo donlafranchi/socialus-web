@@ -12,14 +12,14 @@ const { loadBrowse, getUser, from, cookieSet, update, setDefault } = vi.hoisted(
   update: vi.fn(),
 }))
 
-const { searchNeighborhoods, marketForZip, cookieDelete } = vi.hoisted(() => ({ searchNeighborhoods: vi.fn(), marketForZip: vi.fn(), cookieDelete: vi.fn() }))
+const { searchNeighborhoods, marketForZip, cookieDelete, cookieGet } = vi.hoisted(() => ({ searchNeighborhoods: vi.fn(), marketForZip: vi.fn(), cookieDelete: vi.fn(), cookieGet: vi.fn() }))
 vi.mock('@/lib/signup/zip-market', () => ({ marketForZip }))
 vi.mock('@/lib/places/neighborhood-search', () => ({ searchNeighborhoods }))
 vi.mock('@/actions/_lib/db', () => ({ withTransaction: async (fn: (c: unknown) => unknown) => fn({}) }))
 vi.mock('./load', () => ({ loadBrowse, readSessionSeed: async () => 'seed' }))
 vi.mock('@/actions', () => ({ memberDefaultMetroSet: setDefault }))
 vi.mock('@/lib/action-context', () => ({ resolveActionContext: (o: unknown) => o }))
-vi.mock('next/headers', () => ({ cookies: async () => ({ set: cookieSet, delete: cookieDelete }) }))
+vi.mock('next/headers', () => ({ cookies: async () => ({ set: cookieSet, delete: cookieDelete, get: cookieGet }) }))
 vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser }, from })) }))
 
 import { browseFeedAction, searchAreasAction, setVisitorZipAction, forgetVisitorZipAction } from './actions'
@@ -94,17 +94,17 @@ describe('setVisitorZipAction', () => {
     loadBrowse.mockResolvedValue({ metro: { id: 'm-sac', slug: 'sacramento-roseville-ca' } })
     const r = await setVisitorZipAction('95816')
     expect(r.ok).toBe(true)
-    expect(cookieSet).toHaveBeenCalledWith('su_zip', '95816', expect.objectContaining({ httpOnly: true, path: '/' }))
+    expect(cookieSet).toHaveBeenCalledWith('su_zip', '95816|sacramento-roseville-ca', expect.objectContaining({ httpOnly: true, path: '/' }))
     expect(cookieSet).toHaveBeenCalledWith('su_metro', 'sacramento-roseville-ca', expect.objectContaining({ path: '/' }))
     expect(loadBrowse).toHaveBeenCalledWith('sacramento-roseville-ca', null, expect.anything())
   })
 
   it('a waiting market’s zip reads that market too (its waitlist)', async () => {
     getUser.mockResolvedValue({ data: { user: null } })
-    marketForZip.mockResolvedValue({ key: 'county-06061', name: 'Placer County, CA', open: false, metroId: 'm-w' })
-    metroRow('county-06061')
-    await setVisitorZipAction('96161')
-    expect(loadBrowse).toHaveBeenCalledWith('county-06061', null, expect.anything())
+    marketForZip.mockResolvedValue({ key: 'county-06101', name: 'Sutter County, CA', open: false, metroId: 'm-w' })
+    metroRow('county-06101')
+    await setVisitorZipAction('95991')
+    expect(loadBrowse).toHaveBeenCalledWith('county-06101', null, expect.anything())
   })
 
   it('not five digits, an unknown zip, or a member: refused, and nothing is kept', async () => {
@@ -112,7 +112,7 @@ describe('setVisitorZipAction', () => {
     expect(await setVisitorZipAction('958')).toEqual({ ok: false, message: 'A zip is five numbers.' })
     expect(await setVisitorZipAction('9581a')).toMatchObject({ ok: false })
     marketForZip.mockResolvedValue(null)
-    expect(await setVisitorZipAction('00000')).toMatchObject({ ok: false, message: expect.stringContaining('recognize') })
+    expect(await setVisitorZipAction('00000')).toEqual({ ok: false, message: "We don't recognize that zip, try again." })
     getUser.mockResolvedValue({ data: { user: { id: 'me' } } })
     marketForZip.mockResolvedValue({ key: 'sacramento', name: 'Sacramento', open: true, metroId: 'm-sac' })
     expect(await setVisitorZipAction('95816')).toEqual({ ok: false, message: 'Change your zip on You.' })
@@ -121,10 +121,20 @@ describe('setVisitorZipAction', () => {
 })
 
 describe('forgetVisitorZipAction — the opt-out', () => {
+  const jar = (o: Record<string, string>) => cookieGet.mockImplementation((k: string) => (o[k] ? { value: o[k] } : undefined))
+
   it('forgets the zip and the market it set, then reads Explore afresh', async () => {
+    jar({ su_zip: '95816|sacramento-roseville-ca', su_metro: 'sacramento-roseville-ca' })
     await forgetVisitorZipAction()
-    expect(cookieDelete).toHaveBeenCalledWith('su_zip')
-    expect(cookieDelete).toHaveBeenCalledWith('su_metro')
+    expect(cookieDelete).toHaveBeenCalledWith({ name: 'su_zip', path: '/' })
+    expect(cookieDelete).toHaveBeenCalledWith({ name: 'su_metro', path: '/' })
     expect(loadBrowse).toHaveBeenCalledWith(null, null, expect.anything())
+  })
+
+  it('an area the visitor picked since the zip is theirs, and stays', async () => {
+    jar({ su_zip: '95816|sacramento-roseville-ca', su_metro: 'portland-vancouver-or-wa' })
+    await forgetVisitorZipAction()
+    expect(cookieDelete).toHaveBeenCalledWith({ name: 'su_zip', path: '/' })
+    expect(cookieDelete).not.toHaveBeenCalledWith({ name: 'su_metro', path: '/' })
   })
 })

@@ -47,7 +47,7 @@ export function ZipAsk({
       <button
         type="submit"
         disabled={busy}
-        className="press inline-flex min-h-11 items-center font-medium text-[var(--color-charcoal-900)] underline underline-offset-4"
+        className="press inline-flex min-h-11 min-w-tap items-center justify-center px-2 font-medium text-[var(--color-charcoal-900)] underline underline-offset-4"
       >
         Go
       </button>

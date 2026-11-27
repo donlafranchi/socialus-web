@@ -17,6 +17,7 @@ import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { memberDefaultMetroSet } from '@/actions'
+import { UNKNOWN_ZIP } from '@/actions/member/zip-set'
 import { METRO_COOKIE, METRO_COOKIE_MAX_AGE } from '@/lib/browse/remembered-metro'
 import { withTransaction } from '@/actions/_lib/db'
 import { searchNeighborhoods } from '@/lib/places/neighborhood-search'
@@ -27,7 +28,7 @@ import type { BrowseFilters } from '@/lib/browse/filters'
 import { parseReach, type Reach } from '@/lib/browse/reach'
 import { hasBrowseFilters } from '@/lib/browse/filters'
 import { countUse } from '@/lib/usage/count-use'
-import { ZIP_COOKIE, ZIP_COOKIE_MAX_AGE, isZip } from '@/lib/browse/visitor-zip'
+import { ZIP_COOKIE, ZIP_COOKIE_MAX_AGE, isZip, readZipCookie, zipCookieValue } from '@/lib/browse/visitor-zip'
 import { marketForZip } from '@/lib/signup/zip-market'
 
 export async function browseFeedAction(
@@ -106,20 +107,23 @@ export async function setVisitorZipAction(
   const { data } = await supabase.auth.getUser()
   if (data.user) return { ok: false, message: 'Change your zip on You.' }
   const market = await marketForZip(supabase, z)
-  if (!market) return { ok: false, message: 'We don’t recognize that zip. Try again?' }
+  // The ruled words (F081, 2026-09-30), the same as signup and You.
+  if (!market) return { ok: false, message: UNKNOWN_ZIP }
   const { data: row } = await supabase.from('metro_polygons').select('slug').eq('id', market.metroId).maybeSingle()
   const slug = (row as { slug: string } | null)?.slug
   if (!slug) return { ok: false, message: 'That didn’t go through. Mind trying again?' }
   const jar = await cookies()
-  jar.set(ZIP_COOKIE, z, { path: '/', maxAge: ZIP_COOKIE_MAX_AGE, sameSite: 'lax', httpOnly: true })
+  jar.set(ZIP_COOKIE, zipCookieValue(z, slug), { path: '/', maxAge: ZIP_COOKIE_MAX_AGE, sameSite: 'lax', httpOnly: true, secure: process.env.NODE_ENV === 'production' })
   jar.set(METRO_COOKIE, slug, { path: '/', maxAge: METRO_COOKIE_MAX_AGE, sameSite: 'lax' })
   return { ok: true, snapshot: await loadBrowse(slug, null, { withMap: false, seed: await readSessionSeed() }) }
 }
 
-/** F081 — the easy opt-out: forget this visitor's zip, and the market it set, on this device. */
+/** F081 — the easy opt-out: forget this visitor's zip on this device, and the market it set if that is still the one. */
 export async function forgetVisitorZipAction(): Promise<BrowseSnapshot> {
   const jar = await cookies()
-  jar.delete(ZIP_COOKIE)
-  jar.delete(METRO_COOKIE)
+  const given = readZipCookie(jar.get(ZIP_COOKIE)?.value)
+  jar.delete({ name: ZIP_COOKIE, path: '/' })
+  // The market the zip set goes with it; an area the visitor picked since is theirs and stays.
+  if (given && jar.get(METRO_COOKIE)?.value === given.slug) jar.delete({ name: METRO_COOKIE, path: '/' })
   return loadBrowse(null, null, { withMap: false, seed: await readSessionSeed() })
 }

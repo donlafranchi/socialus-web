@@ -8,3 +8,11 @@ export const ZIP_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 /** Five digits, nothing else: the only zip this stores or looks up. */
 export const isZip = (z: unknown): z is string => typeof z === 'string' && /^\d{5}$/.test(z)
+
+/** The cookie holds the zip and the market slug it set, so the zip is named only while that market is shown. */
+export const zipCookieValue = (zip: string, slug: string) => `${zip}|${slug}`
+
+export function readZipCookie(v: string | undefined | null): { zip: string; slug: string } | null {
+  const [zip, slug] = (v ?? '').split('|')
+  return isZip(zip) && slug && /^[a-z0-9-]{1,80}$/.test(slug) ? { zip, slug } : null
+}
