@@ -7,7 +7,8 @@ name: Knowledge drift
 #
 # F128 (#1237): a second step lists live practices whose enforcing check or
 # workflow no longer exists in socialus-web, socialus-plan or socialus-ops
-# (scripts/knowledge/practice-drift.ts), with its own Issue.
+# (scripts/knowledge/practice-drift.ts), with its own Issue. It reads the
+# practices from the store only.
 #
 # Reads only. A key is minted for the run and the transaction is rolled back,
 # so the run leaves nothing in the store.

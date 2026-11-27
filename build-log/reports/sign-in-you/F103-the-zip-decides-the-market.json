@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
     850,
     1101
    ],
-   "note": "[V reread 2026-11-20; the code and tests are unchanged since 2026-10-30, git log on src/lib/market, src/lib/signup, scripts/market, and the markets and zip tests shows no later change; the later migrations touch other tables] `markets`, `market_members`, `market_key()` (#693, PR #708, review-skipped, deploy-health green on 4431c25). Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850, PR #910, green on 82a9edc): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members. The 2026-10-27 ruling (F103 Rulings; web #1101, open, no PR yet) grows Sacramento to its 60-minute drive-time reach (Yuba City, Marysville, Vacaville, Dixon, Grass Valley, Nevada City) by an assignment script and an overrides file, reviewed as a diff of market_members rows first: it changes which rows, not the mechanism, so the criterion's example list is overtaken (sync-roadmap amends it) and the cells stand. The 2026-11-06 ruling (beta market is Northern California) changes no data until the PM rules which counties; #1101 (the assignment script and overrides) is still open with no PR; the 2026-10-27 growth of Sacramento is not on main"
+   "note": "[V reread 2026-11-27; code and tests unchanged since 2026-11-20: git log on src/lib/auth, src/app/onboarding, src/components/onboarding, src/lib/market, src/lib/signup, scripts/market, supabase/migrations and the zip and market tests shows no commit after 2026-11-19] `markets`, `market_members`, `market_key()` (#693, PR #708, review-skipped, deploy-health green on 4431c25). Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850, PR #910, green on 82a9edc): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members. The 2026-10-27 ruling (F103 Rulings; web #1101, open, no PR yet) grows Sacramento to its 60-minute drive-time reach (Yuba City, Marysville, Vacaville, Dixon, Grass Valley, Nevada City) by an assignment script and an overrides file, reviewed as a diff of market_members rows first: it changes which rows, not the mechanism, so the criterion's example list is overtaken (sync-roadmap amends it) and the cells stand. The 2026-11-06 ruling (beta market is Northern California) changes no data until the PM rules which counties; #1101 (the assignment script and overrides) is still open with no PR; the 2026-10-27 growth of Sacramento is not on main. Since 2026-11-20: the PM ruled #1101 on 2026-11-23 (option E, the one-hour method, about six rows; acceptance adds a zip-either-side-of-each-edge test) and milestoned it for 2027-01-06; still no PR, so Sacramento's grown edge is not on main. #1426 (open, needs-fix) adds the market-rings and search-rings concepts to the knowledge store; no code. #1437 lists F103 in the Sacramento beta plan (VN-0001); no cell changes."
   },
   {
    "id": "2a",
@@ -43,7 +43,7 @@
    "issues": [
     850
    ],
-   "note": "[V reread 2026-11-20; the code and tests are unchanged since 2026-10-30, git log on src/lib/market, src/lib/signup, scripts/market, and the markets and zip tests shows no later change; the later migrations touch other tables] `zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709, review-skipped, green on 4f571f5); Connecticut's planning regions added by #959 (green on 4f691c0). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849). Nothing touched it since 10-23 (git log)"
+   "note": "[V reread 2026-11-27; code and tests unchanged since 2026-11-20: git log on src/lib/auth, src/app/onboarding, src/components/onboarding, src/lib/market, src/lib/signup, scripts/market, supabase/migrations and the zip and market tests shows no commit after 2026-11-19] `zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709, review-skipped, green on 4f571f5); Connecticut's planning regions added by #959 (green on 4f691c0). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849). Nothing touched it since 10-23 (git log)"
   },
   {
    "id": "2b",
@@ -62,7 +62,7 @@
    "issues": [
     849
    ],
-   "note": "[V reread 2026-11-20; the code and tests are unchanged since 2026-10-30, git log on src/lib/market, src/lib/signup, scripts/market, and the markets and zip tests shows no later change; the later migrations touch other tables] stand-in: Census 2020 ZCTA files, largest land area, 10,174 zips flagged `guess`; PO-box-only zips unknown (#694 PR body, #693 comment; scripts/generate-zip-county-migration.ts). HUD token not registered; #849 open with the PM (needs-pm), no comment since filing on 2026-10-16"
+   "note": "[V reread 2026-11-27; code and tests unchanged since 2026-11-20: git log on src/lib/auth, src/app/onboarding, src/components/onboarding, src/lib/market, src/lib/signup, scripts/market, supabase/migrations and the zip and market tests shows no commit after 2026-11-19] stand-in: Census 2020 ZCTA files, largest land area, 10,174 zips flagged `guess`; PO-box-only zips unknown (#694 PR body, #693 comment; scripts/generate-zip-county-migration.ts). HUD token not registered; #849 open with the PM (needs-pm), no comment since filing on 2026-10-16"
   },
   {
    "id": "3",
@@ -80,7 +80,7 @@
    "issues": [
     850
    ],
-   "note": "[V reread 2026-11-20; the code and tests are unchanged since 2026-10-30, git log on src/lib/market, src/lib/signup, scripts/market, and the markets and zip tests shows no later change; the later migrations touch other tables] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850, PR #910): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. The zip step is reached through the profile screen, which every new member now lands on since #1032 (F081.1). Explore's visitor fallback is F104/F105 (#588), not sign-up"
+   "note": "[V reread 2026-11-27; code and tests unchanged since 2026-11-20: git log on src/lib/auth, src/app/onboarding, src/components/onboarding, src/lib/market, src/lib/signup, scripts/market, supabase/migrations and the zip and market tests shows no commit after 2026-11-19] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850, PR #910): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. The zip step is reached through the profile screen, which every new member now lands on since #1032 (F081.1). Explore's visitor fallback is F104/F105 (#588), not sign-up"
   },
   {
    "id": "4",
@@ -93,12 +93,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [
     1015
    ],
-   "note": "[V reread 2026-11-20; the code and tests are unchanged since 2026-10-30, git log on src/lib/market, src/lib/signup, scripts/market, and the markets and zip tests shows no later change; the later migrations touch other tables] #1038 (2026-10-24, closes #1015; human-review, review-skipped; deploy-health green on 337830c): every leftover 'metro' became 'area' (area picker, not-covered panel, waitlist step, waitlist popup, Page location line, Privacy page, seeder message), and neighbourhood search, /api/boundaries and the main-town anchor no longer filter by places.msa_code or take an msa parameter; saveDefaultMetroAction removed; markets.msa_code stays report-only. Checked: yes, a standing guard: src/lib/copy-no-metro-words.test.ts marked [guards F103.4] whole scans member-facing .tsx prose and .ts string literals for metro, MSA and CSA (only RecruitmentGrid's farm 'CSA' allow-listed) and fails on any msa_code or ?msa= read in app code; seen failing before the swap (3 screen strings, 7 .ts strings) and against the old neighborhood-search.ts. Reads of metro_polygons by the waitlist handlers remain (grep 2026-10-30): that is the waitlist table keyed from markets.metro_id, not the MSA code. Smoked: yes, `smoke-live` 2026-11-19 on main 05178ea (routes explore, page, you; personas signedOut, stranger, member, ownerBusiness, operator at 390 and 1280 px; 15 passed, run 44594715209; it checks only that a screen loads with no error and shows no stray email) covers the surfaces (explore, page, you) after the merge. PM looked: the PR asked for a look on socialus.org; no uat Issue or pm-reviewed label records one"
+   "note": "[V reread 2026-11-27; code and tests unchanged since 2026-11-20: git log on src/lib/auth, src/app/onboarding, src/components/onboarding, src/lib/market, src/lib/signup, scripts/market, supabase/migrations and the zip and market tests shows no commit after 2026-11-19] #1038 (2026-10-24, closes #1015; human-review, review-skipped; deploy-health green on 337830c): every leftover 'metro' became 'area' (area picker, not-covered panel, waitlist step, waitlist popup, Page location line, Privacy page, seeder message), and neighbourhood search, /api/boundaries and the main-town anchor no longer filter by places.msa_code or take an msa parameter; saveDefaultMetroAction removed; markets.msa_code stays report-only. Checked: yes, a standing guard: src/lib/copy-no-metro-words.test.ts marked [guards F103.4] whole scans member-facing .tsx prose and .ts string literals for metro, MSA and CSA (only RecruitmentGrid's farm 'CSA' allow-listed) and fails on any msa_code or ?msa= read in app code; seen failing before the swap (3 screen strings, 7 .ts strings) and against the old neighborhood-search.ts. Reads of metro_polygons by the waitlist handlers remain (grep 2026-10-30): that is the waitlist table keyed from markets.metro_id, not the MSA code. Smoked: yes, `smoke-live` 2026-11-19 on main 05178ea (routes explore, page, you; personas signedOut, stranger, member, ownerBusiness, operator at 390 and 1280 px; 15 passed, run 44594715209; it checks only that a screen loads with no error and shows no stray email) covers the surfaces (explore, page, you) after the merge. PM looked: the PR asked for a look on socialus.org; no uat Issue or pm-reviewed label records one. Smoked now no: the latest `smoke-live` on main, 2026-11-26 on 71107bc (run 45885931303), was red on page, page-business, page-private and root for signed-in personas (pages not opening in time at 390 px; builder sign-in stalling at /auth/password), tracked in #1166; the signed-out persona passed on root, explore and page. The metro-words guard itself is green."
   },
   {
    "id": "5a",
@@ -116,7 +116,7 @@
    "issues": [
     850
    ],
-   "note": "[V reread 2026-11-20; the code and tests are unchanged since 2026-10-30, git log on src/lib/market, src/lib/signup, scripts/market, and the markets and zip tests shows no later change; the later migrations touch other tables] `members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757, review-skipped, green on e0f16a9). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page (town_board, F118, returns counts only); seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b)"
+   "note": "[V reread 2026-11-27; code and tests unchanged since 2026-11-20: git log on src/lib/auth, src/app/onboarding, src/components/onboarding, src/lib/market, src/lib/signup, scripts/market, supabase/migrations and the zip and market tests shows no commit after 2026-11-19] `members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757, review-skipped, green on e0f16a9). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page (town_board, F118, returns counts only); seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b)"
   },
   {
    "id": "5b",
@@ -135,7 +135,7 @@
     616,
     1112
    ],
-   "note": "[V reread 2026-11-20; the code and tests are unchanged since 2026-10-30, git log on src/lib/market, src/lib/signup, scripts/market, and the markets and zip tests shows no later change; the later migrations touch other tables] `backfill_home_towns(market)` exists, is idempotent and tested (`home-town-db.test`), service_role-only since #919. Since #1056 (2026-10-25, #616) there is a way to open a market: scripts/market/open-market.ts calls openMarket (src/lib/market/open-market.ts), which sets markets.is_open and metro_polygons.is_open, sends the one message and discards the addresses; it never calls backfill_home_towns (lines 27-38, read 2026-10-30), so a member who signed up while the market waited keeps no home town after it opens. Filed today as #1112 (launch-blocking: one call in the opener, agents alone)"
+   "note": "[V reread 2026-11-27; code and tests unchanged since 2026-11-20: git log on src/lib/auth, src/app/onboarding, src/components/onboarding, src/lib/market, src/lib/signup, scripts/market, supabase/migrations and the zip and market tests shows no commit after 2026-11-19] `backfill_home_towns(market)` exists, is idempotent and tested (`home-town-db.test`), service_role-only since #919. Since #1056 (2026-10-25, #616) there is a way to open a market: scripts/market/open-market.ts calls openMarket (src/lib/market/open-market.ts), which sets markets.is_open and metro_polygons.is_open, sends the one message and discards the addresses; it never calls backfill_home_towns (lines 27-38, read 2026-10-30), so a member who signed up while the market waited keeps no home town after it opens. Filed today as #1112 (launch-blocking: one call in the opener, agents alone)"
   }
  ]
 }

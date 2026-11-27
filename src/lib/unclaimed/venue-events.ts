@@ -15,7 +15,7 @@ export interface VenueShow {
   cancelled?: boolean
 }
 
-export type EventsFormat = 'jsonld' | 'ical' | 'tribe' | 'html'
+export type EventsFormat = 'jsonld' | 'ical' | 'tribe' | 'spektrix' | 'html'
 export interface VenueEvents {
   /** The venue's own events page or feed. */
   url: string
@@ -154,6 +154,19 @@ export function parseTribe(json: unknown, base: string): VenueShow[] {
   })
 }
 
+/** #1442 — a Spektrix box office published as the venue's own JSON: each performance a show, booked at /book/<performance id>. */
+export function parseSpektrix(json: unknown, base: string): VenueShow[] {
+  const events = Object.values(((json as { events?: unknown })?.events ?? {}) as Record<string, { name?: unknown; performances?: Record<string, unknown>[] }>)
+  return events.flatMap((e) =>
+    typeof e.name !== 'string'
+      ? []
+      : (e.performances ?? []).flatMap((p) => {
+          const startsAt = instant(p.startUtc as string)
+          return startsAt ? [{ title: decode(e.name as string), startsAt, ticketUrl: abs(`/book/${p.id}`, base), cancelled: p.cancelled === true }] : []
+        }),
+  )
+}
+
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const monthOf = (name: string) => MONTHS.indexOf(name.slice(0, 3).toLowerCase())
@@ -285,16 +298,6 @@ export const HTML_PARSERS: Record<string, HtmlParser> = {
       }),
     ),
 
-  // The Center for the Arts (JetEngine grid): "Oct" "24" "Sat | 5:00pm" and a titled link; the ad card has no date.
-  'centerforthearts-jet': (html, base, now = new Date()) =>
-    itemsOf(html, '<div class="jet-listing-grid__item ').flatMap((i) => {
-      const f = [...i.matchAll(/jet-listing-dynamic-field__content">([^<]+)</g)].map((m) => m[1]!.trim())
-      const wt = /^([A-Za-z]{3})\s*\|\s*(\d{1,2}:\d{2}\s*[ap]m)/i.exec(f[2] ?? '')
-      const link = /<h2 class="elementor-heading-title[^>]*><a href="([^"]+)"[^>]*>([^<]+)</.exec(i)
-      const startsAt = f[0] && f[1] && wt ? at(dateOf(f[0], f[1], now, wt[1]), clock24(wt[2])) : null
-      return startsAt && link ? [{ title: decode(link[2]!), startsAt, ticketUrl: abs(link[1], base) }] : []
-    }),
-
   // Harris Center (/events?showAll=1): "Tue, Oct 27 - 7:30 PM"; runs ("Wed, Nov 4 - Sun, Nov 8") have no show time and are left out.
   'harris-center': (html, base, now = new Date()) =>
     itemsOf(html, 'listing-box _event').flatMap((e) => {
@@ -385,6 +388,8 @@ export function parseShows(src: VenueEvents, body: string, now = new Date(), pag
       return parseIcal(body, src.url)
     case 'tribe':
       return parseTribe(JSON.parse(body), src.url)
+    case 'spektrix':
+      return parseSpektrix(JSON.parse(body), src.url)
     case 'html': {
       const p = src.parser && HTML_PARSERS[src.parser]
       if (!p) throw new Error(`no HTML parser named ${src.parser}`)
@@ -495,30 +500,6 @@ export async function syncVenueShows(db: Db, groupId: string, venue: string, sou
     tally.removed = gone.length
   }
   return tally
-}
-
-export const IMPORT_UA = 'SocialUsBot/1.0 (+https://socialus.org; venue calendars)'
-
-/**
- * #1044 — a venue page, read politely. A server error or a dead connection (Golden 1 Center: 504 from the runner, 200 from a laptop)
- * gets three tries, 5 s then 15 s apart; a 4xx or a 429 is the venue's answer and ends it at once.
- */
-export async function getWithRetries(url: string, f: (url: string, init: RequestInit) => Promise<Response>, sleep: (ms: number) => Promise<unknown>, waits = [5_000, 15_000]): Promise<string> {
-  for (let attempt = 0; ; attempt++) {
-    let failure: Error
-    try {
-      const res = await f(url, { headers: { 'user-agent': IMPORT_UA, accept: 'text/html,application/json,text/calendar,*/*' }, redirect: 'follow', signal: AbortSignal.timeout(30_000) })
-      if (res.status === 429) throw new Error('rate limited (429)')
-      if (res.ok) return await res.text()
-      if (res.status < 500) throw new Error(`HTTP ${res.status}`)
-      failure = new Error(`HTTP ${res.status}`)
-    } catch (e) {
-      if (e instanceof Error && /^(HTTP 4|rate limited)/.test(e.message)) throw e
-      failure = e instanceof Error ? e : new Error(String(e))
-    }
-    if (attempt >= waits.length) throw failure
-    await sleep(waits[attempt]!)
-  }
 }
 
 /** robots.txt: the group for our agent, else `*`; the longest matching Allow/Disallow wins (RFC 9309). */

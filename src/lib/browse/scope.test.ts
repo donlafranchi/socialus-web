@@ -82,3 +82,31 @@ describe('T156 — resolveBrowseScope', () => {
     expect(scope?.metro).toEqual(PDX)
   })
 })
+
+describe('F081 (the PM, 2026-11-25) — someone with no market of their own is admitted by where they are', () => {
+  const SAC_C = { ...SAC }
+  const PDX_C = { ...PDX }
+  const catalog = [SAC_C, PDX_C]
+
+  it('admitted to the one open market near them: shown, not chosen', async () => {
+    const scope = await resolveBrowseScope(client(), { catalog, admission: { kind: 'one', metro: PDX_C } })
+    expect(scope).toEqual({ metro: PDX_C, chosen: false, admitted: true })
+  })
+
+  it('near several, or near none: no scope, so nothing is picked for them', async () => {
+    expect(await resolveBrowseScope(client(), { catalog, admission: { kind: 'several', metros: catalog } })).toBeNull()
+    expect(await resolveBrowseScope(client(), { catalog, admission: { kind: 'far' } })).toBeNull()
+  })
+
+  // [guards F059.6 partial: the no-location case only; admission by distance is guarded in admission.test.ts]
+  it('with nothing to go on: the one open market while exactly one is open, else nothing', async () => {
+    const closedPdx = { ...PDX_C, isOpen: false }
+    expect(await resolveBrowseScope(client(), { catalog: [SAC_C, closedPdx], admission: { kind: 'unknown' } })).toEqual({ metro: SAC_C, chosen: false })
+    expect(await resolveBrowseScope(client(), { catalog, admission: { kind: 'unknown' } })).toBeNull()
+  })
+
+  it("a person's own market beats admission: a requested slug, then their own setting", async () => {
+    expect(await resolveBrowseScope(client(), { catalog, requestedSlug: SAC.slug, admission: { kind: 'one', metro: PDX_C } })).toEqual({ metro: SAC_C, chosen: true })
+    expect(await resolveBrowseScope(client(), { catalog, memberMetroId: 'metro-pdx', admission: { kind: 'far' } })).toEqual({ metro: PDX_C, chosen: true })
+  })
+})

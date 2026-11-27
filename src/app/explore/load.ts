@@ -48,7 +48,9 @@ import { happeningWindows } from '@/lib/metro/happening'
 import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
 import { withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
-import { resolveBrowseScope } from '@/lib/browse/scope'
+import { resolveBrowseScope, scopePrompt } from '@/lib/browse/scope'
+import { admitVisitor, type Admission } from '@/lib/metro/admission'
+import { requestIpPoint } from '@/lib/geo/ip-location'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
 import { mixRuns } from '@/lib/browse/mix-runs'
 import { pickLead, seenBefore, leadKey, LEAD_SIZE, SEEN_COOKIE } from '@/lib/browse/lead'
@@ -108,13 +110,18 @@ export async function loadBrowse(
   const rememberedSlug = userId ? null : await rememberedMetroSlug()
   // #978 — the metros are public and cached; the scope is picked from them, not read again.
   const catalog = await metrosPromise
-  const scope = await resolveBrowseScope(supabase, {
+  const scopeOpts = {
     catalog,
     memberMetroId: member?.home ?? null,
     memberDefaultMetroId: member?.default ?? null,
     requestedSlug,
     ...(rememberedSlug ? { rememberedSlug } : {}),
-  })
+  }
+  // F081 (2026-11-25) — a visitor with no market of their own is admitted by where they are. Only then is the
+  // request's location read, and it is used for this answer alone. Never a member: their market is their zip's
+  // and nothing else (F081 criterion 3), so a member with none keeps the old precedence.
+  const admission = userId || hasOwnMarket(catalog, scopeOpts) ? undefined : await admissionFor(supabase, catalog)
+  const scope = await resolveBrowseScope(supabase, { ...scopeOpts, admission })
   // The CACHED counts, merged here so the picker can order by them and the
   // popup can show one — the same figure in both places, which is the whole
   // point. A failure costs the ordering and the number, never the picker.
@@ -123,7 +130,7 @@ export async function loadBrowse(
   const myInterests = await myInterestsPromise
   const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'], myInterests }
   if (!scope) {
-    return { ...base, results: [], following: [], metro: null, chosen: false, failed: false }
+    return { ...base, results: [], following: [], metro: null, chosen: false, failed: false, prompt: scopePrompt(admission) }
   }
 
   // #476 — a neighbourhood narrows every read below to that place. An id that
@@ -154,10 +161,10 @@ export async function loadBrowse(
         // #922 — a filter or a search covers the whole area unless the member set a reach.
         ...(typeof reach === 'number' && !area ? { reachMinutes: reach } : {}),
       })
-      return { ...base, results: markFollowed(results, followIds), lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
+      return { ...base, results: markFollowed(results, followIds), lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, ...admittedOf(scope), failed: false }
     } catch (error) {
       console.error('[loadBrowse] filtered browse_feed failed:', (error as Error).message)
-      return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, failed: true }
+      return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, ...admittedOf(scope), failed: true }
     }
   }
 
@@ -220,6 +227,7 @@ export async function loadBrowse(
       metro: scope.metro,
       area,
       chosen: scope.chosen,
+      ...admittedOf(scope),
       failed: false,
       reach: reachShown,
     }
@@ -237,6 +245,7 @@ export async function loadBrowse(
       metro: scope.metro,
       area,
       chosen: scope.chosen,
+      ...admittedOf(scope),
       failed: true,
     }
   }
@@ -416,3 +425,24 @@ async function neighborhood(
   const row = data as { id: string; display_name: string } | null
   return row ? { id: row.id, name: row.display_name } : null
 }
+
+/** Does a person's own market (a requested or remembered slug, their setting, their zip's market) resolve? */
+function hasOwnMarket(
+  catalog: readonly FeedMetro[],
+  o: { memberMetroId: string | null; memberDefaultMetroId: string | null; requestedSlug: string | null; rememberedSlug?: string },
+): boolean {
+  if (!catalog.length) return true // no catalog: the old precedence runs, with nothing to admit against
+  const slug = o.requestedSlug?.trim() || o.rememberedSlug?.trim() || null
+  const id = o.memberDefaultMetroId ?? o.memberMetroId
+  return catalog.some((m) => (slug && m.slug === slug) || (id && m.id === id))
+}
+
+/** F081 — where a visitor with no market of their own is admitted, from the request's location guess. */
+async function admissionFor(supabase: Awaited<ReturnType<typeof createClient>>, catalog: readonly FeedMetro[]): Promise<Admission> {
+  const point = await requestIpPoint()
+  if (!point) return admitVisitor(null, catalog)
+  const { data } = await supabase.rpc('resolve_home_metro', { point: `SRID=4326;POINT(${point[0]} ${point[1]})` })
+  return admitVisitor(point, catalog, typeof data === 'string' ? data : null)
+}
+
+const admittedOf = (scope: { admitted?: true }) => (scope.admitted ? { admitted: true as const } : {})

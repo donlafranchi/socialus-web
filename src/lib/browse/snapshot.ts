@@ -9,6 +9,7 @@
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 import type { MixedResult } from '@/lib/map/mix'
+import type { ScopePrompt } from '@/lib/browse/scope'
 
 /** F091 — the rows under "What's happening…". Empty for a signed-out reader. */
 export interface HappeningSnapshot {
@@ -37,6 +38,10 @@ export interface BrowseSnapshot {
   area: { id: string; name: string } | null
   /** Did a person pick this metro, or did it fall out of a default? */
   chosen: boolean
+  /** F081 (2026-11-25) — nobody picked it: it is the open market within an hour of where they are. */
+  admitted?: true
+  /** F081 — with no metro: choose between the open markets near them, or none is near (the waitlist). */
+  prompt?: ScopePrompt | null
   metros: FeedMetro[]
   signedIn: boolean
   /** The read failed. Distinct from "nothing matched", which is `[]`. */

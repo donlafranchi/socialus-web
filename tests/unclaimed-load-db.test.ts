@@ -141,19 +141,19 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
   const enrichment: Enrichment = { photos: [photo(1, true), photo(2), photo(3), photo(4)], phone: '+19165550142', social: { instagram: 'https://www.instagram.com/t517e' }, siteUrl: E.publicInfoUrl }
   const now = new Date('2026-10-10T18:00:00Z')
 
-  it('gives the Page a credited cover, a phone, profiles and three labelled sample posts with pictures', async () => {
+  it('gives the Page a credited cover, a phone, profiles and one labelled sample post with a picture', async () => {
     await loadUnclaimed(client, [E])
     expect(await enrichPage(client, E, async () => enrichment, now)).toBe('enriched')
     const g = (await client.query(`select photo_url, photo_credit, photo_source_url, contact_phone, social_links from public.groups where public_info_url = $1`, [E.publicInfoUrl])).rows[0]
     expect(g).toMatchObject({ photo_url: photo(1).url, photo_credit: 'T517 e (from their website)', contact_phone: '+19165550142', social_links: { instagram: 'https://www.instagram.com/t517e' } })
     const posts = (await client.query(`select p.body, p.photo_url, p.sample_kind, p.starts_at, p.ends_at from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1 order by p.sample_kind`, [E.publicInfoUrl])).rows
-    expect(posts.map((p) => p.sample_kind)).toEqual(['deal', 'event', 'last_minute'])
+    expect(posts.map((p) => p.sample_kind)).toEqual(['event'])
     for (const p of posts) {
       expect(p.body.startsWith('Sample ·')).toBe(true)
       expect(p.photo_url).toMatch(/^https:\/\/media\.test-517\.example\//)
       expect(p.ends_at.getTime()).toBeGreaterThan(now.getTime())
     }
-    expect(new Set(posts.map((p) => p.photo_url)).size).toBe(3)
+    expect(new Set(posts.map((p) => p.photo_url)).size).toBe(1)
   })
 
   it('a second run adds nothing and does not even go looking for pictures', async () => {
@@ -161,10 +161,10 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     const r = await enrichPage(client, E, async () => (called++, enrichment), now)
     expect(r).toBe('complete')
     expect(called).toBe(0)
-    expect(await count(`select count(*) n from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [E.publicInfoUrl])).toBe(3)
+    expect(await count(`select count(*) n from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [E.publicInfoUrl])).toBe(1)
   })
 
-  // The PM, 2026-10-16 — TikTok and Instagram first: a complete Page missing either has its own site read for them, links only.
+  // the PM, 2026-10-16 — TikTok and Instagram first: a complete Page missing either has its own site read for them, links only.
   it('backfills a missing TikTok from the Page\'s own site, then stops looking once both are there', async () => {
     let calls = 0
     const socials = async () => (calls++, { social: { tiktok: 'https://www.tiktok.com/@t517e', instagram: 'https://www.instagram.com/other' }, siteUrl: E.publicInfoUrl })
@@ -203,7 +203,7 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     const g = (await client.query(`select photo_url, photo_source_url from public.groups where public_info_url = $1`, [H.publicInfoUrl])).rows[0]
     expect(g.photo_url).toBe(photo(5).url)
     const urls = (await client.query(`select p.photo_url from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [H.publicInfoUrl])).rows.map((r) => r.photo_url as string)
-    expect(urls).toHaveLength(3)
+    expect(urls).toHaveLength(1)
     expect(urls.some((u) => u.includes('5740ac8e2dc5'))).toBe(false)
     // Once it is gone, the next run finds nothing to do.
     expect(await enrichPage(client, H, async () => fresh, now, ['5740ac8e2dc5'])).toBe('complete')
@@ -225,18 +225,18 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
         [K.publicInfoUrl],
       )).rows[0].n)
     expect((await tagsOf()).map((l) => l.toLowerCase())).toEqual(['food & drink', 'local business'])
-    expect(await postTagCount()).toBe(6)
+    expect(await postTagCount()).toBe(2)
     // A Page tagged before keeps one row per tag; a run with no tags missing changes nothing.
     expect(await enrichPage(client, K, async () => enrichment, now)).toBe('complete')
-    expect(await postTagCount()).toBe(6)
+    expect(await postTagCount()).toBe(2)
     // Backfill: take the tags off, as on a Page loaded before #816; the next run puts them back.
     await client.query(`delete from public.page_tags where group_id = (select id from public.groups where public_info_url = $1)`, [K.publicInfoUrl])
     expect(await enrichPage(client, K, async () => enrichment, now)).toBe('refreshed')
     expect(await tagsOf()).toHaveLength(2)
   })
 
-  // The PM, 2026-10-16 — a Page loaded before has its samples moved onto its weekly pattern, once; samples only.
-  it('moves samples off the weekly pattern onto one weekday, weeks 1–3, and leaves real posts alone', async () => {
+  // the PM, 2026-10-16 — a Page loaded before has its samples moved onto its weekly pattern, once; samples only.
+  it('moves a sample off the weekly pattern onto its weekday, and leaves real posts alone', async () => {
     const M = page('m')
     await loadUnclaimed(client, [M])
     await enrichPage(client, M, async () => enrichment, now)
@@ -249,9 +249,36 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     const samples = rows.filter((r) => r.sample_kind)
     const wd = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(d)
     expect(new Set(samples.map((r) => wd(r.starts_at))).size).toBe(1)
-    expect(samples.map((r) => Math.round((r.starts_at.getTime() - samples[0].starts_at.getTime()) / 86_400_000))).toEqual([0, 7, 14])
+    expect(samples).toHaveLength(1)
     expect(rows.find((r) => !r.sample_kind).starts_at.toISOString()).toBe('2026-10-14T19:00:00.000Z')
     expect(await enrichPage(client, M, async () => enrichment, later)).toBe('complete')
+  })
+
+  // the PM, 2026-11-26 — one sample each, not full of text: a Page loaded with three is cut to one, without new pictures.
+  it('cuts a Page loaded with three samples to its event, keeps its picture and credit, rewrites it short, and leaves real posts alone', async () => {
+    const T = page('t')
+    await loadUnclaimed(client, [T])
+    await enrichPage(client, T, async () => enrichment, now)
+    const id = `(select id from public.groups where public_info_url = '${T.publicInfoUrl}')`
+    const [kept] = (await client.query(`select id, photo_url from public.page_posts where group_id = ${id} and sample_kind = 'event'`)).rows
+    // As loaded before 2026-11-26: three samples, each with the long note and a photo credit.
+    await client.query(`update public.page_posts set body = 'Sample · Old long wording.' || chr(10) || chr(10) || 'This is a sample post showing what it could look like. It is not a real offer.' || chr(10) || chr(10) || 'Photo: T517 t (from their website)' where id = $1`, [kept.id])
+    for (const k of ['deal', 'last_minute']) {
+      await client.query(`insert into public.page_posts (group_id, body, starts_at, ends_at, lifecycle_state, discoverability, sample_kind) values (${id}, 'Sample · extra', now() + interval '8 days', now() + interval '9 days', 'active', 'listed', $1)`, [k])
+    }
+    await client.query(`insert into public.page_posts (group_id, body, starts_at, ends_at, lifecycle_state, discoverability) values (${id}, 'A real post', now() + interval '2 days', now() + interval '3 days', 'active', 'listed')`)
+    let gathered = 0
+    expect(await enrichPage(client, T, async () => (gathered++, enrichment), now)).toBe('refreshed')
+    expect(gathered).toBe(0)
+    const rows = (await client.query(`select id, body, photo_url, sample_kind from public.page_posts where group_id = ${id} order by sample_kind nulls last`)).rows
+    expect(rows.map((r) => r.sample_kind)).toEqual(['event', null])
+    expect(rows[0]).toMatchObject({ id: kept.id, photo_url: kept.photo_url })
+    expect(rows[0].body).toMatch(/^Sample · /)
+    expect(rows[0].body).toMatch(/Not a real event\.\n\nPhoto: T517 t \(from their website\)$/)
+    expect(rows[0].body).not.toMatch(/not a real offer/)
+    expect(rows[1].body).toBe('A real post')
+    // Once cut, the next run leaves it alone.
+    expect(await enrichPage(client, T, async () => enrichment, now)).toBe('complete')
   })
 
   it('a Page put on stock-only after it loaded gets its own pictures replaced by stock on the next run (#809, F080)', async () => {

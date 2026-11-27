@@ -1,0 +1,10 @@
+{
+  "about": "Rulings whose home moved out of socialus-plan but stay live (the PM's call each time). The import revises each record's source to its new home before it looks for rulings gone from the plan, so a moved ruling is not listed as gone without replacement (scripts/knowledge/moves.ts).",
+  "moves": [
+    {
+      "id": "D-0282",
+      "source": "socialus-web:docs/action-layer.md",
+      "why": "The PM, 2026-11-26: \"keep it live\". The spatial_ref_sys accepted-risk note moved to socialus-web docs/action-layer.md on 2026-11-24."
+    }
+  ]
+}

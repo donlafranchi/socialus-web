@@ -360,11 +360,7 @@ export const TOOLS: KnowledgeTool[] = [
         parts.push(
           `${a.name}:\n` +
             lines
-              .map((l) => {
-                const meta = [l.strength, l.ring, l.holds === 'for now' ? 'for now' : null].filter(Boolean).join(', ')
-                const applies = l.applies.length ? ` [applies ${l.applies.join(', ')}]` : ''
-                return `- ${l.id} · ${meta}: ${l.answer} Enforced by: ${l.enforced_by ?? 'nothing yet'}.${applies}`
-              })
+              .map((l) => k.howLineText(l))
               .join('\n'),
         )
       }

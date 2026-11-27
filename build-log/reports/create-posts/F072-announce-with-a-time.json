@@ -1,174 +1,174 @@
 {
- "schema": 1,
- "feature": "F072",
- "title": "a Page owner announces something, with a time on it",
- "area": "create-posts",
- "area_source": "label",
- "gates": "none",
- "retired": false,
- "as_of": "2026-11-20",
- "criteria": [
-  {
-   "id": "1a",
-   "text": "Only a Page's managing role can announce or edit; anyone else sees no control and a direct write is refused; an edit happens in place and stays the same announcement",
-   "kind": [
-    "behavior",
-    "invariant"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    599
-   ],
-   "note": "`requireManagingRole` via `managingRoleForKind` in `group.post_create` and `group.post_edit`; an edit is an `update` on the same row id; `page_posts` has no client write policy [V actions/group/post.ts]. Built by #115 (T164) and #183 (T166), neither with `Reviewed by:`; Deploy health green on #183, no run for #115's merge commit (it predates the workflow). Checked: no `[guards F072.1a]` marker exists anywhere [V grep]; `post.test.ts` and `PagePosts.test.tsx` are unmarked (#599). Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  },
-  {
-   "id": "1b",
-   "text": "Deleting is refused",
-   "kind": [
-    "behavior"
-   ],
-   "status": "retired",
-   "built": "no",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
-   "pm_looked": "no",
-   "issues": [],
-   "note": "Retired: Don's 2026-10-02 ruling on #318 ('Owners can delete their own posts'), built in #319 [V gh]. It is not yet a dated line in this scenario's `## Rulings`; `sync-roadmap` should record it. Shown, not counted. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  },
-  {
-   "id": "2a",
-   "text": "An announcement appears on its Page and in browse, reading as coming from the Page and not as a listing: no price, no buy control, no listing chrome",
-   "kind": [
-    "behavior",
-    "invariant"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    599,
-    601
-   ],
-   "note": "A post shows on its Page and in browse as coming from the Page, with no price, buy control or listing chrome: no price field in the composer, none in `PagePosts.tsx` or `BrowseResultCard.tsx` [V grep]. Since 10-23 the cards were reworked (#1126 post kinds and lead line, #1143, #1168, #1170, #1140 Page view); the first four carry `Reviewed by:`, #1140 does not, and the original #115/#183/#258 carry none. Checked: unmarked tests; nothing scans for listing chrome (#599, #601). Smoked: unknown; smoke-live was green on 05178ea (11-19; routes explore, page, you; 15 passed) [V gh run] but opens no route that shows this criterion. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  },
-  {
-   "id": "2b",
-   "text": "One whose start time has passed stops appearing in browse, with no manual cleanup",
-   "kind": [
-    "behavior"
-   ],
-   "status": "retired",
-   "built": "no",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
-   "pm_looked": "no",
-   "issues": [],
-   "note": "Retired by the newer ruling: F121 `## Rulings` 2026-10-30, 'Timely posts leave the shelves and lists at a shelf life set by kind ... shelf life is when a post ends', with F121.3 ('a dated item qualifies only before it ends'). It overtakes 'start time has passed', which was the spec-conflict with #815/#914 keeping a dated post until its end. Built as `post_current_until` / `SHELF_DAYS` in `src/lib/posts/kinds.ts` and `20261031120000_post_kinds.sql` (#1126). Shown, not counted. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  },
-  {
-   "id": "2c",
-   "text": "One with no event date leaves browse after 14 days and moves to an Earlier section on its Page, unless its owner set a show-until date; it shows Posted <date>",
-   "kind": [
-    "behavior"
-   ],
-   "status": "retired",
-   "built": "no",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
-   "pm_looked": "no",
-   "issues": [],
-   "note": "Retired by the same F121 ruling (2026-10-30): an undated post now leaves at its kind's shelf life (news 7 days, offer 7, limited 14, proposal 14, hiring 30) and sits under Past on its Page, replacing the 14-day rule and 'Earlier' section of 2026-10-02 [V kinds.ts]. #914/#965's 'show until' and 'Earlier' were built to the older rule. Shown, not counted; `sync-roadmap` amends the scenario. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  },
-  {
-   "id": "3",
-   "text": "The composer takes an optional date and time and an optional address of its own; a start is returned by a time-windowed read to the hour; an undated post is never returned by one; times are the metro's",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    599
-   ],
-   "note": "`group.post_create` writes `starts_at`, `ends_at` and `location_id`; `browse_feed` compares timestamptz bounds and needs `starts_at` for a window; `METRO_TIME_ZONE` in `metro-time.ts` is the one zone, a constant until the metro carries its own (#173) [V]. Built by #183, #212, #258 (no `Reviewed by:`). Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599). Smoked: unknown; smoke-live was green on 05178ea (11-19; routes explore, page, you; 15 passed) [V gh run] but opens no route that shows this criterion. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  },
-  {
-   "id": "4",
-   "text": "One switch for who it reaches, defaulting to anyone; the words name the people, neither \"announcement\" nor \"bulletin\" is in any label; beside the restricted setting a live count that reads as words at zero",
-   "kind": [
-    "behavior",
-    "invariant"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    599,
-    601
-   ],
-   "note": "`AudienceSwitch.tsx`: 'Anyone' by default, the restricted setting shown but not postable (delivery is cut), the count reads in words at zero; the words 'announcement' and 'bulletin' appear only in code comments and in the unrouted sell flow, not in a composer label [V]. Built by #183 (no `Reviewed by:`). One test reads one label (`PagePosts.test.tsx`); nothing scans every label and state (#601); all unmarked (#599). The composer is not opened by smoke-live. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  },
-  {
-   "id": "5",
-   "text": "An announcement that fails to save leaves nothing behind: no half-made row on the Page, in browse or in its history",
-   "kind": [
-    "invariant"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    599
-   ],
-   "note": "`group.post_create` is one insert in a transaction; a failed save leaves no row [V actions/group/post.ts]. Built by #183. Checked: unmarked tests (#599). Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  },
-  {
-   "id": "6",
-   "text": "An announcement or gathering may carry an optional end time; one with a time offers add-to-calendar; its image carries default alt text built from title, date and place; the label stays Event",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "no",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
-   "pm_looked": "no",
-   "issues": [
-    596,
-    599
-   ],
-   "note": "Half built: `ends_at` with a check constraint (#263), `.ics` with DTEND and `AddToCalendarLink` (#261), and `cardImageAlt` (title, date, place) on browse cards [V]. Missing: a Page's own post photo takes the first line of the post as alt (`PagePosts.tsx` line 701), with no fallback to title, date and place (#596). F099.10 now reads 'owner's words, else the default', which this still lacks. The label 'Event' is not asserted [A]. Held by the build freeze. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open."
-  }
- ]
+  "schema": 1,
+  "feature": "F072",
+  "title": "a Page owner announces something, with a time on it",
+  "area": "create-posts",
+  "area_source": "label",
+  "gates": "none",
+  "retired": false,
+  "as_of": "2026-11-27",
+  "criteria": [
+    {
+      "id": "1a",
+      "text": "Only a Page's managing role can announce or edit; anyone else sees no control and a direct write is refused; an edit happens in place and stays the same announcement",
+      "kind": [
+        "behavior",
+        "invariant"
+      ],
+      "status": "active",
+      "built": "yes",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "unknown",
+      "smoked": "unknown",
+      "pm_looked": "no",
+      "issues": [
+        599
+      ],
+      "note": "`requireManagingRole` (via `managingRoleForKind`) gates `group.post_create`, `group.post_edit` and `group.post_delete`; an edit is an `update` of the same row id [V src/actions/group/post.ts]. Checked: no `[guards F072.n]` marker anywhere [V grep]; `post.test.ts` and `PagePosts.test.tsx` are unmarked (#599). Reviewed: built by #115 and #183, neither carries `Reviewed by:` [V gh]. Shipped: Deploy health green on cff5bbf (#183); no run on f680032 (#115, predates the workflow), so unknown [V]."
+    },
+    {
+      "id": "1b",
+      "text": "Deleting is refused",
+      "kind": [
+        "behavior"
+      ],
+      "status": "retired",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [],
+      "note": "Retired: Don, 2026-10-02, on #318: \"There's no way to delete an announcement\", which the Issue says replaces F072's no-delete under newer-decision-wins; built as `group.post_delete` (soft delete, `dissolved_at`) in #319 [V gh, post.ts]. Not yet a dated line in the scenario's `## Rulings`; `sync-roadmap` should record it. Shown, not counted."
+    },
+    {
+      "id": "2a",
+      "text": "An announcement appears on its Page and in browse, reading as coming from the Page and not as a listing: no price, no buy control, no listing chrome",
+      "kind": [
+        "behavior",
+        "invariant"
+      ],
+      "status": "active",
+      "built": "yes",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "yes",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        599,
+        601
+      ],
+      "note": "Posts show on their Page and in Explore as the Page's, with no price or buy control in the composer, `PagePosts.tsx` or the browse cards [V grep]. #1459 (11-26) made Explore a list at every width; the post cards are unchanged [V git show]. Checked: unmarked tests; nothing scans for listing chrome (#599, #601). Reviewed: #1126, #1143, #1168, #1170 carry `Reviewed by:`; #115, #183, #258 and #1140 do not [V]. Shipped: green on each merge commit [V]. Smoked: the 11-26 smoke-live on 71107bc opened the page routes and was red on operator/page and member/page-business; the 11-25 green run opened only explore routes [V gh run]."
+    },
+    {
+      "id": "2b",
+      "text": "One whose start time has passed stops appearing in browse, with no manual cleanup",
+      "kind": [
+        "behavior"
+      ],
+      "status": "retired",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [],
+      "note": "Retired by F121 `## Rulings` 2026-10-30: timely posts leave the shelves and lists at a shelf life set by kind; \"shelf life is when a post ends\" [V scenario-F121.md]. Built as `post_current_until` / `SHELF_DAYS` (#1126). Shown, not counted."
+    },
+    {
+      "id": "2c",
+      "text": "One with no event date leaves browse after 14 days and moves to an Earlier section on its Page, unless its owner set a show-until date; it shows Posted <date>",
+      "kind": [
+        "behavior"
+      ],
+      "status": "retired",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [],
+      "note": "Retired by the same F121 ruling (2026-10-30): an undated post leaves at its kind's shelf life and sits under Past on its Page, replacing the 2026-10-02 14-day rule and Earlier section [V kinds.ts, scenario-F121.md]. Shown, not counted; `sync-roadmap` amends the scenario."
+    },
+    {
+      "id": "3",
+      "text": "The composer takes an optional date and time and an optional address of its own; a start is returned by a time-windowed read to the hour; an undated post is never returned by one; times are the metro's",
+      "kind": [
+        "behavior"
+      ],
+      "status": "active",
+      "built": "yes",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "yes",
+      "smoked": "unknown",
+      "pm_looked": "no",
+      "issues": [
+        599
+      ],
+      "note": "`group.post_create` writes `starts_at`, `ends_at` and `location_id`; `browse_feed` (last in 20261031120000_post_kinds.sql) compares timestamptz bounds; `METRO_TIME_ZONE` is one constant until the metro carries its own zone (#173, open) [V]. Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599). Reviewed: #183, #212, #258 have no `Reviewed by:`. Shipped: green on cff5bbf, ea90c1e, 82da793 [V]. Smoked: no smoke route opens the composer or a time window."
+    },
+    {
+      "id": "4",
+      "text": "One switch for who it reaches, defaulting to anyone; the words name the people, neither \"announcement\" nor \"bulletin\" is in any label; beside the restricted setting a live count that reads as words at zero",
+      "kind": [
+        "behavior",
+        "invariant"
+      ],
+      "status": "active",
+      "built": "yes",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "yes",
+      "smoked": "unknown",
+      "pm_looked": "no",
+      "issues": [
+        599,
+        601
+      ],
+      "note": "`AudienceSwitch.tsx`: Anyone by default, the restricted setting visible but not postable (delivery is cut), the count in words at zero [V]. Checked: one unmarked label test in `PagePosts.test.tsx`; nothing scans every label (#601, #599). Reviewed: #183 has no `Reviewed by:`. Shipped: green on cff5bbf. Smoked: no smoke route opens the composer."
+    },
+    {
+      "id": "5",
+      "text": "An announcement that fails to save leaves nothing behind: no half-made row on the Page, in browse or in its history",
+      "kind": [
+        "invariant"
+      ],
+      "status": "active",
+      "built": "yes",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "yes",
+      "smoked": "unknown",
+      "pm_looked": "no",
+      "issues": [
+        599
+      ],
+      "note": "`group.post_create` inserts the post and its tags in one transaction; a failure rolls back [V post.ts]. Checked: unmarked tests; no guard (#599). Reviewed: #183 none. Shipped: green on cff5bbf."
+    },
+    {
+      "id": "6",
+      "text": "An announcement or gathering may carry an optional end time; one with a time offers add-to-calendar; its image carries default alt text built from title, date and place; the label stays Event",
+      "kind": [
+        "behavior"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        596,
+        599
+      ],
+      "note": "Half built: `ends_at` (#263), `AddToCalendarLink` with DTEND (#261), and title-date-place alt text on browse cards [V]. Missing: a Page's own post photo still takes the post's first line as alt (`PagePosts.tsx:699`), with no title-date-place fallback (#596). No commit touched it since 11-06 [V git log]."
+    }
+  ]
 }

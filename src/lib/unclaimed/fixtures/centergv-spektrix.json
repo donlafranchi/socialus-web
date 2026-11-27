@@ -1,0 +1,107 @@
+{
+ "updated": "2026-11-27T17:00:07Z",
+ "events": {
+  "1086": {
+   "name": "Atlanta Rhythm Section",
+   "about": "",
+   "performances": [
+    {
+     "id": 1692,
+     "start": "2027-01-26T19:00:00",
+     "startUtc": "2027-01-27T03:00:00Z",
+     "onSaleFromUtc": "2026-11-26T01:30:00Z",
+     "onSaleUntilUtc": "2027-01-27T02:00:00Z",
+     "cancelled": false,
+     "capacity": 507,
+     "available": 369,
+     "prices": [
+      69.12,
+      73.44
+     ]
+    }
+   ]
+  },
+  "1076": {
+   "name": "Clara & the Nutcracker",
+   "about": "",
+   "performances": [
+    {
+     "id": 1688,
+     "start": "2026-12-04T19:00:00",
+     "startUtc": "2026-12-05T03:00:00Z",
+     "onSaleFromUtc": "2026-11-26T01:30:00Z",
+     "onSaleUntilUtc": "2026-12-05T02:00:00Z",
+     "cancelled": false,
+     "capacity": 507,
+     "available": 300,
+     "prices": [
+      43.2,
+      64.8
+     ]
+    },
+    {
+     "id": 1691,
+     "start": "2026-12-05T13:00:00",
+     "startUtc": "2026-12-05T21:00:00Z",
+     "onSaleFromUtc": "2026-11-26T01:30:00Z",
+     "onSaleUntilUtc": "2026-12-05T20:00:00Z",
+     "cancelled": false,
+     "capacity": 507,
+     "available": 173,
+     "prices": [
+      43.2,
+      64.8
+     ]
+    },
+    {
+     "id": 1674,
+     "start": "2026-12-05T19:00:00",
+     "startUtc": "2026-12-06T03:00:00Z",
+     "onSaleFromUtc": "2026-11-26T01:30:00Z",
+     "onSaleUntilUtc": "2026-12-06T02:00:00Z",
+     "cancelled": false,
+     "capacity": 507,
+     "available": 245,
+     "prices": [
+      43.2,
+      64.8
+     ]
+    },
+    {
+     "id": 1678,
+     "start": "2026-12-06T13:00:00",
+     "startUtc": "2026-12-06T21:00:00Z",
+     "onSaleFromUtc": "2026-11-26T01:30:00Z",
+     "onSaleUntilUtc": "2026-12-06T20:00:00Z",
+     "cancelled": false,
+     "capacity": 507,
+     "available": 76,
+     "prices": [
+      43.2,
+      64.8
+     ]
+    }
+   ]
+  },
+  "230": {
+   "name": "Danu- St. Patrick's Day Celebration Tour",
+   "about": "",
+   "performances": [
+    {
+     "id": 238,
+     "start": "2027-03-13T20:00:00",
+     "startUtc": "2027-03-14T04:00:00Z",
+     "onSaleFromUtc": "2026-11-26T01:30:00Z",
+     "onSaleUntilUtc": "2027-03-14T03:00:00Z",
+     "cancelled": false,
+     "capacity": 507,
+     "available": 479,
+     "prices": [
+      78.84,
+      85.32
+     ]
+    }
+   ]
+  }
+ }
+}

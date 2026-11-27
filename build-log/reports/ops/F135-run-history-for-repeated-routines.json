@@ -3,14 +3,14 @@
  "feature": "F135",
  "title": "each run of a repeated routine keeps a dated history",
  "area": "ops",
- "area_source": "guess",
+ "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
-   "text": "A run is a record linked to its practice: date, commit, membership simulated, numbers, what broke first, what changed after, next ideas",
+   "text": "A run is a record linked to its practice, each field its own",
    "kind": [
     "behavior"
    ],
@@ -22,11 +22,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`run` kind, `run_terms`, `run_of` link (#1276) [V]. Checked: `[guards F135.1]` in `supabase/tests/knowledge_runs.sql`."
+   "note": "Built in #1276 [V]. Checked: `[guards F135.1]` in `supabase/tests/knowledge_runs.sql`."
   },
   {
    "id": "2",
-   "text": "Runs record themselves: the routine writes its record when it finishes, pass or fail; a run that ends without a record fails its workflow",
+   "text": "Runs record themselves; a run that ends without a record fails its workflow",
    "kind": [
     "behavior"
    ],
@@ -40,11 +40,11 @@
    "issues": [
     1399
    ],
-   "note": "New step in the Load simulation workflow fails the job if it cannot record (#1276) [V]. Checked: only `[guards F135.2 partial]` in `tests/knowledge-runs.test.ts` and `supabase/tests/knowledge_runs.sql`."
+   "note": "Recording step in `load.yml` (#1276) [V]. Checked: only `[guards F135.2 partial]` markers in both suites, so no. #1399 (open)."
   },
   {
    "id": "3",
-   "text": "What changed after links itself: a PR naming the run or its practice is linked when it merges",
+   "text": "What changed after links itself: a PR naming the run is linked when it merges",
    "kind": [
     "behavior"
    ],
@@ -56,11 +56,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`knowledge-run-links.yml` on each merge to main (#1276) [V]. Checked: `[guards F135.3]` in `supabase/tests/knowledge_runs.sql`."
+   "note": "`knowledge-run-links.yml` (#1276) [V]. Checked: `[guards F135.3]` in `supabase/tests/knowledge_runs.sql`."
   },
   {
    "id": "4",
-   "text": "Every practice carries a try-next-time list; an idea leaves only when a later run tried it or the PM drops it",
+   "text": "Every practice carries a try-next-time list",
    "kind": [
     "behavior"
    ],
@@ -72,11 +72,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`idea` kind (open, tried, dropped) (#1276) [V]. Checked: `[guards F135.4]` in `supabase/tests/knowledge_runs.sql`."
+   "note": "`idea` kind (#1276) [V]. Checked: `[guards F135.4]` in `supabase/tests/knowledge_runs.sql`."
   },
   {
    "id": "5",
-   "text": "Load simulation first: #1264 and the Load simulation workflow write runs; its first result is loaded as run one",
+   "text": "Load simulation first, its first result loaded as run one",
    "kind": [
     "behavior"
    ],
@@ -88,11 +88,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Routine and both runs recorded by a full import (#1276 PR body) [V]. Checked: `[guards F135.5]` in `tests/knowledge-runs.test.ts`."
+   "note": "Built in #1276 [V]. Checked: `[guards F135.5]` in `tests/knowledge-runs.test.ts`."
   },
   {
    "id": "6",
-   "text": "Then the other three: tap-speed re-benchmarks, the monthly backup restore test and the method review write runs the same way",
+   "text": "Then the other three: tap-speed re-benchmarks, backup restore test and method review write runs the same way",
    "kind": [
     "behavior"
    ],
@@ -106,11 +106,11 @@
    "issues": [
     1277
    ],
-   "note": "Not built [V]: #1276 PR body 'Not in this PR (criterion 6, #1277)'. #1277 (open) lists what each needs: a tap-speed ruling, a backup practice in the plan seed, and a lookup-tool write for the method review."
+   "note": "Not built [V]: only `load.yml` records runs (grep of `.github/workflows` and `scripts`); #1277 (open, unchanged since 2026-11-12)."
   },
   {
    "id": "7",
-   "text": "One call answers it: history of a practice and what to try next in one lookup call",
+   "text": "One call answers it: runs in date order, changes between runs, the open list",
    "kind": [
     "behavior"
    ],
@@ -122,11 +122,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built in #1276 [V]. Checked: `[guards F135.7]` in `tests/knowledge-runs.test.ts` and `supabase/tests/knowledge_runs.sql`."
+   "note": "`runs` verb (#1276) [V]. Checked: `[guards F135.7]` in both suites."
   },
   {
    "id": "8",
-   "text": "The monthly upkeep lists a practice with no run in its interval, or an idea open over 90 days",
+   "text": "The monthly upkeep reads it: overdue practices and ideas open past 90 days listed for the PM",
    "kind": [
     "behavior"
    ],

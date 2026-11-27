@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     1379
    ],
-   "note": "Import built (#1222, `scripts/knowledge/import.ts`, export in `export.ts`; PR body: export matches line for line, a second run changes nothing) [V]. Checked: only `[guards F125.1 partial]` in `tests/knowledge-import.test.ts`, so no. Reviewed: #1222 says 'Reviewed by: none' and #1283 (replaces-tag fix) the same, so no."
+   "note": "Import built (#1222, `scripts/knowledge/import.ts`, `export.ts`); kept in step since by #1411 (constraints header), #1424, #1446 (bug #1445: retires rulings whose replaces tag quotes a dated or re-dated line), #1448, #1483; a daily dry-run import now runs (#1464) [V]. Checked: only `[guards F125.1 partial]` in `tests/knowledge-import.test.ts`, so no. Reviewed: #1222, #1411 and #1446 say 'Reviewed by: none', so no."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     1380
    ],
-   "note": "Retire-needs-link, history triggers and append-only versions built in #1221 (`20261110120000_knowledge_store.sql`) [V]. Checked: only `[guards F125.2 partial]` (3 blocks in `supabase/tests/knowledge_store.sql`); no whole marker, so no standing guard for the 'no change rewrites in place' half."
+   "note": "Retire-needs-link, history triggers and append-only versions in #1221 (`20261110120000_knowledge_store.sql`); a `retire` lookup verb calling the same function added in #1371 [V] (counted as exposing, not building, the criterion [A]). Checked: three `[guards F125.2 partial]` blocks in `supabase/tests/knowledge_store.sql`, no whole marker, so no standing guard."
   },
   {
    "id": "3",
@@ -58,7 +58,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Why check at both layers built in #1221 [V]. Checked: `[guards F125.3]` in `supabase/tests/knowledge_store.sql`."
+   "note": "Built in #1221 [V]. Checked: `[guards F125.3]` in `supabase/tests/knowledge_store.sql`."
   },
   {
    "id": "4",
@@ -74,7 +74,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built through the lookup tool (#1226, #1221) [V]. Checked: `[guards F125.4]` in `supabase/tests/knowledge_store.sql` and `tests/knowledge-lookup.test.ts`."
+   "note": "Built in #1221 and the lookup tool #1226 [V]. Checked: `[guards F125.4]` in `supabase/tests/knowledge_store.sql` and `tests/knowledge-lookup.test.ts`."
   },
   {
    "id": "5",
@@ -90,7 +90,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Kinds and strengths are lookup tables in #1221 [V]. Checked: `[guards F125.5]` in `supabase/tests/knowledge_store.sql`."
+   "note": "Lookup tables in #1221 [V]. Checked: `[guards F125.5]` in `supabase/tests/knowledge_store.sql`."
   },
   {
    "id": "6",
@@ -107,7 +107,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Corrections served alike to every agent; `sightings` keep the model as evidence (#1221; import #1222) [V]. Checked: `[guards F125.6]` in `supabase/tests/knowledge_store.sql`. Reviewed: #1222 (import) says 'Reviewed by: none', so no."
+   "note": "Built in #1221, import #1222 [V]. Checked: `[guards F125.6]` in `supabase/tests/knowledge_store.sql`. Reviewed: #1222 says 'Reviewed by: none', so no."
   },
   {
    "id": "7",
@@ -123,7 +123,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`refusals` table and refusal in #1221 [V]. Checked: `[guards F125.7]` in `supabase/tests/knowledge_store.sql`."
+   "note": "`refusals` and the refusal in #1221 [V]. Checked: `[guards F125.7]` in `supabase/tests/knowledge_store.sql`."
   },
   {
    "id": "8",
@@ -142,7 +142,7 @@
    "issues": [
     1381
    ],
-   "note": "Wall built in #1221, proven for tables, views, sequences; functions no more than the public key (PM picked A, [for now]) [V]. Checked: six `[guards F125.8 partial]` blocks in `supabase/tests/knowledge_store.sql`; the 'no more than the public key' half cannot run without app tables and fails locally on main; no whole marker, so no."
+   "note": "Wall built in #1221 (PM picked A for stage 1, [for now]) [V]. Checked: six `[guards F125.8 partial]` blocks in `supabase/tests/knowledge_store.sql`, no whole marker, so no."
   },
   {
    "id": "9",
@@ -160,7 +160,7 @@
    "issues": [
     1286
    ],
-   "note": "`live('moderation-and-reports')` was 1,755 tokens in #1226; over budget once (#1284, fixed in #1285 to 1,736); #1286 (open) warns it will pass again as rulings grow [V]. Checked: `[guards F125.9]` in `tests/knowledge-lookup.test.ts`. Reviewed: #1285 says 'Reviewed by: none', so no."
+   "note": "`live('moderation-and-reports')` measured 1,822 tokens in #1411, which raised the test's margin to 1,900; still under 2,000 but growing; #1286 (open) is the scaling fix [V]. Checked: `[guards F125.9]` in `tests/knowledge-lookup.test.ts`. Reviewed: #1285 says 'Reviewed by: none', so no."
   },
   {
    "id": "10",
@@ -176,7 +176,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built through the lookup tool (#1226) [V]. Checked: `[guards F125.10]` in `tests/knowledge-lookup.test.ts`."
+   "note": "`precedents` verb (#1226) [V]. Checked: `[guards F125.10]` in `tests/knowledge-lookup.test.ts`."
   },
   {
    "id": "11",
@@ -208,7 +208,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`unanswered` log in #1226 [V]. Checked: `[guards F125.12]` in `tests/knowledge-lookup.test.ts`."
+   "note": "`unanswered` log (#1226) [V]. Checked: `[guards F125.12]` in `tests/knowledge-lookup.test.ts`."
   },
   {
    "id": "13",
@@ -227,7 +227,7 @@
     1220,
     1224
    ],
-   "note": "Not built [V]: `scripts/knowledge/export.ts` reads the rows back, but no workflow writes the nightly export or opens the PR (workflows: import, keys, conditions, drift, pack, answers, capabilities, run-links only). #1220 (open) is this criterion. Open bug #1224 (an ontology entry cannot move from coming to live) is tagged to it too."
+   "note": "Not built [V]: `knowledge-import.yml` now runs daily at 13:20 UTC, but only as a dry run of the import (#1464); no workflow writes the store's export to socialus-plan or opens a PR. #1220 (open) is this criterion; open bug #1224 is tagged to it."
   },
   {
    "id": "14",
@@ -245,7 +245,7 @@
    "issues": [
     1382
    ],
-   "note": "Suite exists: 20 blocks in `supabase/tests/knowledge_store.sql` run by `tests/knowledge-store-db.test.ts`, each guard mutated out and seen red (#1221 PR body) [V]. Checked: one `[guards F125.14 partial]`; the drift query and `precedents` stress tests were left to the lookup tool and carry no whole marker, so no."
+   "note": "Suite in `supabase/tests/knowledge_store.sql`, run by `tests/knowledge-store-db.test.ts`, each guard seen red (#1221 body) [V]. Checked: one `[guards F125.14 partial]`, so no."
   }
  ]
 }

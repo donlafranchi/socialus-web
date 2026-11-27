@@ -365,18 +365,41 @@ export function BrowseSurface({
     return (
       <main className="pb-[var(--dock-clearance)]" data-testid="browse-page">
         <div className="mx-auto max-w-xl px-3 py-10 md:px-6">
-          <div className="card p-6 text-center" data-testid="feed-no-place">
-            <p className="text-sm text-[var(--color-fg)]">
-              We don&rsquo;t know which area to show you yet.
-            </p>
-            <button
-              type="button"
-              onClick={() => setScopeOpen(true)}
-              className="press mt-3 inline-flex min-h-11 items-center text-sm font-medium text-[var(--color-charcoal-900)] underline"
-            >
-              Choose your area
-            </button>
-          </div>
+          {/* F081 (the PM, 2026-11-25) — near several open markets: they choose from those. Draft copy (human-review). */}
+          {snapshot.prompt?.kind === 'choose' ? (
+            <div className="card p-6 text-center" data-testid="feed-choose-nearby">
+              <p className="text-sm text-[var(--color-fg)]">You&rsquo;re near more than one SocialUs area. Which one?</p>
+              <ul className="mt-3 flex flex-col items-center gap-1">
+                {snapshot.prompt.among.map((m) => (
+                  <li key={m.id}>
+                    <button
+                      type="button"
+                      onClick={() => chooseMetro(m)}
+                      className="press inline-flex min-h-11 items-center text-sm font-medium text-[var(--color-charcoal-900)] underline"
+                    >
+                      {m.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="card p-6 text-center" data-testid={snapshot.prompt?.kind === 'far' ? 'feed-not-near' : 'feed-no-place'}>
+              {/* F081 — beyond an hour of every open market: the waitlist, reached by choosing their area. Draft copy. */}
+              <p className="text-sm text-[var(--color-fg)]">
+                {snapshot.prompt?.kind === 'far'
+                  ? 'SocialUs isn’t open near you yet. Find your area to hear when it opens.'
+                  : 'We don’t know which area to show you yet.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setScopeOpen(true)}
+                className="press mt-3 inline-flex min-h-11 items-center text-sm font-medium text-[var(--color-charcoal-900)] underline"
+              >
+                Choose your area
+              </button>
+            </div>
+          )}
         </div>
         <AreaPicker
           open={scopeOpen}
@@ -398,6 +421,20 @@ export function BrowseSurface({
 
       {/* F121 — the shelves, under the first look; a search or a filter is answered by the list instead. */}
       {!postsOnlyView && !filtered && !rest.trim() && !focus && shelvesFitScope(initial, snapshot) && shelves}
+
+      {/* F081 (the PM, 2026-11-25) — admitted to the open market near them, nobody picked it: say so, and how to change it. Draft copy. */}
+      {snapshot.admitted && !snapshot.chosen && (
+        <p className="px-3 pt-3 text-sm text-neutral-600 md:px-6" data-testid="browse-admitted">
+          Showing {metroName}, near you.{' '}
+          <button
+            type="button"
+            onClick={() => setScopeOpen(true)}
+            className="press inline-flex min-h-tap items-center font-medium text-[var(--color-charcoal-900)] underline underline-offset-4"
+          >
+            Change area
+          </button>
+        </p>
+      )}
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}

@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     698
    ],
-   "note": "The place control is still `AreaPicker`: a metro list (open first, waiting ordered by the cached count since #1031) and a type-to-search over neighbourhoods in the current metro; no typed town, county or market, no suggestions over the place tree [V src/components/explore/AreaPicker.tsx]. #1038 (2026-10-24, F103.4) changed its words from 'metro' to 'area' and nothing else [V PR body]. `explore_vantage` (#932) starts the rings from the member's home town but names it 'you' and offers no control [V]. Open #698, deferred. Rechecked 2026-11-20 [V]: nothing merged since 2026-11-06 adds a typed-place control or a vantage; the area picker is opened from the header search's Where (#1161)."
+   "note": "Not built. Rechecked 2026-11-27 [V grep, git log since 11-20]: the place control is still `AreaPicker` (a metro list and a neighbourhood search), opened from the header search's Where; no typed town, county or market, no session vantage. #1484 adds a \"Change area\" link that opens the same picker [V PR body, `BrowseSurface.tsx`]. Open #698 (deferred)."
   },
   {
    "id": "2",
@@ -42,11 +42,11 @@
    "issues": [
     698
    ],
-   "note": "No vantage model in the repo; today `?metro=`, `?area=` and a metro cookie (#479), and `member.default_metro.set` still remembers the last area (#1038 kept it) [V]. The rings rebuild only from the home town or the market's principal city, never from a chosen place [V]. Open #698. Rechecked 2026-11-20 [V]: nothing merged since 2026-11-06 adds a typed-place control or a vantage; the area picker is opened from the header search's Where (#1161)."
+   "note": "Not built: the pick is `?metro=`/`?area=`, a device cookie and, signed in, `member.default_metro.set` (saved as the member's default) [V]. Rechecked 2026-11-27 [V grep, git log since 11-20]: the place control is still `AreaPicker` (a metro list and a neighbourhood search), opened from the header search's Where; no typed town, county or market, no session vantage. Open #698."
   },
   {
-   "id": "3",
-   "text": "The vantage is session-only: never written to the member, never logged, never from IP or GPS; a shared link reopens it",
+   "id": "3a",
+   "text": "The vantage is session-only: never written to the member, never logged, never from GPS; a shared link reopens it",
    "kind": [
     "invariant",
     "behavior"
@@ -61,7 +61,23 @@
    "issues": [
     698
    ],
-   "note": "Not built; the metro is a cookie and `default_metro_id` on the member, and the area pick is saved as the member's default (#479) [V]. `?reach=` already travels in the link (#932). A guard is in #698's checklist. Open #698. Rechecked 2026-11-20 [V]: nothing merged since 2026-11-06 adds a typed-place control or a vantage; the area picker is opened from the header search's Where (#1161)."
+   "note": "Not built: no vantage; a member's area pick is still saved as their default and the visitor's pick is remembered on the device (#1484 keeps that) [V `scope.ts`, `remembered-metro.ts`]. `?reach=` and the search travel in the link. No guard. Open #698."
+  },
+  {
+   "id": "3b",
+   "text": "The vantage is never derived from IP",
+   "kind": [
+    "invariant"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Retired for a signed-out visitor: F081's ruling of 2026-11-25 (\"A visitor's area is guessed from their IP and confirmed, or asked as a zip\"; it replaces 2026-10-11 \"No market is picked silently\") is newer; #1484 builds to it with Vercel's city-level IP guess, read for the one answer and never stored, and never for a signed-in member [V PR body, `src/lib/geo/ip-location.ts`, `src/lib/metro/admission.ts`]. #1484 flags that the PM must retire the older record; `sync-roadmap` amends the scenario. Shown, not counted."
   },
   {
    "id": "4",
@@ -79,7 +95,7 @@
    "issues": [
     699
    ],
-   "note": "The waiting count and tell-me panel exist for a metro (`MetroNotCoveredPanel`, F076) and the cached count now loads (#1031 fixed #686 on 2026-10-24), but no vantage reaches them: the panel opens only from the picker [V]. Open #699, deferred. Rechecked 2026-11-20 [V]: nothing merged since 2026-11-06 adds a typed-place control or a vantage; the area picker is opened from the header search's Where (#1161)."
+   "note": "Not built for a vantage: the waiting count and tell-me panel exist for a metro (F076, `MetroNotCoveredPanel`) and open from the picker; #1484 sends a visitor beyond an hour of every open market to \"not open near you yet\" with Choose your area, where a waiting market offers tell-me [V PR body]. No typed vantage reaches them. Open #699 (deferred)."
   },
   {
    "id": "5",
@@ -95,10 +111,9 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    699,
-    588
+    699
    ],
-   "note": "Not built: `resolveFeedMetro` still falls back to `DEFAULT_METRO_SLUG` (Sacramento) for a visitor, and a signed-out visitor's rings start from the market's principal city (#932) [V src/lib/feed/feed-metro.ts line 116]. Ruled 2026-10-12 (F105 Rulings); #699 records on 2026-10-25 that the ruling answers #588's question by newer-wins, so what is left for the PM is the prompt's words. Open #699 (deferred), #588 (needs-pm). Rechecked 2026-11-20 [V]: nothing merged since 2026-11-06 adds a typed-place control or a vantage; the area picker is opened from the header search's Where (#1161)."
+   "note": "Half built [V `admission.ts`, `scope.ts`, PR #1484]: with several markets open and no location, the visitor chooses; but with exactly one open (today, Sacramento) and no location (local dev, CI, a lookup miss) #1484 shows that market, as an interim \"until the zip ask ships\", which this criterion forbids; no arrow to the selector; the zip ask (F081 2026-11-25) is not built. #588 closed by #1484 on 2026-11-26. F059 criterion 6 still says the one open market is shown; F105's 2026-10-12 ruling is newer. Open #699."
   }
  ]
 }

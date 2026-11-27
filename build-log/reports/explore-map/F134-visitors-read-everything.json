@@ -3,10 +3,10 @@
  "feature": "F134",
  "title": "visitors read everything; anything that writes asks them to sign in first",
  "area": "explore-map",
- "area_source": "guess",
+ "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -21,14 +21,12 @@
    "shipped": "yes",
    "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    1275
-   ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). The policies a stranger already passes now admit `anon`, and column grants are mirrored, except groups.contact_phone (members-only by default, 2026-10-07). Checked: yes, tests/f134-visitors-read-rest.test.ts [guards F134.1] makes each read as anon and as a signed-in stranger over PostgREST with the publishable key and compares the answers field by field, on rows made through the handlers; seen failing (6 of 7 failed before the migration, and mutants that grant the phone, open a wide post policy or put names back fail it). Smoked: yes, `smoke-live` 2026-11-19 on main 05178ea (routes explore, page, you; personas signedOut, stranger, member, ownerBusiness, operator at 390 and 1280 px; 15 passed, run 44594715209; it checks only that a screen loads with no error and shows no stray email) opened `explore` and `page` as signedOut and as stranger."
+   "issues": [],
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. Checked: `tests/f134-visitors-read-rest.test.ts` [guards F134.1] compares anon and a signed-in stranger over PostgREST with the publishable key, on rows made through the handlers. #1454 (11-26, deploy-health green on 92c0341d) fixed this file's 1-in-25 CI flake (PostgREST v16.2 refusing fresh tokens as issued in the future; CLI 2.118.0) and made `both()` throw on a refused read instead of returning null; markers unchanged [V PR body, file]. Smoked: `smoke-live` 45885931303 (2026-11-26, main 71107bcd, after every merge here) was red overall on member page-business, operator page and page-business (timeouts) and two sign-in stalls, but signedOut and stranger opened root, explore, page and page-business at HTTP 200 and passed [V log]."
   },
   {
    "id": "2",
-   "text": "Explore and the map are open: signed out, Explore lists Pages and posts as it does signed in (less the personal rows), and the Map pill opens the map with its pins, not sign-in",
+   "text": "Explore and the map are open: signed out, Explore lists Pages and posts as signed in (less the personal rows); a map in an answer shows its pins, not sign-in",
    "kind": [
     "behavior"
    ],
@@ -40,10 +38,9 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [
-    1275,
     1402
    ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). Explore uses the signed-in loaders minus the personal rows; the map control opens the map signed out (BrowseSurface). Checked: no, only partial markers: `guards F134.2 partial` in src/app/explore/load.test.ts (pins read signed out as signed in; a signed-out search), BrowseSurface.layout.test.tsx (the control opens the map), tests/f134-signed-out-explore.test.tsx (the list carries the post) and tests/f134-visitors-read-rest.test.ts (the database's answer); no one test asserts the whole, filed with 8, 9 and 10 as #1402. Smoked: yes for the list: the 2026-11-19 run opened `/explore` signed out (HTTP 200, no error), which is also the map's address; the pins themselves are not asserted."
+   "note": "Reworded 2026-11-25 (socialus-plan #411: \"a map in an answer\"). Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. #1459 (11-26, reviewed, deploy-health green on 722b7a26) took the map off Explore; the only map now is a Page's, and signed out it opens with its pins, not sign-in (`BrowseSurface.layout.test.tsx`) [V]. Checked: no, partial markers only (`load.test.ts` x2, `BrowseSurface.layout.test.tsx`, `f134-visitors-read-rest.test.ts`); #1402. Smoked: `smoke-live` 45885931303 (2026-11-26, main 71107bcd, after every merge here) was red overall on member page-business, operator page and page-business (timeouts) and two sign-in stalls, but signedOut and stranger opened root, explore, page and page-business at HTTP 200 and passed [V log]. The Page map itself is not smoked: smoke-live's `explore-map` route is `/explore`."
   },
   {
    "id": "3",
@@ -58,10 +55,8 @@
    "shipped": "yes",
    "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    1275
-   ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). Checked: yes, tests/f134-visitors-read-rest.test.ts [guards F134.3] (location precision compared between anon and a signed-in stranger; an area anchor is still an area). Smoked: yes for the Page and Explore screens (same run as 1), the pins' precision is not asserted by it."
+   "issues": [],
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. Checked: `f134-visitors-read-rest.test.ts` [guards F134.3]. Smoked: `smoke-live` 45885931303 (2026-11-26, main 71107bcd, after every merge here) was red overall on member page-business, operator page and page-business (timeouts) and two sign-in stalls, but signedOut and stranger opened root, explore, page and page-business at HTTP 200 and passed [V log]. Pin precision is not asserted by the smoke."
   },
   {
    "id": "4a",
@@ -76,10 +71,8 @@
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [
-    1275
-   ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). A new useSignInFirst hook (heart, save, get updates, join, Remind me, WonderPanel, MemberPostView, ReportControl) opens SignInPrompt signed out, saves nothing, carries `intent=<action>:<id>`, and back signed in only that control finishes the tap, once; post, reply and message have no control a visitor can reach (/create and the composers need an account, requires-account.ts). Checked: yes, tests/f134-writes-ask-first.test.tsx [guards F134.4] taps each control signed out (nothing sent), then signed in via the sheet's address (completes once; a link alone never writes); fails on main before the change. Smoked: unknown, the smoke is read-only and never taps a write."
+   "issues": [],
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. `useSignInFirst` opens the sheet signed out and finishes the tap once after sign-in. Checked: `tests/f134-writes-ask-first.test.tsx` [guards F134.4]. Smoked unknown: the smoke never taps a write."
   },
   {
    "id": "4b",
@@ -97,7 +90,7 @@
    "issues": [
     1401
    ],
-   "note": "[V reread 2026-11-20] not built: FollowVenueButton (rendered by VenuePublicPage on /p/[...slug]) shows a signed-out visitor a plain link, 'Sign up to get updates from this venue', to /auth/login?next=<path>: no sheet, and the follow is not completed after sign-in. The Issue's own list (#1275 item 14) names venue and member follow. FollowMemberButton has the same shape but its only importer, MemberPublicPage, is not routed (/m/[handle] is retired), so it needs nothing until it is. Filed as #1401."
+   "note": "Not built [V 2026-11-27]: `FollowVenueButton` still shows a signed-out visitor a link to `/auth/login?next=`, no sheet, and the follow is not completed after sign-in. Open #1401."
   },
   {
    "id": "5",
@@ -112,10 +105,8 @@
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [
-    1275
-   ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). anon loses insert, update, delete and truncate on every `public` table, and on future ones through default privileges. Checked: yes, a standing guard: tests/f134-visitors-read-rest.test.ts [guards F134.5] reads the posts as anon, then tries an insert, an update and a delete on every table in the public schema (more than 50) and fails on any the database answers without an error; seen failing before the migration and against a mutant that leaves a write open. Smoked: unknown, the smoke never calls the REST endpoint."
+   "issues": [],
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. Standing guard: `f134-visitors-read-rest.test.ts` [guards F134.5] tries insert, update and delete as anon on every public table. #1454 (11-26, deploy-health green on 92c0341d) fixed this file's 1-in-25 CI flake (PostgREST v16.2 refusing fresh tokens as issued in the future; CLI 2.118.0) and made `both()` throw on a refused read instead of returning null; markers unchanged [V PR body, file]. Smoked unknown: the smoke never calls the REST endpoint."
   },
   {
    "id": "6",
@@ -130,10 +121,8 @@
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [
-    1275
-   ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). Checked: yes, a standing guard: tests/f134-visitors-read-rest.test.ts [guards F134.6] checks that anon reads no unlisted post, no private Page's posts (not through browse_feed either), no phone, no members row; the phone is also held back in the Page component (ShopPublicPage.test.tsx, partial). Seen failing against mutants that grant the phone to anon and open a wide post policy. Stops and service areas now follow their Page's visibility (they were readable for draft and private Pages before). Open elsewhere: a yard-sale post shows its street to visitors as it already does to any signed-in member (the PR asks the PM). Smoked: unknown, not a screen the smoke reads."
+   "issues": [],
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. Standing guard: `f134-visitors-read-rest.test.ts` [guards F134.6]; seen failing against mutants (phone granted, wide post policy). Smoked unknown."
   },
   {
    "id": "7",
@@ -148,10 +137,8 @@
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [
-    1275
-   ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). wonder_view, member_posts_read and heart_view answer anon with names and avatars null and counts kept; town_contributors drops first names for anon. Checked: yes, tests/f134-visitors-read-rest.test.ts [guards F134.7]; it fails against a mutant that puts names back. The spelling in the PR is 'a neighbour' while the app says 'neighbor' (the PR asks the PM; #1302 made the spelling American elsewhere). Smoked: unknown."
+   "issues": [],
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. Checked: `f134-visitors-read-rest.test.ts` [guards F134.7], fails against a names-back mutant. Smoked unknown."
   },
   {
    "id": "8",
@@ -167,10 +154,9 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [
-    1275,
     1402
    ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). The withheld card, its loader, copy and Page list are deleted (grep of src finds 'withheld' only in comments), announcements_withheld and shared_post_preview are dropped, and the F093 suites are deleted with the scenario. Checked: no, partial markers only: `guards F134.8 partial` in tests/f134-visitors-read-rest.test.ts (the database projections are gone), tests/f134-signed-out-explore.test.tsx (Explore and its posts-only view) and resolve-shared-post.test.ts (a shared post's address lands on the post); none covers Home, the today row and a Page, filed as #1402. Smoked: yes, `smoke-live` 2026-11-19 on main 05178ea (routes explore, page, you; personas signedOut, stranger, member, ownerBusiness, operator at 390 and 1280 px; 15 passed, run 44594715209; it checks only that a screen loads with no error and shows no stray email) opened explore and page signed out with no error."
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. Checked: no, partial markers only (`f134-visitors-read-rest.test.ts`, `f134-signed-out-explore.test.tsx`, `resolve-shared-post.test.ts`); Home, the today row and a Page uncovered; #1402. Smoked: `smoke-live` 45885931303 (2026-11-26, main 71107bcd, after every merge here) was red overall on member page-business, operator page and page-business (timeouts) and two sign-in stalls, but signedOut and stranger opened root, explore, page and page-business at HTTP 200 and passed [V log]."
   },
   {
    "id": "9",
@@ -186,10 +172,9 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
-    1275,
     1402
    ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). The change is policies and grants that add anon, `browse_feed` drops its signed-out branches only, and the signed-in code is unchanged [A: the PR says so; no before-and-after read was repeated today]. Checked: no, `guards F134.9 partial` in tests/f134-visitors-read-rest.test.ts compares what a signed-in stranger reads, not before against after; the 22 DB suites that pinned the old hiding now assert parity. Filed as #1402. Smoked: unknown for sameness, the signed-in personas opened explore and page without error."
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. [A: the PR says signed-in code is unchanged; no before-and-after read repeated]. Checked: no, `guards F134.9 partial` only; #1402. Smoked unknown for sameness; member opened explore green, member page-business timed out in 45885931303."
   },
   {
    "id": "10",
@@ -205,10 +190,9 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
-    1275,
     1402
    ],
-   "note": "[V reread 2026-11-20] built in #1278 (merged 2026-11-12, Reviewed by: a second session, no review-skipped; deploy-health green on def1e35; the migration 20261113000000_visitors_read.sql applied to production 2026-11-12, apply workflow success). The PR body records it: a local copy of the requests run as the anon role failed 6 of 7 before the migration and passed 7 of 7 after, and the phone, wide-post-policy and names mutants fail F134.1, .6 and .7; the writes test fails on main. That is a one-off run, not a standing self-test. Checked: no, nothing in the repo re-proves each REST check against its mutant (the criterion's 'seen failing' leaves no marker); #1402 asks for a committed self-test. Smoked: unknown."
+   "note": "Built in #1278 (merged 2026-11-12; Reviewed by: a second session; deploy-health green on def1e35; migration 20261113000000_visitors_read.sql applied 2026-11-12) [V reread 2026-11-27]. Seen failing once, recorded in #1278's and #1454's bodies (#1454: a forged token and an extra anon column both fail); no standing self-test re-proves each REST check against its mutant. Checked: no; #1402."
   }
  ]
 }

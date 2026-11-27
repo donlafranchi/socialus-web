@@ -168,8 +168,9 @@ export async function enrichPage(
         g.photo_url = null
       }
     }
-    const samples = await db.query(`select id, sample_kind, starts_at, ends_at from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
-    const needs = !g.photo_url || (!page.schedule && !page.events && samples.rows.length < 3)
+    const samples = await db.query(`select id, sample_kind, starts_at, ends_at, body from public.page_posts where group_id = $1 and sample_kind is not null order by created_at`, [g.id])
+    if (!page.schedule && !page.events && samples.rows.length && (await trimSamples(db, samples.rows as TrimRow[], page, now))) touched = true
+    const needs = !g.photo_url || (!page.schedule && !page.events && samples.rows.length < 1)
     if (needs) {
       const e = await gather()
       if (e.photos.length < PHOTOS_PER_PAGE) throw new Error(`only ${e.photos.length} pictures found, ${PHOTOS_PER_PAGE} wanted`)
@@ -183,7 +184,7 @@ export async function enrichPage(
         await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'phone', $2, $3, $4)`, [g.id, e.siteUrl, CAPTURED_ON, CAPTURED_BY])
       }
       await mergeSocial(db, g, e)
-      if (!page.schedule && !page.events && samples.rows.length < 3) {
+      if (!page.schedule && !page.events && samples.rows.length < 1) {
         await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
         const posts = samplePosts({ name: page.name, slug: page.slug, pool: page.pool, area: page.area }, now)
         for (const [i, post] of posts.entries()) {
@@ -227,6 +228,27 @@ async function mergeSocial(db: Db, g: { id: string; social_links: Record<string,
 }
 
 type SampleRow = { id: string; sample_kind: SampleKind; starts_at: Date | null; ends_at: Date | null }
+type TrimRow = SampleRow & { body: string }
+
+/**
+ * Don, 2026-11-26 — one sample a Page, short. A Page loaded with three keeps its event (or its oldest), loses the
+ * others, and the one it keeps is rewritten to the current wording with its picture and credit kept, so no
+ * pictures are fetched again. `rows` is cut to the one kept. True when it changed anything.
+ */
+export async function trimSamples(db: Db, rows: TrimRow[], page: Pick<PlannedPage, 'name' | 'slug' | 'pool' | 'area'>, now: Date): Promise<boolean> {
+  const keep = rows.find((r) => r.sample_kind === 'event') ?? rows[0]!
+  const extra = rows.filter((r) => r.id !== keep.id).map((r) => r.id)
+  const [post] = samplePosts({ name: page.name, slug: page.slug, pool: page.pool, area: page.area }, now)
+  const credit = /\n\nPhoto: ([^\n]+)$/.exec(keep.body)?.[1]
+  const body = credit ? `${post!.body}\n\nPhoto: ${credit}` : post!.body
+  if (!extra.length && keep.sample_kind === 'event' && keep.body === body) return false
+  if (extra.length) await db.query(`delete from public.page_posts where id = any($1::uuid[]) and sample_kind is not null`, [extra])
+  await db.query(`update public.page_posts set sample_kind = 'event', kind = $2, headline = $3, body = $4, updated_at = $5 where id = $1 and sample_kind is not null`, [keep.id, post!.postKind, post!.headline, body, now])
+  keep.sample_kind = 'event'
+  keep.body = body
+  rows.splice(0, rows.length, keep)
+  return true
+}
 
 /**
  * The PM, 2026-10-16 — a finished sample rolls three weeks on; one off the Page's weekly pattern (dated before it, or

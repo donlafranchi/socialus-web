@@ -204,6 +204,38 @@ describe('T156 — the empty and failed states are different things', () => {
   })
 })
 
+// F081 (the PM, 2026-11-25) — admitted by where they are, choosing between nearby markets, or none near.
+describe('F081 — a visitor with no market of their own', () => {
+  it('admitted to the market near them: the results, a line naming it, and Change area', () => {
+    renderExplore(<BrowseSurface initial={snapshot({ admitted: true })} />)
+    expect(screen.getByText('Sourdough Co')).toBeInTheDocument()
+    expect(screen.getByTestId('browse-admitted')).toHaveTextContent(`Showing ${SAC.name}, near you.`)
+    fireEvent.click(screen.getByRole('button', { name: 'Change area' }))
+    expect(screen.getByTestId('scope-sheet')).toBeInTheDocument()
+  })
+
+  it('a market they chose carries no "near you" line', () => {
+    renderExplore(<BrowseSurface initial={snapshot({ chosen: true })} />)
+    expect(screen.queryByTestId('browse-admitted')).toBeNull()
+  })
+
+  it('near several markets: they choose from those, and choosing reads that market', async () => {
+    browseFeedAction.mockResolvedValue(snapshot({ metro: PDX, chosen: true }))
+    renderExplore(<BrowseSurface initial={snapshot({ metro: null, results: [], prompt: { kind: 'choose', among: [SAC, PDX] } })} />)
+    const prompt = screen.getByTestId('feed-choose-nearby')
+    expect(within(prompt).getAllByRole('button').map((b) => b.textContent)).toEqual([SAC.name, PDX.name])
+    fireEvent.click(within(prompt).getByRole('button', { name: PDX.name }))
+    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(PDX.slug))
+  })
+
+  it('near none: says SocialUs is not open near them, and offers their area (the waitlist)', () => {
+    renderExplore(<BrowseSurface initial={snapshot({ metro: null, results: [], prompt: { kind: 'far' } })} />)
+    expect(screen.getByTestId('feed-not-near')).toHaveTextContent('isn’t open near you yet')
+    fireEvent.click(screen.getByRole('button', { name: 'Choose your area' }))
+    expect(screen.getByTestId('scope-sheet')).toBeInTheDocument()
+  })
+})
+
 describe('T156 — switching metro', () => {
   it('refetches through the server action and keeps the previous page until it resolves', async () => {
     let release: (v: BrowseSnapshot) => void = () => {}

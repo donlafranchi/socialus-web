@@ -7,12 +7,15 @@
 //   --only <name fragment>                     one venue
 // With --apply it also needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY: each show gets its own picture (#1045).
 //
-// Idempotent (one post per venue + night + title). Polite: robots.txt is obeyed, one request at a time, 3 s apart.
-// A venue whose page fails or reads no shows is listed in $BROKEN_FILE so the workflow files an Issue; its posts stay.
-import { appendFileSync, writeFileSync } from 'node:fs'
+// Idempotent (one post per venue + night + title). Polite (#1485): robots.txt is obeyed, one request at a time, at least
+// 3 s apart per host (more if its Crawl-delay asks), Retry-After honoured, a bot checkpoint never retried. A venue that
+// failed for a passing reason is tried once more at the end of the run. One still broken is listed in $BROKEN_FILE (its
+// posts stay); with $STRIKES_FILE, $FILE_FILE lists only those broken STRIKES_TO_FILE mornings in a row, for an Issue.
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
 import { Client } from 'pg'
-import { getWithRetries, HTML_FOLLOW, remindVenueFollowers, parseShows, robotsAllows, syncVenueShows, upcoming, SHOWS_AHEAD_DAYS, type VenueShow } from '../../src/lib/unclaimed/venue-events'
+import { HTML_FOLLOW, remindVenueFollowers, parseShows, robotsAllows, syncVenueShows, upcoming, SHOWS_AHEAD_DAYS, type VenueShow } from '../../src/lib/unclaimed/venue-events'
+import { FetchError, getWithRetries, hostPacer, tallyStrikes } from '../../src/lib/unclaimed/polite-fetch'
 import { eventPhoto } from '../../src/lib/unclaimed/event-photo'
 import { uploadPhotos } from '../../src/lib/unclaimed/upload'
 import type { PlannedPage } from '../../src/lib/unclaimed/plan'
@@ -29,11 +32,23 @@ const pageCache = new Map<string, Promise<string>>()
 /** One request per address per run (Harlow's and the Starlet Room share a list). */
 const get = (url: string) => (pageCache.get(url) ?? pageCache.set(url, fetchPage(url)).get(url)!)
 
-const fetchPage = (url: string) => getWithRetries(url, fetch, pause)
+const pace = hostPacer(pause)
+const MIN_GAP = 3000
+const fetchPage = async (url: string) => {
+  const origin = new URL(url).origin
+  await pace(url, url.endsWith('/robots.txt') ? MIN_GAP : Math.max(MIN_GAP, crawlDelay(url)))
+  return getWithRetries(url, fetch, pause).catch((e) => {
+    pageCache.delete(url)
+    if (url === `${origin}/robots.txt`) robotsCache.delete(origin)
+    throw e
+  })
+}
 
 async function allowed(url: string): Promise<boolean> {
   const u = new URL(url)
-  if (!robotsCache.has(u.origin)) robotsCache.set(u.origin, await get(`${u.origin}/robots.txt`).catch(() => ''))
+  // RFC 9309: a robots.txt that answers 4xx means no rules; anything else unread (429, 5xx, a checkpoint) means not now.
+  if (!robotsCache.has(u.origin))
+    robotsCache.set(u.origin, await get(`${u.origin}/robots.txt`).catch((e) => { if (e instanceof Error && /^HTTP 4/.test(e.message)) return ''; throw e }))
   return robotsAllows(robotsCache.get(u.origin)!, u.pathname + u.search)
 }
 
@@ -50,7 +65,6 @@ async function read(p: PlannedPage, now: Date): Promise<VenueShow[]> {
     const pages: Record<string, string> = {}
     // A follow page that will not load costs only its own shows; the venue is broken only when nothing reads.
     for (const url of follow.slice(0, 12)) {
-      await pause(crawlDelay(url))
       try {
         if (await allowed(url)) pages[url] = await get(url)
       } catch {
@@ -66,7 +80,6 @@ async function read(p: PlannedPage, now: Date): Promise<VenueShow[]> {
     const body = JSON.parse(await get(next)) as { next_rest_url?: string }
     shows.push(...parseShows(src, JSON.stringify(body)))
     next = body.next_rest_url
-    if (next) await pause(1000)
   }
   return shows
 }
@@ -85,19 +98,28 @@ async function main() {
   const storage = db ? createClient(need('SUPABASE_URL'), need('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false, autoRefreshToken: false } }) : null
   const broken: { name: string; url: string; error: string }[] = []
   const total = { venues: 0, listed: 0, added: 0, updated: 0, removed: 0, kept: 0, reminders: 0 }
+  const readOk: string[] = []
+  const queue = venues.map((p) => ({ p, last: false }))
   try {
-    for (const [i, p] of venues.entries()) {
-      if (i) await pause(3000)
+    for (const [i, { p, last }] of queue.entries()) {
+      if (i) await pause(last && !queue[i - 1]!.last ? 60_000 : 1000)
       const source = p.events!.page ?? p.events!.url
       let shows: VenueShow[]
       try {
         shows = await read(p, now)
         if (!shows.length) throw new Error('no shows read: the page may have changed shape')
       } catch (e) {
-        broken.push({ name: p.name, url: p.events!.url, error: e instanceof Error ? e.message : String(e) })
-        summary(`BROKEN ${p.name}: ${broken.at(-1)!.error} (${p.events!.url})`)
+        const error = e instanceof Error ? e.message : String(e)
+        if (e instanceof FetchError && e.later && !last) {
+          queue.push({ p, last: true })
+          summary(`LATER ${p.name}: ${error}; trying again at the end of the run`)
+          continue
+        }
+        broken.push({ name: p.name, url: p.events!.url, error })
+        summary(`BROKEN ${p.name}: ${error} (${p.events!.url})`)
         continue
       }
+      readOk.push(p.name)
       const ahead = upcoming(shows, now)
       total.venues++
       total.listed += ahead.length
@@ -147,6 +169,14 @@ async function main() {
   }
   summary(`Venues read ${total.venues} of ${venues.length}; shows ahead ${total.listed}; added ${total.added}, updated ${total.updated}, removed ${total.removed}, unchanged ${total.kept}; reminders added ${total.reminders}; broken ${broken.length}`)
   if (process.env.BROKEN_FILE) writeFileSync(process.env.BROKEN_FILE, JSON.stringify(broken, null, 1))
+  const { STRIKES_FILE, FILE_FILE } = process.env
+  if (STRIKES_FILE && FILE_FILE) {
+    const prev = existsSync(STRIKES_FILE) ? (JSON.parse(readFileSync(STRIKES_FILE, 'utf8')) as Record<string, number>) : {}
+    const { strikes, file } = tallyStrikes(prev, readOk, broken.map((b) => b.name))
+    writeFileSync(STRIKES_FILE, JSON.stringify(strikes, null, 1))
+    writeFileSync(FILE_FILE, JSON.stringify(broken.filter((b) => file.includes(b.name)), null, 1))
+    for (const b of broken) summary(`${b.name}: broken ${strikes[b.name]} morning(s) in a row${file.includes(b.name) ? '; filing an Issue' : ''}`)
+  }
 }
 
 main().catch((e) => {

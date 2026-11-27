@@ -3,14 +3,14 @@
  "feature": "F133",
  "title": "usage counts kept in our own database, nothing leaving the platform",
  "area": "ops",
- "area_source": "guess",
+ "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
-   "text": "Coming back: members active each week, by the week they joined, for the last 12 weeks",
+   "text": "Coming back: members active each week by join week, last 12 weeks",
    "kind": [
     "behavior"
    ],
@@ -22,11 +22,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Count tables and handler (#1268) [V]. Checked: `[guards F133.1]` in `tests/usage-counts-db.test.ts`."
+   "note": "Built in #1268 [V]. Checked: `[guards F133.1]` in `tests/usage-counts-db.test.ts`."
   },
   {
    "id": "2",
-   "text": "What they use: per day, members who used each part of the app, once per member per part per day",
+   "text": "What they use: per day, members per part, at most once per member per part per day",
    "kind": [
     "behavior"
    ],
@@ -42,7 +42,7 @@
   },
   {
    "id": "3",
-   "text": "Where they drop off: per week, how many reached each sign-up step, a first follow and a first post",
+   "text": "Where they drop off: per week, how many reached each step of sign-up, first follow, first post",
    "kind": [
     "behavior"
    ],
@@ -58,7 +58,7 @@
   },
   {
    "id": "4",
-   "text": "Counts only: no member id, email, IP or precise location beside any count; dedupe keys are one-way hashes deleted within 8 days",
+   "text": "Counts only: no member id, email, IP or precise location beside any count; dedupe hashes deleted within 8 days",
    "kind": [
     "invariant"
    ],
@@ -70,11 +70,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built in #1268 [V]. Checked: `[guards F133.4]` in `tests/usage-counts-db.test.ts` (schema-level)."
+   "note": "Built in #1268 [V]. Checked: `[guards F133.4]` in `tests/usage-counts-db.test.ts`."
   },
   {
    "id": "5",
-   "text": "Nothing leaves: no usage data goes to an outside service; nothing added to a page load",
+   "text": "Nothing leaves: no usage data to an outside service, nothing added to page load",
    "kind": [
     "invariant"
    ],
@@ -86,11 +86,11 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built in #1268 [V]. Checked: standing guard `[guards F133.5]` in `src/lib/usage/count-use.test.ts` (no client file reaches the counting code, which calls nothing outside)."
+   "note": "Built in #1268 [V]. Checked: standing guard `[guards F133.5]` in `src/lib/usage/count-use.test.ts`."
   },
   {
    "id": "6",
-   "text": "One switch: a member who turned sharing off on You is never counted; builders are never counted",
+   "text": "One switch: a member with sharing off is never counted; builders never counted",
    "kind": [
     "behavior",
     "invariant"
@@ -103,7 +103,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Uses the existing search and map-tap switch (#1268) [V]. Checked: `[guards F133.6]` in `tests/usage-counts-db.test.ts`."
+   "note": "Existing search and map-tap switch (#1268) [V]. Checked: `[guards F133.6]` in `tests/usage-counts-db.test.ts`, which since #1458 also asserts no dedupe key is written for either."
   },
   {
    "id": "7",
@@ -119,7 +119,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Built in #1268 [V]. Checked: `[guards F133.7]` in `tests/usage-counts-db.test.ts`; the dashboard itself is slated for retirement (F131.8)."
+   "note": "Built in #1268 [V]. Checked: `[guards F133.7]` in `tests/usage-counts-db.test.ts`."
   },
   {
    "id": "8",
@@ -128,14 +128,16 @@
     "behavior"
    ],
    "status": "active",
-   "built": "unknown",
+   "built": "yes",
    "checked": "no",
-   "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Timing: #1268 PR body 'merge and apply before the first cohort'. Merged 2026-11-12; no source read today shows the migration applied in production or the cohort date [A]."
+   "issues": [
+    1496
+   ],
+   "note": "Built: counts arriving in production since 2026-11-12, checked 2026-11-18 (#1456 body, #1458 body) [V as read; not re-run against production today]; the first cohort is the dry run the week of 2026-12-28 (VN-0001, #1437). Checked: only `[guards F133.8 partial]` in `src/lib/usage/count-use.test.ts` (#1458: every part and step has a `countUse` call), so no. Filed #1496 today."
   }
  ]
 }

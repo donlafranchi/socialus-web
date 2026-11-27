@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-11-20",
+ "as_of": "2026-11-27",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
     625,
     1005
    ],
-   "note": "Six subject kinds go through `report.create`: Page photo, Page picture, post, post photo, the Page's own words (`page_words`, #820, closed #625) and a featured product or service (`page_item`, #920); the checks on `reports`, `member_notices` and `legal_holds` carry all six (migration 20261019013909); `run-assessment.ts` joins each kind's text and photo for the shadow read [V] Checked: `[guards F078.1]` in `f078-reportable-everything.test.ts:163` (#1036, closed #1005): every registered action is classified as a poster or as posting nothing, every poster's kind is accepted and stored and queued for the AI read, and no other kind is accepted; seen failing against eight mutants; F117 (#1081) and F118 (#1093) added their new actions to its classification [V] Reviewed: #820 `review-skipped`; #499, #513 clean; #920 carries `Reviewed by:` [V] Shipped: deploy-health green on #820 (e82442f), #920 (0aa3c68) and #1036 (3e5020d) [V] Smoked: yes. `smoke-live` on `main` 2026-11-19 (05178ea, the current head) was green on `page` for the signed-out and signed-in personas, after every merge that touched it; the run opens the screen and sends no report; the menu entries render [V gh run view 2026-11-20]."
+   "note": "Six subject kinds go through `report.create`: Page photo, Page picture, post, post photo, the Page's own words (`page_words`, #820, closed #625) and a featured product or service (`page_item`, #920); the checks on `reports`, `member_notices` and `legal_holds` carry all six (migration 20261019013909); `run-assessment.ts` joins each kind's text and photo for the shadow read [V] Checked: `[guards F078.1]` in `f078-reportable-everything.test.ts:163` (#1036, closed #1005): every registered action is classified as a poster or as posting nothing, every poster's kind is accepted and stored and queued for the AI read, and no other kind is accepted; seen failing against eight mutants; F117 (#1081) and F118 (#1093) added their new actions to its classification [V] Reviewed: #820 `review-skipped`; #499, #513 clean; #920 carries `Reviewed by:` [V] Shipped: deploy-health green on #820 (e82442f), #920 (0aa3c68) and #1036 (3e5020d) [V] Smoked: yes. `smoke-live` on `main` 2026-11-19 (05178ea, the current head) was green on `page` for the signed-out and signed-in personas, after every merge that touched it; the run opens the screen and sends no report; the menu entries render [V gh run view 2026-11-20]. Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]. Smoke 2026-11-27: `smoke-live` on `main` 2026-11-26 (71107bc) was green on `page` for the signed-out, stranger, member and business-owner personas and red for the operator (\"the page did not open in time\", #1166); the member is this criterion's actor, so it stays yes [V gh run view 2026-11-27]."
   },
   {
    "id": "2",
@@ -43,7 +43,7 @@
    "issues": [
     834
    ],
-   "note": "`create.ts`: `shouldHide` needs `priorByOthers > 0`; the first report writes a courtesy notice (#706) [V] Checked: `[guards F078.2]` in `f078-criteria.test.ts:241`, seen failing against four mutants (#901, closed #834) [V] Reviewed: #706 `review-skipped` [V] Shipped: green on #494, #499, #506, #706 [V] Smoked: the `report-sent` route exists in `evals/screens/routes.ts` but `smoke-live` has no live address for it (`LIVE_PATHS` in `evals/smoke/live.spec.ts`), so no run sends a report [V]"
+   "note": "`create.ts`: `shouldHide` needs `priorByOthers > 0`; the first report writes a courtesy notice (#706) [V] Checked: `[guards F078.2]` in `f078-criteria.test.ts:241`, seen failing against four mutants (#901, closed #834) [V] Reviewed: #706 `review-skipped` [V] Shipped: green on #494, #499, #506, #706 [V] Smoked: the `report-sent` route exists in `evals/screens/routes.ts` but `smoke-live` has no live address for it (`LIVE_PATHS` in `evals/smoke/live.spec.ts`), so no run sends a report [V] Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   },
   {
    "id": "3",
@@ -63,7 +63,7 @@
     628,
     629
    ],
-   "note": "`member_notices` row written in the hide transaction; `YouNotices` on `/you`; child content sends none by ruling (F078 criterion 8) [V] Checked: `[guards F078.3]` in `f078-criteria.test.ts:72`; the never-email guard in `f078-guards.test.ts:21` is partial on purpose (the in-app write is the handler's check) [V] Reviewed: #494, #706 `review-skipped` [V] Shipped: green [V] Smoked: yes. `smoke-live` on `main` 2026-11-19 (05178ea) was green on `you`, after #1172 changed it; the notices list renders and none is seeded, so no answer is tapped [A]."
+   "note": "`member_notices` row written in the hide transaction; `YouNotices` on `/you`; child content sends none by ruling (F078 criterion 8) [V] Checked: `[guards F078.3]` in `f078-criteria.test.ts:72`; the never-email guard in `f078-guards.test.ts:21` is partial on purpose (the in-app write is the handler's check) [V] Reviewed: #494, #706 `review-skipped` [V] Shipped: green [V] Smoked: yes. `smoke-live` on `main` 2026-11-19 (05178ea) was green on `you`, after #1172 changed it; the notices list renders and none is seeded, so no answer is tapped [A]. Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]. Smoke 2026-11-27: no run since 11-19 covered `you` and nothing changed it, so the 11-19 green run still stands [V gh run view 2026-11-27]."
   },
   {
    "id": "4a",
@@ -84,7 +84,7 @@
     834,
     1020
    ],
-   "note": "`report.answer` one per hide, a single \"This is a mistake\" button (#706); an unanswered hide closes after 14 days (#773) [V] Checked: `f078-criteria.test.ts:300` (the #834 check, seen failing against three mutants in #901) now carries `[guards F078.4 partial: ...]` since #1035 (closed #1020: the scenario has no 4a, so the marker cites 4); its only exclusion is the retired 4b clause, so it claims all of 4a [V] Reviewed: #706, #773 `review-skipped` [V] Shipped: #1035 (c3845a8) green [V] Smoked: the answer button lives on `/you` behind a seeded notice; no run has one [V]"
+   "note": "`report.answer` one per hide, a single \"This is a mistake\" button (#706); an unanswered hide closes after 14 days (#773) [V] Checked: `f078-criteria.test.ts:300` (the #834 check, seen failing against three mutants in #901) now carries `[guards F078.4 partial: ...]` since #1035 (closed #1020: the scenario has no 4a, so the marker cites 4); its only exclusion is the retired 4b clause, so it claims all of 4a [V] Reviewed: #706, #773 `review-skipped` [V] Shipped: #1035 (c3845a8) green [V] Smoked: the answer button lives on `/you` behind a seeded notice; no run has one [V] Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   },
   {
    "id": "4b",
@@ -102,7 +102,7 @@
    "issues": [
     626
    ],
-   "note": "RETIRED. Overtaken by the 2026-10-11 courtesy-notice ruling in F078 `## Rulings` (and criterion 6): a second report now sends the item to a person. The partial markers at `f078-criteria.test.ts:169` and `:300` say so. The scenario still carries the old clause in criterion 4; `sync-roadmap` amends it [V]."
+   "note": "RETIRED. Overtaken by the 2026-10-11 courtesy-notice ruling in F078 `## Rulings` (and criterion 6): a second report now sends the item to a person. The partial markers at `f078-criteria.test.ts:169` and `:300` say so. The scenario still carries the old clause in criterion 4; `sync-roadmap` amends it [V]. Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   },
   {
    "id": "5",
@@ -121,7 +121,7 @@
    "issues": [
     628
    ],
-   "note": "`alertOperator` after commit: email through Resend, which is what the 2026-11-12 ruling in F078 `## Rulings` settles for now (\"the urgent-report alert reaches the PM by email for now\", [for now]); it sends SMS instead when Twilio values exist [V reread 2026-11-20, `src/actions/report/create.ts:691`, `src/lib/notify/email.ts`]. The mobile queue is `/admin/reports`. #707 (Twilio) stays open for sign-in codes and no longer gates this criterion. The alert text says \"hid a Page photo\" for a picture, post photo, words or item too (#901's note) [V] Checked: `[guards F078.5]` in `f078-criteria.test.ts:95`, which carries `partial` notes only about SMS once Twilio exists [V] Reviewed: #483 `review-skipped`; #751 no `Reviewed by:` [V] Shipped: green on #483 and #751 [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
+   "note": "`alertOperator` after commit: email through Resend, which is what the 2026-11-12 ruling in F078 `## Rulings` settles for now (\"the urgent-report alert reaches the PM by email for now\", [for now]); it sends SMS instead when Twilio values exist [V reread 2026-11-20, `src/actions/report/create.ts:691`, `src/lib/notify/email.ts`]. The mobile queue is `/admin/reports`. #707 (Twilio) stays open for sign-in codes and no longer gates this criterion. The alert text says \"hid a Page photo\" for a picture, post photo, words or item too (#901's note) [V] Checked: `[guards F078.5]` in `f078-criteria.test.ts:95`, which carries `partial` notes only about SMS once Twilio exists [V] Reviewed: #483 `review-skipped`; #751 no `Reviewed by:` [V] Shipped: green on #483 and #751 [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]. Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]. Smoke 2026-11-27: still unknown; the runs of 11-20 to 11-24 smoked no route, 11-25 `explore` and `explore-map`, 11-26 `root`, `explore`, `explore-map`, `onboarding`, `page`, `page-business`, `page-private`, `page-edit`; none opened `admin-reports` [V gh run view 2026-11-27]."
   },
   {
    "id": "6",
@@ -139,7 +139,7 @@
    "issues": [
     628
    ],
-   "note": "A report is always stored and queued; hiding is separate (`create.ts`) [V] Checked: `[guards F078.6]` in `f078-criteria.test.ts:120` [V] Reviewed: #706 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]."
+   "note": "A report is always stored and queued; hiding is separate (`create.ts`) [V] Checked: `[guards F078.6]` in `f078-criteria.test.ts:120` [V] Reviewed: #706 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no `main` run since has opened it (11-11 covered `page`, `page-private`, `explore`, `you`; 11-18 and 11-19 covered `explore`, `page`, `you`; the green runs of 11-04, 11-07 and 11-10 smoked no route) [V gh run view 2026-11-20]. Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]. Smoke 2026-11-27: still unknown; the runs of 11-20 to 11-24 smoked no route, 11-25 `explore` and `explore-map`, 11-26 `root`, `explore`, `explore-map`, `onboarding`, `page`, `page-business`, `page-private`, `page-edit`; none opened `admin-reports` [V gh run view 2026-11-27]."
   },
   {
    "id": "7",
@@ -157,7 +157,7 @@
    "issues": [
     628
    ],
-   "note": "`metro_polygons.hide_bar` coalesces to 0, min() on overlap; the AI stays in shadow so no score drives hiding, as ruled (#626) [V] Checked: `[guards F078.7]` in `f078-criteria.test.ts:136` [V] Reviewed: #494 `review-skipped` [V] Smoked: a data value, no screen shows it [V]"
+   "note": "`metro_polygons.hide_bar` coalesces to 0, min() on overlap; the AI stays in shadow so no score drives hiding, as ruled (#626) [V] Checked: `[guards F078.7]` in `f078-criteria.test.ts:136` [V] Reviewed: #494 `review-skipped` [V] Smoked: a data value, no screen shows it [V] Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   },
   {
    "id": "8",
@@ -173,7 +173,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`URGENT_CATEGORIES` bypass the bar, the courtesy step and the reporter limits (`create.ts`) [V] Checked: `[guards F078.8]` in `create.test.ts:561` [V] Reviewed: #483 `review-skipped` [V] Smoked: no run sends a report [V]"
+   "note": "`URGENT_CATEGORIES` bypass the bar, the courtesy step and the reporter limits (`create.ts`) [V] Checked: `[guards F078.8]` in `create.test.ts:561` [V] Reviewed: #483 `review-skipped` [V] Smoked: no run sends a report [V] Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   },
   {
    "id": "9",
@@ -189,7 +189,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Handler and sheet both refuse [V] Checked: `[guards F078.9]` in `create.test.ts:453` and `ReportControl.test.tsx:159` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: the `report-sheet` route exists but `smoke-live` has no live address for it [V]"
+   "note": "Handler and sheet both refuse [V] Checked: `[guards F078.9]` in `create.test.ts:453` and `ReportControl.test.tsx:159` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: the `report-sheet` route exists but `smoke-live` has no live address for it [V] Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   },
   {
    "id": "10",
@@ -207,7 +207,7 @@
    "issues": [
     834
    ],
-   "note": "Sheet lines `reportCourtesy` and `reportUrgentSkip` end \"Please don't misuse reports.\" (no numbers, per the 2026-10-11 copy ruling; untouched by #1087) [V]; strikes counted at report time in `create.ts` [V] Checked: `[guards F078.10]` in `f078-criteria.test.ts:335` claims the line before Send and the strikes together, seen failing against three mutants (#901); the strikes-only marker in `create.test.ts:793` is partial [V] Reviewed: #706 `review-skipped` [V] Smoked: no run opens the sheet [V]"
+   "note": "Sheet lines `reportCourtesy` and `reportUrgentSkip` end \"Please don't misuse reports.\" (no numbers, per the 2026-10-11 copy ruling; untouched by #1087) [V]; strikes counted at report time in `create.ts` [V] Checked: `[guards F078.10]` in `f078-criteria.test.ts:335` claims the line before Send and the strikes together, seen failing against three mutants (#901); the strikes-only marker in `create.test.ts:793` is partial [V] Reviewed: #706 `review-skipped` [V] Smoked: no run opens the sheet [V] Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   },
   {
    "id": "11",
@@ -226,7 +226,7 @@
     627,
     834
    ],
-   "note": "Strings from the PM's recorded copy calls (#706; `copy.ts`, `notices.ts`, `ReportSheet.tsx`); #938 relabelled the menu entries [V]. #1087 (2026-10-26, under #1078: ship under the voice rules, the PM edits live) rewrote the two after-send lines (\"The Page owner gets a courtesy notice first. Thanks for being decent.\" / \"It's being sent to a person from our team. Thanks for being decent.\") and the 911 line; the sheet's intro, the misuse lines and the poster notices are unchanged [V] Checked: `report-path-copy.test.tsx:62` asserts every reporter and poster string against the PM's rules (no numbers in the warning, \"a person from our team\", no developer string), seen failing against four mutants (#901), green on main after #1087; its marker leaves out only the PM's storyboard approval, which is a look, not a test, so it counts here [V] Reviewed: #706 `review-skipped`; #1087 carries `Reviewed by:` and a posted review [V] Shipped: #706 (b628e62) and #1087 (8b313b0) green [V] Smoked: no run opens the sheet [V] PM looked: #1087 opened with a Review block for his look on socialus.org; nothing ticked; the storyboard (socialus-plan #94) is still open [V]"
+   "note": "Strings from the PM's recorded copy calls (#706; `copy.ts`, `notices.ts`, `ReportSheet.tsx`); #938 relabelled the menu entries [V]. #1087 (2026-10-26, under #1078: ship under the voice rules, the PM edits live) rewrote the two after-send lines (\"The Page owner gets a courtesy notice first. Thanks for being decent.\" / \"It's being sent to a person from our team. Thanks for being decent.\") and the 911 line; the sheet's intro, the misuse lines and the poster notices are unchanged [V] Checked: `report-path-copy.test.tsx:62` asserts every reporter and poster string against the PM's rules (no numbers in the warning, \"a person from our team\", no developer string), seen failing against four mutants (#901), green on main after #1087; its marker leaves out only the PM's storyboard approval, which is a look, not a test, so it counts here [V] Reviewed: #706 `review-skipped`; #1087 carries `Reviewed by:` and a posted review [V] Shipped: #706 (b628e62) and #1087 (8b313b0) green [V] Smoked: no run opens the sheet [V] PM looked: #1087 opened with a Review block for his look on socialus.org; nothing ticked; the storyboard (socialus-plan #94) is still open [V] Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   },
   {
    "id": "12",
@@ -244,7 +244,7 @@
    "issues": [
     834
    ],
-   "note": "`create.ts` counts `priorByOthers`; one member filing twice hides nothing (#706, ruled 2026-10-11) [V] Checked: `[guards F078.12]` in `f078-criteria.test.ts:271`, seen failing against two mutants (#901) [V] Reviewed: #706 `review-skipped` [V] Smoked: no run sends a report [V]"
+   "note": "`create.ts` counts `priorByOthers`; one member filing twice hides nothing (#706, ruled 2026-10-11) [V] Checked: `[guards F078.12]` in `f078-criteria.test.ts:271`, seen failing against two mutants (#901) [V] Reviewed: #706 `review-skipped` [V] Smoked: no run sends a report [V] Reread 2026-11-27: no file under the report path, review queue, moderation lib or migrations changed on `main` since 2026-11-20 (cd1bc11..ff9750b); every cited file exists, the marker set is unchanged and the 46 marked unit-test files pass (628 tests) [V]."
   }
  ]
 }

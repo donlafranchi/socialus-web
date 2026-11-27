@@ -28,7 +28,8 @@ test.describe('F059 — a list at every width', () => {
     test(`at ${width}px the list stands alone, with nothing that opens a map`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 })
       await page.goto('/explore')
-      await expect(page.getByTestId('card-grid')).toBeVisible()
+      // The list pane, not its cards: whether the seed has a visible row at this moment is not what this checks.
+      await expect(page.getByTestId('browse-list-pane')).toBeVisible()
       await expect(page.getByTestId('browse-map-pane')).toHaveCount(0)
       await expect(page.getByRole('link', { name: /on (the )?map/i })).toHaveCount(0)
       await expect(page.getByRole('button', { name: /(show|hide) (the )?map/i })).toHaveCount(0)
@@ -39,7 +40,7 @@ test.describe('F059 — a list at every width', () => {
   test('an old ?view=map link opens the list, not a map', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto('/explore?view=map')
-    await expect(page.getByTestId('card-grid')).toBeVisible()
+    await expect(page.getByTestId('browse-list-pane')).toBeVisible()
     await expect(page.getByTestId('browse-map')).toHaveCount(0)
   })
 })

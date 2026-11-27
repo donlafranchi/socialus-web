@@ -1,0 +1,153 @@
+{
+ "schema": 1,
+ "feature": "F030",
+ "title": "a newcomer signs up, finishes onboarding and lands in the app",
+ "area": "sign-in-you",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-27",
+ "criteria": [
+  {
+   "id": "1a",
+   "text": "Signed out, a visitor reads what a signed-in stranger reads (F134.1) and every write asks for sign-in first (F134.4)",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "[V 2026-11-27] built by #1278 (F134 T1023; Reviewed by: second session with a linked review; deploy-health green on def1e35). Checked: yes through F134's own guards, tests/f134-visitors-read-rest.test.ts [guards F134.1] and tests/f134-writes-ask-first.test.tsx [guards F134.4], which assert the same claim; no F030 marker. Smoked: yes, `smoke-live` 2026-11-25 on e93e53c (run 45691147708, green, routes root and explore) and the signedOut persona passing root, explore and page on 2026-11-26 (71107bc); it checks only that a screen loads with no error and no stray email."
+  },
+  {
+   "id": "1b",
+   "text": "No \"Make this yours\" banner, no locality feed and no scope picker appear anywhere",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    1489
+   ],
+   "note": "[V 2026-11-27] the banner left in #1302 (human-review; 'Reviewed by: a second session … (requested next)', only COMMENTED reviews, so no; green on 60c7fe3); the feed, empty state and ScopePicker left in #1440 (closes #1363; Reviewed by: second session; green on e93e53c). grep of src finds 'Make this yours' only in BrowseSurface.test.tsx, whose test covers signed-in members on one surface; no standing guard scans signed-out surfaces. The locality_feed_items SQL function remains (dropping it needs a migration). Filed #1489. Smoked: yes, run 45691147708 on e93e53c (#1440's own merge) green on root and explore."
+  },
+  {
+   "id": "2",
+   "text": "Email first: on sign-in, an email the app does not know goes to sign-up; one it knows asks for the password and signs the member in",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "[V 2026-11-27] cannot be met as written without reversing live rulings: members have one way in, the email then a 6-digit code (SignInForm, #946; signInWithOtp makes the account when the email is new, so there is no known/unknown fork and no password), and socialus-plan product/systems/member.md 2026-11-12 rules 'No passwords anywhere' with phone first (F081 2026-11-12, #1280). The password fork described here exists only at /auth/password, the unlinked page kept for evals and the live smoke (EmailFirstSignup). F030 was restated on 2026-11-26 'to match what is built'; this criterion describes the eval page, not the member path. Routed to scope-scenario (restate to the emailed code until #1280 lands)."
+  },
+  {
+   "id": "3",
+   "text": "Onboarding is one screen (legal name, display name, zip, 18+ box), then the market or the waiting screen, then an optional interests step; each step saves when submitted",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1490
+   ],
+   "note": "[V 2026-11-27] OnboardingFlow: the profile form (#497, review-skipped, green on d5ebc93), then 'You're in {market}' or the waiting screen (#709, #1273), then 'What are you into?' with Save and Skip for now (#911, Reviewed by: the build agent itself, green on afcb911). Each step's server action saves on submit. The phone step (off until PHONE_VERIFICATION_REQUIRED, #707) would come first. OnboardingFlow.test.tsx and onboarding/actions.test.ts test parts, unmarked for F030; filed #1490. The legal name asked here is what runs today; F081's 2026-11-12 ruling ('never a legal name', #1280) will change it, as F030's Not this says. Smoked: unknown, /onboarding is skipped by the smoke (no stable live address)."
+  },
+  {
+   "id": "4a",
+   "text": "At the end of onboarding the member sees the welcome screen once",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    1492
+   ],
+   "note": "[V 2026-11-27] finishOnboardingAction marks the login onboarded and redirects to /welcome (#1091, 'Reviewed by: pending', green on 5c3c24e); /welcome shows once and marks the login welcomed (#1133, 'Reviewed by: second session pending', green on fe89aee). welcome.test.tsx ('shows once') and actions.test.ts assert it, unmarked; filed #1492. Smoked: unknown, /welcome is not a smoke route."
+  },
+  {
+   "id": "4b",
+   "text": "Then the member lands in the chat front door (Explore until it exists)",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1494,
+    1328
+   ],
+   "note": "[V 2026-11-27] not built: there is no chat route; the welcome's Get started goes to /, and src/proxy.ts sends a signed-in member to /explore, the scenario's interim landing. Needs the front door (#1328, F136, needs-pm, milestoned 2027-01-06). Ruling: what-this-is.md 2026-11-26, 'a new member lands in chat'. Filed #1494."
+  },
+  {
+   "id": "4c",
+   "text": "A member who came by a shared link lands where the link pointed instead",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1495
+   ],
+   "note": "[V by reading 2026-11-27, not run] not built: a new member has no legal name, so src/proxy.ts redirects to /onboarding and drops the original path; /onboarding takes no next and OnboardingFlow always navigates to '/', so /welcome?next=/ follows. /welcome would honour next, and its header comment claims this behavior. Filed #1495."
+  },
+  {
+   "id": "5",
+   "text": "One browser test walks sign-up with email and password, the onboarding screen, the market, skipping interests, the welcome and the landing, seen failing first",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1497
+   ],
+   "note": "[V 2026-11-27] not built: #1440 retired the quarantined sign-up-lands-on-the-feed test, the only browser check of sign-up through onboarding; evals/features/F030-newcomer-signs-up-and-lands-in-feed.spec.ts keeps only the returning-member sign-in test (driven through /auth/password). Filed #1497."
+  }
+ ]
+}

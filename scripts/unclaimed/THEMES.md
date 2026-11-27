@@ -1,8 +1,8 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-11-12** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-26** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
-The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. **Meet-ups first** (the PM, 2026-10-31, builds on #1102): the seeder looks for groups and events where people need to show up in person, not for businesses. Rules on sources, photos and links stay in #353, #517, #542 and #556. The PM, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
+The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. **Meet-ups first** (the PM, 2026-10-31, builds on #1102): the seeder looks for groups and events where people need to show up in person, not for businesses. Rules on sources, photos and links stay in #353, #517, #542 and #556. the PM, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
 
 ## Pitch rules (#816)
 
@@ -10,7 +10,7 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 
 | Rule | Serves | Held by |
 |---|---|---|
-| **Dates** (the PM, 2026-10-16): each Page's 3 samples fall on one weekday in weeks 1, 2 and 3 from now; every weekday has Pages, more on Fri–Sun; the kinds and hours vary, and a deal runs 2–3 days. They roll forward daily as each one finishes (#1357; was every Monday). | `cap-1` timely announcements, `cap-5` current without following many | `sampleSchedule` (`src/lib/unclaimed/samples.ts`) and its tests; `unclaimed-roll.yml` rolls finished samples on and re-dates any off the pattern |
+| **One sample, short** (the PM, 2026-11-26: "one sample each", "not full of text"; was 3 samples, the PM 2026-10-16): each Page shows one sample, an event, on its own weekday in the coming week; every weekday has Pages, more on Fri–Sun, and the hours vary. It is the Sample label, a line or two and "Not a real event." It rolls on a week as it finishes (#1357). A Page loaded with three is cut to its event on the loader's next run, keeping its picture. | `cap-1` timely announcements, `cap-5` current without following many | `sampleSchedule` (`src/lib/unclaimed/samples.ts`) and its tests; `unclaimed-roll.yml` rolls finished samples on and re-dates any off the pattern |
 | **Interests:** every Page and its samples carry 1–2 of the 12 interest tags, from what the Page is. | `cap-3` the member's own signals, `cap-4` member control | `interestsFor` (`src/lib/unclaimed/plan.ts`); the loader adds missing tags on every run, so older Pages are backfilled |
 | **Coverage:** each batch of 8 or more Pages spans at least 5 towns and at least 4 interest tags (a smaller batch loads what qualifies); `ADDED.md` logs each row's interests. | `cap-2` discovery without searching | `batchCoverage`; a test fails any such `makers-YYYY-MM-DD.json` from 2026-10-17 that misses it |
 
