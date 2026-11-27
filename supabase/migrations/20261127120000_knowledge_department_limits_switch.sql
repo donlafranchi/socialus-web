@@ -59,8 +59,11 @@ language sql security definer set search_path = '' as $$
   on conflict (key) do update set value = excluded.value, why = excluded.why, changed_at = now()
 $$;
 
--- Not granted to knowledge_store (default privileges revoke it): only the
--- schema owner flips the switch.
+-- Only the schema owner flips the switch. A new function is executable by
+-- everyone until revoked (the default-privileges line in the first knowledge
+-- migration does not cover it): the test caught exactly that.
+revoke all on function knowledge.department_limits_on(), knowledge.set_department_limits(boolean, text)
+  from public, anon, authenticated, service_role, knowledge_store;
 
 create or replace function knowledge._agent() returns knowledge.agents
 language sql stable security definer set search_path = '' as $$
