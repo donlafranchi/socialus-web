@@ -170,7 +170,7 @@ begin
   perform pg_temp.act('build');
   assert pg_temp.refused(format('select knowledge.link(%L, %L, %L)', v_met, v_parent, 'part_of')) ~ 'operator',
     'off: a building key linked a met condition part_of another';
-  assert (select status from knowledge.records where id = v_parent) = 'not started', 'off: the parent became met';
+  assert knowledge.condition_status(v_parent) = 'not started', 'off: the parent became met';
 end $$;
 
 -- test: on: the old refusals return
