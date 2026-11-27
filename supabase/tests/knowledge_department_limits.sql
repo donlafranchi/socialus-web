@@ -25,7 +25,7 @@ $$;
 do $$ begin execute format('grant usage on schema %s to knowledge_store', pg_my_temp_schema()::regnamespace); end $$;
 grant knowledge_store to current_user;
 -- a record only the PM's key can see, decided by the PM, and one proposed by a department agent
-select knowledge.set_department_limits(true, 'build the fixtures under the limits');
+select set_config('knowledge.department_limits', 'on', true);  -- build the fixtures under the limits
 set local role knowledge_store;
 select pg_temp.act('ops');
 select set_config('t.pm_rec', knowledge.record(
@@ -36,7 +36,7 @@ select pg_temp.act('build');
 select set_config('t.prop', knowledge.record(
   '{"kind":"pattern","answer":"Say what we do, not what we never do.","why":"A promise is a debt.","audience":"public"}', 'fixture'), true);
 reset role;
-select knowledge.set_department_limits(false, 'the shipped state: limits off');
+select set_config('knowledge.department_limits', '', true);  -- back to the shipped state: the table says off
 set local role knowledge_store;
 
 -- test: the migration ships the limits off, and a missing setting means on

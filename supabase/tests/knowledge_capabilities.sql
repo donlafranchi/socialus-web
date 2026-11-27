@@ -11,7 +11,7 @@
 -- lives: tests/knowledge-capabilities.test.ts.
 
 -- preamble
-select knowledge.set_department_limits(true, 'this suite tests the limits');
+select set_config('knowledge.department_limits', 'on', true);  -- this suite tests the limits
 select set_config('t.ops',   knowledge.add_agent('t-ops',   'the PM',    '{}',         true),  true);
 select set_config('t.build', knowledge.add_agent('t-build', 'a builder', '{building}', false), true);
 select set_config('t.none',  knowledge.add_agent('t-none',  'a chat project', '{}',     false), true);

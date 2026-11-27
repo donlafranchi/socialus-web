@@ -45,6 +45,9 @@ values ('department_limits', 'off',
 create function knowledge.department_limits_on() returns boolean
 language sql stable security definer set search_path = '' as $$
   select coalesce((select s.value <> 'off' from knowledge.settings s where s.key = 'department_limits'), true)
+      -- A session may ask for the limits ON for itself (the tests do, so no
+      -- suite writes the shared row); it can never turn them off this way.
+      or coalesce(nullif(current_setting('knowledge.department_limits', true), '') = 'on', false)
 $$;
 comment on function knowledge.department_limits_on() is
   'Whether department and operator limits apply to agent keys. Off: every registered key counts as the PM''s own.';
