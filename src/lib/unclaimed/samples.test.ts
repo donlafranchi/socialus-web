@@ -6,7 +6,7 @@ const now = new Date('2026-10-10T18:00:00Z')
 
 describe('samplePosts (#556)', () => {
   const posts = samplePosts(subject, now)
-  // Don, 2026-11-26: one sample each, not full of text.
+  // the PM, 2026-11-26: one sample each, not full of text.
   it('is one event, a line or two long', () => {
     expect(posts.map((p) => p.kind)).toEqual(['event'])
     for (const pool of ['Food & drink', 'Goods & crafts', 'Repair & trades', 'Farm', 'Farm stay & agritourism', 'Community & volunteer', 'Shop']) {

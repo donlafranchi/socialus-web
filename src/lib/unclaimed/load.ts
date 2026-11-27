@@ -231,7 +231,7 @@ type SampleRow = { id: string; sample_kind: SampleKind; starts_at: Date | null; 
 type TrimRow = SampleRow & { body: string }
 
 /**
- * Don, 2026-11-26 — one sample a Page, short. A Page loaded with three keeps its event (or its oldest), loses the
+ * the PM, 2026-11-26 — one sample a Page, short. A Page loaded with three keeps its event (or its oldest), loses the
  * others, and the one it keeps is rewritten to the current wording with its picture and credit kept, so no
  * pictures are fetched again. `rows` is cut to the one kept. True when it changed anything.
  */
