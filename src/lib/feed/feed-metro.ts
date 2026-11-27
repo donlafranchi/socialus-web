@@ -113,6 +113,11 @@ export async function resolveFeedMetro(
   return one(supabase, 'slug', DEFAULT_METRO_SLUG)
 }
 
+/** One metro by slug, or null: no default. For a slug the cached catalog may not hold yet. */
+export function metroBySlug(supabase: FromClient, slug: string): Promise<FeedMetro | null> {
+  return one(supabase, 'slug', slug)
+}
+
 /** `resolveFeedMetro`'s precedence over a list already in hand: no read. */
 export function pickFeedMetro(
   metros: readonly FeedMetro[],

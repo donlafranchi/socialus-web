@@ -9,7 +9,7 @@
 // (`@/lib/metro/admission`). With nothing to go on, F059 criterion 6: the one open market while exactly one is open.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { DEFAULT_METRO_SLUG, resolveFeedMetro, type FeedMetro } from '@/lib/feed/feed-metro'
+import { DEFAULT_METRO_SLUG, metroBySlug, resolveFeedMetro, type FeedMetro } from '@/lib/feed/feed-metro'
 import type { Admission } from '@/lib/metro/admission'
 
 type FromClient = Pick<SupabaseClient, 'from'>
@@ -49,6 +49,11 @@ export async function resolveBrowseScope(
       (memberMetroId ? opts.catalog.find((m) => m.id === memberMetroId) : undefined) ??
       null
     : null
+  // A requested slug the cached catalog does not hold yet (a waiting county's row made moments ago) is read directly.
+  if (!own && requested && opts.catalog?.length) {
+    const fresh = await metroBySlug(supabase, requested).catch(() => null)
+    if (fresh) return { metro: fresh, chosen: true }
+  }
   if (own) {
     if (requested && own.slug === requested) return { metro: own, chosen: true }
     const picked = Boolean(opts.memberDefaultMetroId) && own.id === opts.memberDefaultMetroId
