@@ -661,7 +661,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-11-20",
+   "as_of": "2026-11-27",
    "path": "create-posts/F072-announce-with-a-time.md",
    "n": 6,
    "totals": {
@@ -681,14 +681,14 @@
      "unknown": 0
     },
     "shipped": {
-     "yes": 3,
+     "yes": 4,
      "no": 1,
-     "unknown": 2
+     "unknown": 1
     },
     "smoked": {
      "yes": 0,
-     "no": 1,
-     "unknown": 5
+     "no": 2,
+     "unknown": 4
     },
     "pm_looked": {
      "yes": 0,
@@ -715,7 +715,7 @@
      "issues": [
       599
      ],
-     "note": "`requireManagingRole` via `managingRoleForKind` in `group.post_create` and `group.post_edit`; an edit is an `update` on the same row id; `page_posts` has no client write policy [V actions/group/post.ts]. Built by #115 (T164) and #183 (T166), neither with `Reviewed by:`; Deploy health green on #183, no run for #115's merge commit (it predates the workflow). Checked: no `[guards F072.1a]` marker exists anywhere [V grep]; `post.test.ts` and `PagePosts.test.tsx` are unmarked (#599). Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "`requireManagingRole` (via `managingRoleForKind`) gates `group.post_create`, `group.post_edit` and `group.post_delete`; an edit is an `update` of the same row id [V src/actions/group/post.ts]. Checked: no `[guards F072.n]` marker anywhere [V grep]; `post.test.ts` and `PagePosts.test.tsx` are unmarked (#599). Reviewed: built by #115 and #183, neither carries `Reviewed by:` [V gh]. Shipped: Deploy health green on cff5bbf (#183); no run on f680032 (#115, predates the workflow), so unknown [V].",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -740,7 +740,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Retired: Don's 2026-10-02 ruling on #318 ('Owners can delete their own posts'), built in #319 [V gh]. It is not yet a dated line in this scenario's `## Rulings`; `sync-roadmap` should record it. Shown, not counted. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "Retired: Don, 2026-10-02, on #318: \"There's no way to delete an announcement\", which the Issue says replaces F072's no-delete under newer-decision-wins; built as `group.post_delete` (soft delete, `dissolved_at`) in #319 [V gh, post.ts]. Not yet a dated line in the scenario's `## Rulings`; `sync-roadmap` should record it. Shown, not counted.",
      "gaps": [],
      "score": 0,
      "red": false
@@ -756,22 +756,21 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "unknown",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "no",
      "pm_looked": "no",
      "issues": [
       599,
       601
      ],
-     "note": "A post shows on its Page and in browse as coming from the Page, with no price, buy control or listing chrome: no price field in the composer, none in `PagePosts.tsx` or `BrowseResultCard.tsx` [V grep]. Since 10-23 the cards were reworked (#1126 post kinds and lead line, #1143, #1168, #1170, #1140 Page view); the first four carry `Reviewed by:`, #1140 does not, and the original #115/#183/#258 carry none. Checked: unmarked tests; nothing scans for listing chrome (#599, #601). Smoked: unknown; smoke-live was green on 05178ea (11-19; routes explore, page, you; 15 passed) [V gh run] but opens no route that shows this criterion. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "Posts show on their Page and in Explore as the Page's, with no price or buy control in the composer, `PagePosts.tsx` or the browse cards [V grep]. #1459 (11-26) made Explore a list at every width; the post cards are unchanged [V git show]. Checked: unmarked tests; nothing scans for listing chrome (#599, #601). Reviewed: #1126, #1143, #1168, #1170 carry `Reviewed by:`; #115, #183, #258 and #1140 do not [V]. Shipped: green on each merge commit [V]. Smoked: the 11-26 smoke-live on 71107bc opened the page routes and was red on operator/page and member/page-business; the 11-25 green run opened only explore routes [V gh run].",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 2,
      "red": false
     },
     {
@@ -788,7 +787,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Retired by the newer ruling: F121 `## Rulings` 2026-10-30, 'Timely posts leave the shelves and lists at a shelf life set by kind ... shelf life is when a post ends', with F121.3 ('a dated item qualifies only before it ends'). It overtakes 'start time has passed', which was the spec-conflict with #815/#914 keeping a dated post until its end. Built as `post_current_until` / `SHELF_DAYS` in `src/lib/posts/kinds.ts` and `20261031120000_post_kinds.sql` (#1126). Shown, not counted. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "Retired by F121 `## Rulings` 2026-10-30: timely posts leave the shelves and lists at a shelf life set by kind; \"shelf life is when a post ends\" [V scenario-F121.md]. Built as `post_current_until` / `SHELF_DAYS` (#1126). Shown, not counted.",
      "gaps": [],
      "score": 0,
      "red": false
@@ -807,7 +806,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Retired by the same F121 ruling (2026-10-30): an undated post now leaves at its kind's shelf life (news 7 days, offer 7, limited 14, proposal 14, hiring 30) and sits under Past on its Page, replacing the 14-day rule and 'Earlier' section of 2026-10-02 [V kinds.ts]. #914/#965's 'show until' and 'Earlier' were built to the older rule. Shown, not counted; `sync-roadmap` amends the scenario. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "Retired by the same F121 ruling (2026-10-30): an undated post leaves at its kind's shelf life and sits under Past on its Page, replacing the 2026-10-02 14-day rule and Earlier section [V kinds.ts, scenario-F121.md]. Shown, not counted; `sync-roadmap` amends the scenario.",
      "gaps": [],
      "score": 0,
      "red": false
@@ -828,7 +827,7 @@
      "issues": [
       599
      ],
-     "note": "`group.post_create` writes `starts_at`, `ends_at` and `location_id`; `browse_feed` compares timestamptz bounds and needs `starts_at` for a window; `METRO_TIME_ZONE` in `metro-time.ts` is the one zone, a constant until the metro carries its own (#173) [V]. Built by #183, #212, #258 (no `Reviewed by:`). Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599). Smoked: unknown; smoke-live was green on 05178ea (11-19; routes explore, page, you; 15 passed) [V gh run] but opens no route that shows this criterion. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "`group.post_create` writes `starts_at`, `ends_at` and `location_id`; `browse_feed` (last in 20261031120000_post_kinds.sql) compares timestamptz bounds; `METRO_TIME_ZONE` is one constant until the metro carries its own zone (#173, open) [V]. Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599). Reviewed: #183, #212, #258 have no `Reviewed by:`. Shipped: green on cff5bbf, ea90c1e, 82da793 [V]. Smoked: no smoke route opens the composer or a time window.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -856,7 +855,7 @@
       599,
       601
      ],
-     "note": "`AudienceSwitch.tsx`: 'Anyone' by default, the restricted setting shown but not postable (delivery is cut), the count reads in words at zero; the words 'announcement' and 'bulletin' appear only in code comments and in the unrouted sell flow, not in a composer label [V]. Built by #183 (no `Reviewed by:`). One test reads one label (`PagePosts.test.tsx`); nothing scans every label and state (#601); all unmarked (#599). The composer is not opened by smoke-live. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "`AudienceSwitch.tsx`: Anyone by default, the restricted setting visible but not postable (delivery is cut), the count in words at zero [V]. Checked: one unmarked label test in `PagePosts.test.tsx`; nothing scans every label (#601, #599). Reviewed: #183 has no `Reviewed by:`. Shipped: green on cff5bbf. Smoked: no smoke route opens the composer.",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -882,7 +881,7 @@
      "issues": [
       599
      ],
-     "note": "`group.post_create` is one insert in a transaction; a failed save leaves no row [V actions/group/post.ts]. Built by #183. Checked: unmarked tests (#599). Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "`group.post_create` inserts the post and its tags in one transaction; a failure rolls back [V post.ts]. Checked: unmarked tests; no guard (#599). Reviewed: #183 none. Shipped: green on cff5bbf.",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -909,7 +908,7 @@
       596,
       599
      ],
-     "note": "Half built: `ends_at` with a check constraint (#263), `.ics` with DTEND and `AddToCalendarLink` (#261), and `cardImageAlt` (title, date, place) on browse cards [V]. Missing: a Page's own post photo takes the first line of the post as alt (`PagePosts.tsx` line 701), with no fallback to title, date and place (#596). F099.10 now reads 'owner's words, else the default', which this still lacks. The label 'Event' is not asserted [A]. Held by the build freeze. Re-read 2026-11-20 [V]: no change to the composer, `group.post_create` or the post cards' meaning since 11-06; F134 (#1278, 11-12, second-session reviewed) removed the signed-out withheld card, so signed-out readers get the same cards; still no `[guards F072.n]` marker; #596, #599, #601 open.",
+     "note": "Half built: `ends_at` (#263), `AddToCalendarLink` with DTEND (#261), and title-date-place alt text on browse cards [V]. Missing: a Page's own post photo still takes the post's first line as alt (`PagePosts.tsx:699`), with no title-date-place fallback (#596). No commit touched it since 11-06 [V git log].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -925,38 +924,38 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-11-20",
+   "as_of": "2026-11-27",
    "path": "create-posts/F074-a-series-repeats.md",
-   "n": 8,
+   "n": 9,
    "totals": {
     "built": {
      "yes": 1,
-     "no": 7,
+     "no": 8,
      "unknown": 0
     },
     "checked": {
      "yes": 1,
-     "no": 7,
+     "no": 8,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 8,
+     "no": 9,
      "unknown": 0
     },
     "shipped": {
      "yes": 1,
-     "no": 7,
+     "no": 8,
      "unknown": 0
     },
     "smoked": {
      "yes": 0,
-     "no": 7,
+     "no": 8,
      "unknown": 1
     },
     "pm_looked": {
      "yes": 0,
-     "no": 8,
+     "no": 9,
      "unknown": 0
     }
    },
@@ -978,7 +977,7 @@
      "issues": [
       841
      ],
-     "note": "Built: `post_series` and `page_posts.series_id` (migration 20261012040000), `group.post_create` takes a strict `series`, the composer's 'Repeat weekly' control with weekday chips and two optional dates (#753) [V post.ts, AnnouncementFields.tsx]. OFF in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1` (`SERIES_COMPOSER_ON`) [V AnnouncementFields.tsx:80], unset per #753 [A]. Checked: `[guards F074.1]` whole in `AnnouncementFields.series-whole.test.tsx` (#1070, merged 10-26): seven chips and nothing else, no date field, no other pattern word, what it records passes `seriesSchema`, and an empty weekday list, an interval, individual dates or 'monthly' are refused; seen failing with strict mode off and a Monthly pattern added, per the PR body [V]. The older `partial` markers stand beside it. Reviewed: #753 and #1070 are both `review-skipped`. Shipped: Deploy health green on 685f5d1 and ac7377c [V]. Smoked: the flag hides the control, so no run exercises it. #841 is still open although #1070 did its work ('Refs', not 'Closes'). Re-read 2026-11-20 [V]: no change to the series composer, `group.post_create` or the schema since 11-06; the sample roll now runs daily (#1359, 11-18), market and sample Pages only; the composer control stays behind `NEXT_PUBLIC_SERIES_COMPOSER` [V AnnouncementFields.tsx:85]; Issues #593-#603 and #841 open; #1311 (recurring posts for classes, needs-fix, new territory) is open.",
+     "note": "`post_series`, `page_posts.series_id`, the strict `series` input to `group.post_create` and the composer's Repeat weekly control with weekday chips and two optional dates (#753) [V post.ts, series.ts, AnnouncementFields.tsx]. Off in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1` [V AnnouncementFields.tsx:85]; unset [A]. Checked: `[guards F074.1]` whole in `AnnouncementFields.series-whole.test.tsx` (#1070) [V grep]. Reviewed: #753 and #1070 both `review-skipped`. Shipped: green on 685f5d1, ac7377c [V]. Smoked: the flag hides it. #841 is open though #1070 did its work.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -1003,7 +1002,7 @@
      "issues": [
       593
      ],
-     "note": "Half built, for loader-managed market Pages only: `syncMarketDays` (#963) writes a `post_series` under the system member and real `page_posts` rows with `series_id` for its next dates [V src/lib/unclaimed/market-days.ts]. A member's series from the composer still gets no occurrence rows: `group.post_create` inserts the first post only, and the reminders (#952) compute a series' dates from its weekdays at send time [V post.ts, reminder-sender.ts]. No commit since 10-23 touched this [V git log]. Ticket #593. Re-read 2026-11-20 [V]: no change to the series composer, `group.post_create` or the schema since 11-06; the sample roll now runs daily (#1359, 11-18), market and sample Pages only; the composer control stays behind `NEXT_PUBLIC_SERIES_COMPOSER` [V AnnouncementFields.tsx:85]; Issues #593-#603 and #841 open; #1311 (recurring posts for classes, needs-fix, new territory) is open. `unclaimed-roll` now runs daily (#1359), still only for market Pages [V].",
+     "note": "Half built, for loader-managed market Pages only: `syncMarketDays` (#963) writes real dated rows on a `post_series` [V market-days.ts]. A member's series still gets only its first post; reminders (#952) compute dates from weekdays at send time [V post.ts]. #1481 (11-26) trims sample posts, not series [V git show].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1026,7 +1025,7 @@
      "issues": [
       594
      ],
-     "note": "No job keeps a three-month window for any series. The market path keeps `MARKET_DAYS_AHEAD = 3` dates ahead, rolled on Mondays by `unclaimed-roll` (#963), for market Pages only [V market-days.ts, .github/workflows/unclaimed-roll.yml]. Unchanged since 10-23 [V git log]. Ticket #594. Re-read 2026-11-20 [V]: no change to the series composer, `group.post_create` or the schema since 11-06; the sample roll now runs daily (#1359, 11-18), market and sample Pages only; the composer control stays behind `NEXT_PUBLIC_SERIES_COMPOSER` [V AnnouncementFields.tsx:85]; Issues #593-#603 and #841 open; #1311 (recurring posts for classes, needs-fix, new territory) is open. `unclaimed-roll` now runs daily (#1359), still only for market Pages [V].",
+     "note": "No job keeps a three-month window for any series; market Pages keep three dates ahead (`MARKET_DAYS_AHEAD`) via `unclaimed-roll` [V].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1049,7 +1048,7 @@
      "issues": [
       595
      ],
-     "note": "No window job exists for series; `syncMarketDays` is idempotent (`tests/market-days-db.test.ts`) but is the market loader's, not this job, and there is no uniqueness key on (series, start) [V]. Ticket #595. Re-read 2026-11-20 [V]: no change to the series composer, `group.post_create` or the schema since 11-06; the sample roll now runs daily (#1359, 11-18), market and sample Pages only; the composer control stays behind `NEXT_PUBLIC_SERIES_COMPOSER` [V AnnouncementFields.tsx:85]; Issues #593-#603 and #841 open; #1311 (recurring posts for classes, needs-fix, new territory) is open.",
+     "note": "No window job for series; `syncMarketDays` is idempotent but is the market loader's, and there is no (series, start) uniqueness key [V].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1073,7 +1072,7 @@
       173,
       597
      ],
-     "note": "The arithmetic exists: `metroWallTimeToInstant` is DST-aware, #952's `seriesOccurrences` keeps a series' wall-clock time across the clocks going back, and market days are computed in `METRO_TIME_ZONE` (a constant, `America/Los_Angeles`) [V src/lib/metro/metro-time.ts]. But nothing expands a member's series into occurrences, and the metro carries no zone of its own in code: nothing in `src` reads `markets.timezone` (#173 open) [V grep]. Daylight saving ended 2026-11-01 with no series expansion to exercise it. Ticket #597. Re-read 2026-11-20 [V]: no change to the series composer, `group.post_create` or the schema since 11-06; the sample roll now runs daily (#1359, 11-18), market and sample Pages only; the composer control stays behind `NEXT_PUBLIC_SERIES_COMPOSER` [V AnnouncementFields.tsx:85]; Issues #593-#603 and #841 open; #1311 (recurring posts for classes, needs-fix, new territory) is open.",
+     "note": "The DST-aware arithmetic exists (`metroWallTimeToInstant`, #952's `seriesOccurrences`) on a constant `METRO_TIME_ZONE`; nothing expands a member's series, and the metro carries no zone of its own in code (#173 open) [V src/lib/metro].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1096,7 +1095,7 @@
      "issues": [
       600
      ],
-     "note": "`browse_feed` (last redefined in migration 20261018170000) has no distinct and no grouping by series or parent [V grep]. Market Pages carry three dated rows on one series (#963), so a week window on one of them returns each row. Ticket #600; it must land with the expansion. Re-read 2026-11-20 [V]: no change to the series composer, `group.post_create` or the schema since 11-06; the sample roll now runs daily (#1359, 11-18), market and sample Pages only; the composer control stays behind `NEXT_PUBLIC_SERIES_COMPOSER` [V AnnouncementFields.tsx:85]; Issues #593-#603 and #841 open; #1311 (recurring posts for classes, needs-fix, new territory) is open.",
+     "note": "`browse_feed` (20261031120000_post_kinds.sql) has no distinct and no grouping by series [V grep]. Must land with the expansion.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1119,7 +1118,7 @@
      "issues": [
       602
      ],
-     "note": "`group.post_edit` updates one row in place, but no member-made occurrence rows exist to prove it on [V]. Ticket #602. Re-read 2026-11-20 [V]: no change to the series composer, `group.post_create` or the schema since 11-06; the sample roll now runs daily (#1359, 11-18), market and sample Pages only; the composer control stays behind `NEXT_PUBLIC_SERIES_COMPOSER` [V AnnouncementFields.tsx:85]; Issues #593-#603 and #841 open; #1311 (recurring posts for classes, needs-fix, new territory) is open.",
+     "note": "`group.post_edit` updates one row in place, but no member-made occurrence rows exist to prove it on [V].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1142,7 +1141,30 @@
      "issues": [
       603
      ],
-     "note": "F072 gives a single post these; member-made occurrence rows do not exist. Market-day rows (#963) are ordinary dated posts, and #952 lets a member be reminded of 'every time' on a series [V]. Ticket #603. Re-read 2026-11-20 [V]: no change to the series composer, `group.post_create` or the schema since 11-06; the sample roll now runs daily (#1359, 11-18), market and sample Pages only; the composer control stays behind `NEXT_PUBLIC_SERIES_COMPOSER` [V AnnouncementFields.tsx:85]; Issues #593-#603 and #841 open; #1311 (recurring posts for classes, needs-fix, new territory) is open.",
+     "note": "Member-made occurrence rows do not exist; market-day rows are ordinary dated posts [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "A repeating post says so: every occurrence shows its pattern in plain words (\"Every Tuesday\"), set by the owner's choice of days, and the owner may add their own tags as on any post",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      600
+     ],
+     "note": "New criterion (F074 `## Rulings` 2026-11-25). Half built: owner tags on any post exist (#286, #1180) [V post.ts]. Missing: no card shows a series' pattern; `PagePosts.tsx` reads `seriesId` only to set Remind me's every-time option [V grep]. Tracked in #600 per the 2026-11-25 ruling (\"Issue: #600\") and the #827 closing comment, so no new Issue was filed.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1158,7 +1180,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-11-20",
+   "as_of": "2026-11-27",
    "path": "create-posts/F082-rules-before-publish.md",
    "n": 10,
    "totals": {
@@ -1210,7 +1232,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and writes one `creator_rules_agreements` row per Page (member, Page, version, time); `members.maker_mode_enabled` is gone (#908) [V]. Since #1135 (10-31) the agreement is the one line 'By posting you agree to the Terms' with no tick; the publish action still sends the version. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx`, updated in #1135: a second Page is refused without a fresh agreement, no checkbox, and a standing scan that `members` and `groups` carry no role, type, mode or badge column [V]. Reviewed: #326, #493, #908 carry `Reviewed by:`, but #1135 (which rewrote the step and the guard) says 'second session pending' and carries `needs-fix`, so no. Shipped: Deploy health green on f89b294 and 3df9260. Smoked: no route for the publish card. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` (1) on every publish and writes one `creator_rules_agreements` row per Page [V]. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx`, including a scan that `members` and `groups` carry no role, type, mode or badge column [V]. Reviewed: #326, #493, #908 carry `Reviewed by:`, but #1135 rewrote the step and is unreviewed. Shipped: green on f89b294, 3df9260. Smoked: no smoke route opens the publish card. Re-read 2026-11-27 [V]: `BeforeYouPublish.tsx`, `group.activate`, `creator-rules.ts` and the Terms rules are unchanged since 11-06 (29e04bc added only a Privacy to-do line); #1135 still carries `needs-fix`, \"second session pending\" and no review.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -1235,7 +1257,7 @@
      "issues": [
       1203
      ],
-     "note": "Publish has no input, upload or tick, only Publish and the Terms line; the agreements table has no free-text column; `group.activate` calls no lookup, approval or queue [V BeforeYouPublish.tsx, migration 20261007190000]. Reviewed: rewritten in #1135 ('second session pending'), so no. Checked: the old `[guards F082.2]` sat on the removed rules block; no marker names this half now (#1203). Shipped: green on 3df9260. Smoked: no route for the publish card. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "Publish has only the button and \"By posting you agree to the Terms\"; the agreements table has no free-text column; `group.activate` calls no lookup or queue [V]. Checked: no marker (#1203, open). Reviewed: #1135 unreviewed. Shipped: green on 3df9260. Re-read 2026-11-27 [V]: `BeforeYouPublish.tsx`, `group.activate`, `creator-rules.ts` and the Terms rules are unchanged since 11-06 (29e04bc added only a Privacy to-do line); #1135 still carries `needs-fix`, \"second session pending\" and no review.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -1259,7 +1281,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Spec conflict. There is no rules list with a reason each any more: Don, 2026-10-31 (#1135): 'drop the Rules page; one line at publish', 'By posting you agree to the Terms' [V BeforeYouPublish.tsx, creator-rules.ts, next.config.ts]. The scenario has no dated `## Rulings` line for it (the PR says 'Scenario F082 ... needs updating'), so this cannot be marked retired here. Routed to `scope-scenario`: record the ruling and retire or restate criteria 2b and 6's 'rules'. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "Spec conflict: Don, 2026-10-31 (#1135) dropped the rules page and the four-rule step for one Terms line [V BeforeYouPublish.tsx:6, next.config.ts:18]. The scenario still has no dated `## Rulings` line for it [V scenario-F082.md], so it cannot be retired here. Routed to `scope-scenario`.",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -1280,7 +1302,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`creator_rules_agreements` is named only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated [V migration 20261007190000, grep src]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` (RLS, no policy or grant, both roles refused, no view or function reads it, only `group.activate` names it, no peer surface reads a version) [V]. Reviewed: #326, #493, #908. Shipped: green on f89b294. Unchanged since 10-23 [V git log]. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "`creator_rules_agreements` has RLS on, no policy, grants revoked; only `group.activate` names it [V]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` [V]. Reviewed: #326, #493, #908. Shipped: green on f89b294.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1302,7 +1324,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`group.activate` is the only gate; `group.create` and `update_draft` never ask [V]. Checked: `[guards F082.4]` in `activate.test.ts` [V]. Reviewed: #326 and #493. Shipped: green on 96b0ea6. Unchanged since 10-23 [V]. Smoked: no route for the publish card. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "`group.activate` is the only gate; create and draft edits never ask [V]. Checked: `[guards F082.4]` in `activate.test.ts` [V]. Reviewed: #326, #493. Shipped: green on 96b0ea6. #1459 removed a Create menu entry, not the gate [V git show].",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1326,7 +1348,7 @@
      "issues": [
       1202
      ],
-     "note": "The only step strings are the checklist labels, the missing-parts line and 'By posting you agree to the Terms'; none classifies the member, uses legal or tax language, or asks for entity information [V BeforeYouPublish.tsx]. #1135 deleted the old `[guards F082.5]` scan with the rules block, so no guard stands (#1202; #581 is the F060 sibling). Reviewed: #493 did; #1135 rewrote the step and is 'pending', so no. Shipped: green on 3df9260. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "The step's strings are the checklist, the missing-parts line and the Terms line; none classifies or asks for entity information [V BeforeYouPublish.tsx]. No standing guard since #1135 deleted it (#1202, open). Reviewed: #1135 unreviewed. Shipped: green on 3df9260.",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -1350,7 +1372,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`RULES_VERSION` (still 1; #1135 changed the surface, not the version) is compared on every publish and the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` `[guards F082.6]` x2 (earlier version refused, row recorded) and `create/actions.test.ts` `[guards F082.6]`; 'only operators read it' is F082.3's guard [V]. Reviewed: #493. Shipped: green on 96b0ea6. Note the word 'rules' now means the Terms (see 2b). Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "`RULES_VERSION` compared on every publish, the row written in the publish transaction, no client policy [V]. Checked: `[guards F082.6]` x2 in `activate.test.ts` and one in `create/actions.test.ts` [V grep]. Reviewed: #493. Shipped: green on 96b0ea6. \"Rules\" now means the Terms (see 2b).",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1374,7 +1396,7 @@
      "issues": [
       1204
      ],
-     "note": "Since #1135 the rules live in the Terms: `/rules` answers 301 to `/terms` (`next.config.ts`), and `/terms` is one click from the Publish card, signup, onboarding, the desktop footer and the landing page [V grep]; the You > Rules row (#772) is gone. Treating the Terms as 'the rules' follows Don's 10-31 change (see 2b). Checked: `BeforeYouPublish.test.tsx` and `shell.test.tsx` assert the link and the redirect, unmarked; the old `[guards F082.7]` checks were deleted (#1204). Reviewed: #772 was review-skipped and #1135 is pending. Shipped: green on 3df9260. Smoked: `/terms` has no LIVE_PATHS entry. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "`/rules` 301s to `/terms` (`next.config.ts:19`), and `/terms` is one click from the Publish card and elsewhere [V]. Checked: unmarked tests (#1204, open). Reviewed: #772 review-skipped, #1135 unreviewed. Shipped: green on 3df9260. Smoked: `/terms` is not in LIVE_PATHS [V evals/smoke/live.spec.ts].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -1398,7 +1420,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`group.activate` requires name (or business display name), anchor location and description for every kind; a tag is no longer asked of the member but 'Listed under' is filled from the Page's words, else Neighborhood life, so a Page is never published unlisted (#1181, plan #273 B, `Reviewed by:` second session); the checklist marks the photo optional; `DefaultArt` stands in without one [V activate.ts, BeforeYouPublish.tsx]. Checked: `[guards F082.8]` in `tests/f082-rules-before-publish-db.test.tsx`, which now also asserts the suggested listing [V]. Reviewed: #326, #493, #908, #1181. Shipped: green on f89b294 and 591ab70. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "`group.activate` requires name, location and description; \"Listed under\" is filled from the Page's words so a Page is never unlisted (#1181); photo optional with `DefaultArt` [V]. Checked: `[guards F082.8]` [V]. Reviewed: #326, #493, #908, #1181. Shipped: green on f89b294, 591ab70.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1420,7 +1442,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "The photo rule is in the Terms: 'No photos of kids, ever. Nothing involving kids, pets or anyone who can't speak up for themselves.' (`src/lib/text-pages.ts`), agreed with the Terms line at publish [V]. Draft wording ([public-is-draft]); the scenario's draft sentence and 'with its reason' form are gone. Checked: `[guards F082.9]` in `tests/f082-rules-before-publish-db.test.tsx` (rewritten in #1135 to match the Terms) and `text-pages.test.ts` [V]. Reviewed: the text moved with #1135 ('second session pending'), so no. Shipped: green on 3df9260. Re-read 2026-11-20 [V]: BeforeYouPublish, `group.activate`, the Terms text and the guards are unchanged since 11-06; #1135 still carries `needs-fix` and 'second session pending' and has no recorded review; #1202, #1203, #1204 open.",
+     "note": "In the Terms: \"No photos of kids, ever. ...\" (`src/lib/text-pages.ts:42`), agreed by the Terms line [V]. Checked: `[guards F082.9]` [V]. Reviewed: moved by #1135, unreviewed. Shipped: green on 3df9260.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5239,6 +5261,260 @@
       699
      ],
      "note": "Half built [V `admission.ts`, `scope.ts`, PR #1484]: with several markets open and no location, the visitor chooses; but with exactly one open (today, Sacramento) and no location (local dev, CI, a lookup miss) #1484 shows that market, as an interim \"until the zip ask ships\", which this criterion forbids; no arrow to the selector; the zip ask (F081 2026-11-25) is not built. #588 closed by #1484 on 2026-11-26. F059 criterion 6 still says the one open market is shown; F105's 2026-10-12 ruling is newer. Open #699.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F113",
+   "title": "get specific: a thumbs up teaches SocialUs a member's taste",
+   "area": "explore-map",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-27",
+   "path": "explore-map/F113-thumbs-up-teaches-taste.md",
+   "n": 9,
+   "totals": {
+    "built": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "A thumbs up on every card (Explore, search, Page, post, chat answers) meaning \"more like this\": one tap, tap again to undo; not a save, notifies no one, subscribes to nothing",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1505
+     ],
+     "note": "Not built: no thumbs-up control, table or handler [V grep src, migrations]. The heart (#1172) is not this: a Page's managers see who hearted, by name [V src/ontology/links.ts]. Needs the PM: does the thumbs up replace the heart or sit beside it?",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Labels behind the scenes: every Page, post and listing gets labels from one small model call on its words and photos when posted or edited; the owner sees and can fix them; no member types one; no label shows on a card",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1506
+     ],
+     "note": "Not built: posts carry owner-chosen labels from a shared list (`post_tags`, #1180), not model-assigned ones [V post.ts]. Depends on the item-tag dictionary, #1318 (F092, open).",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Thumbs up are never listed for the member to manage; each counts toward the labels of what was tapped and fades (start at a 60-day half-life)",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1507
+     ],
+     "note": "Not built [V grep].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "The summary in You: \"Seems you're into\", shown once enough agree (start at 5 thumbs up sharing a label over 2 or more days); each line \"That's me\" or \"Not really\"",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1508
+     ],
+     "note": "Not built: nothing on You [V src/app/you].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Discover, Home shelves (F121) and the Ask bar lean toward the summary and recent thumbs up; Find's plain order and search relevance do not change",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1509
+     ],
+     "note": "Not built: nothing ranks by a taste signal [V grep].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "One switch off (\"I don't mind doing this myself\") stops learning and deletes the thumbs up and the summary",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1510
+     ],
+     "note": "Not built: #1172's body says the F113 off switch is not built; the search-sharing opt-out (#923) is a different switch [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "Nobody else sees it: no member, Page owner or visitor can read anyone's thumbs up or summary (a test proves it, seen failing first); no Page learns who gave one; builder accounts count nowhere",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1511
+     ],
+     "note": "Not built: nothing to guard yet [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Never from opens, views, time spent or scrolling",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1512
+     ],
+     "note": "Not built: no learning exists; absence proves nothing until a standing guard does [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "Two weekly numbers on the PM's dashboard: the share of summary lines marked \"That's me\", and how often an answer after a thumbs up leads to an act; counts only",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1513
+     ],
+     "note": "Not built [V].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -13812,74 +14088,74 @@
   },
   "create-posts": {
    "features": 8,
-   "n": 59,
+   "n": 60,
    "red": 2,
    "totals": {
     "built": {
      "yes": 44,
-     "no": 15,
+     "no": 16,
      "unknown": 0
     },
     "checked": {
      "yes": 26,
-     "no": 33,
+     "no": 34,
      "unknown": 0
     },
     "reviewed": {
      "yes": 16,
-     "no": 43,
+     "no": 44,
      "unknown": 0
     },
     "shipped": {
-     "yes": 41,
-     "no": 15,
-     "unknown": 3
+     "yes": 42,
+     "no": 16,
+     "unknown": 2
     },
     "smoked": {
      "yes": 3,
-     "no": 15,
-     "unknown": 41
+     "no": 17,
+     "unknown": 40
     },
     "pm_looked": {
      "yes": 0,
-     "no": 59,
+     "no": 60,
      "unknown": 0
     }
    }
   },
   "explore-map": {
-   "features": 12,
-   "n": 115,
+   "features": 13,
+   "n": 124,
    "red": 2,
    "totals": {
     "built": {
      "yes": 71,
-     "no": 44,
+     "no": 53,
      "unknown": 0
     },
     "checked": {
      "yes": 40,
-     "no": 75,
+     "no": 84,
      "unknown": 0
     },
     "reviewed": {
      "yes": 33,
-     "no": 82,
+     "no": 91,
      "unknown": 0
     },
     "shipped": {
      "yes": 60,
-     "no": 44,
+     "no": 53,
      "unknown": 11
     },
     "smoked": {
      "yes": 39,
-     "no": 44,
+     "no": 53,
      "unknown": 32
     },
     "pm_looked": {
      "yes": 0,
-     "no": 115,
+     "no": 124,
      "unknown": 0
     }
    }
@@ -14034,38 +14310,38 @@
   }
  },
  "all": {
-  "features": 47,
-  "n": 423,
+  "features": 48,
+  "n": 433,
   "red": 31,
   "totals": {
    "built": {
     "yes": 292,
-    "no": 131,
+    "no": 141,
     "unknown": 0
    },
    "checked": {
     "yes": 206,
-    "no": 217,
+    "no": 227,
     "unknown": 0
    },
    "reviewed": {
     "yes": 136,
-    "no": 287,
+    "no": 297,
     "unknown": 0
    },
    "shipped": {
-    "yes": 259,
-    "no": 131,
-    "unknown": 33
+    "yes": 260,
+    "no": 141,
+    "unknown": 32
    },
    "smoked": {
     "yes": 54,
-    "no": 133,
-    "unknown": 236
+    "no": 144,
+    "unknown": 235
    },
    "pm_looked": {
     "yes": 0,
-    "no": 423,
+    "no": 433,
     "unknown": 0
    }
   }
@@ -14104,6 +14380,7 @@
    "F074.6",
    "F074.7",
    "F074.8",
+   "F074.9",
    "F059.2",
    "F059.4a",
    "F059.6a",
@@ -14125,6 +14402,15 @@
    "F105.3a",
    "F105.4",
    "F105.5",
+   "F113.1",
+   "F113.2",
+   "F113.3",
+   "F113.4",
+   "F113.5",
+   "F113.6",
+   "F113.7",
+   "F113.8",
+   "F113.9",
    "F118.1",
    "F118.2",
    "F118.3",
@@ -14456,7 +14742,6 @@
   "NOT-SHIPPED": [
    "F061.3",
    "F072.1a",
-   "F072.2a",
    "F059.10",
    "F070.1",
    "F070.2",
@@ -15027,6 +15312,7 @@
   "F046: scenario retired; shown, not counted",
   "F063: area 'explore-map' is a guess; no Issue carries an area: label",
   "F093: scenario retired; shown, not counted",
+  "F113: area 'explore-map' is a guess; no Issue carries an area: label",
   "F118: area 'explore-map' is a guess; no Issue carries an area: label",
   "F127: area 'ops' is a guess; no Issue carries an area: label",
   "F128: area 'ops' is a guess; no Issue carries an area: label",
@@ -15037,7 +15323,7 @@
   "F030: area 'sign-in-you' is a guess; no Issue carries an area: label",
   "F060: unknown cells: Smoked 4",
   "F061: unknown cells: Shipped 1, Smoked 3",
-  "F072: unknown cells: Shipped 2, Smoked 5",
+  "F072: unknown cells: Shipped 1, Smoked 4",
   "F074: unknown cells: Smoked 1",
   "F082: unknown cells: Smoked 9",
   "F099: unknown cells: Smoked 10",

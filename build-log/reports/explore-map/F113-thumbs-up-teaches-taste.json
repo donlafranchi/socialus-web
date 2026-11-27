@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "feature": "F113",
+  "title": "get specific: a thumbs up teaches SocialUs a member's taste",
+  "area": "explore-map",
+  "area_source": "guess",
+  "gates": "none",
+  "retired": false,
+  "as_of": "2026-11-27",
+  "criteria": [
+    {
+      "id": "1",
+      "text": "A thumbs up on every card (Explore, search, Page, post, chat answers) meaning \"more like this\": one tap, tap again to undo; not a save, notifies no one, subscribes to nothing",
+      "kind": [
+        "behavior"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1505
+      ],
+      "note": "Not built: no thumbs-up control, table or handler [V grep src, migrations]. The heart (#1172) is not this: a Page's managers see who hearted, by name [V src/ontology/links.ts]. Needs the PM: does the thumbs up replace the heart or sit beside it?"
+    },
+    {
+      "id": "2",
+      "text": "Labels behind the scenes: every Page, post and listing gets labels from one small model call on its words and photos when posted or edited; the owner sees and can fix them; no member types one; no label shows on a card",
+      "kind": [
+        "behavior"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1506
+      ],
+      "note": "Not built: posts carry owner-chosen labels from a shared list (`post_tags`, #1180), not model-assigned ones [V post.ts]. Depends on the item-tag dictionary, #1318 (F092, open)."
+    },
+    {
+      "id": "3",
+      "text": "Thumbs up are never listed for the member to manage; each counts toward the labels of what was tapped and fades (start at a 60-day half-life)",
+      "kind": [
+        "behavior",
+        "invariant"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1507
+      ],
+      "note": "Not built [V grep]."
+    },
+    {
+      "id": "4",
+      "text": "The summary in You: \"Seems you're into\", shown once enough agree (start at 5 thumbs up sharing a label over 2 or more days); each line \"That's me\" or \"Not really\"",
+      "kind": [
+        "behavior"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1508
+      ],
+      "note": "Not built: nothing on You [V src/app/you]."
+    },
+    {
+      "id": "5",
+      "text": "Discover, Home shelves (F121) and the Ask bar lean toward the summary and recent thumbs up; Find's plain order and search relevance do not change",
+      "kind": [
+        "behavior"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1509
+      ],
+      "note": "Not built: nothing ranks by a taste signal [V grep]."
+    },
+    {
+      "id": "6",
+      "text": "One switch off (\"I don't mind doing this myself\") stops learning and deletes the thumbs up and the summary",
+      "kind": [
+        "behavior"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1510
+      ],
+      "note": "Not built: #1172's body says the F113 off switch is not built; the search-sharing opt-out (#923) is a different switch [V]."
+    },
+    {
+      "id": "7",
+      "text": "Nobody else sees it: no member, Page owner or visitor can read anyone's thumbs up or summary (a test proves it, seen failing first); no Page learns who gave one; builder accounts count nowhere",
+      "kind": [
+        "invariant"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1511
+      ],
+      "note": "Not built: nothing to guard yet [V]."
+    },
+    {
+      "id": "8",
+      "text": "Never from opens, views, time spent or scrolling",
+      "kind": [
+        "invariant"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1512
+      ],
+      "note": "Not built: no learning exists; absence proves nothing until a standing guard does [V]."
+    },
+    {
+      "id": "9",
+      "text": "Two weekly numbers on the PM's dashboard: the share of summary lines marked \"That's me\", and how often an answer after a thumbs up leads to an act; counts only",
+      "kind": [
+        "behavior"
+      ],
+      "status": "active",
+      "built": "no",
+      "checked": "no",
+      "reviewed": "no",
+      "shipped": "no",
+      "smoked": "no",
+      "pm_looked": "no",
+      "issues": [
+        1513
+      ],
+      "note": "Not built [V]."
+    }
+  ]
+}
