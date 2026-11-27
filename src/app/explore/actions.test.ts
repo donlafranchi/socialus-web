@@ -12,16 +12,17 @@ const { loadBrowse, getUser, from, cookieSet, update, setDefault } = vi.hoisted(
   update: vi.fn(),
 }))
 
-const { searchNeighborhoods } = vi.hoisted(() => ({ searchNeighborhoods: vi.fn() }))
+const { searchNeighborhoods, marketForZip, cookieDelete } = vi.hoisted(() => ({ searchNeighborhoods: vi.fn(), marketForZip: vi.fn(), cookieDelete: vi.fn() }))
+vi.mock('@/lib/signup/zip-market', () => ({ marketForZip }))
 vi.mock('@/lib/places/neighborhood-search', () => ({ searchNeighborhoods }))
 vi.mock('@/actions/_lib/db', () => ({ withTransaction: async (fn: (c: unknown) => unknown) => fn({}) }))
 vi.mock('./load', () => ({ loadBrowse, readSessionSeed: async () => 'seed' }))
 vi.mock('@/actions', () => ({ memberDefaultMetroSet: setDefault }))
 vi.mock('@/lib/action-context', () => ({ resolveActionContext: (o: unknown) => o }))
-vi.mock('next/headers', () => ({ cookies: async () => ({ set: cookieSet }) }))
+vi.mock('next/headers', () => ({ cookies: async () => ({ set: cookieSet, delete: cookieDelete }) }))
 vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser }, from })) }))
 
-import { browseFeedAction, searchAreasAction } from './actions'
+import { browseFeedAction, searchAreasAction, setVisitorZipAction, forgetVisitorZipAction } from './actions'
 
 const METRO = { id: 'm-1', slug: 'portland-vancouver-or-wa' }
 
@@ -78,5 +79,52 @@ describe('#476 — searchAreasAction', () => {
   it('a failed search is an empty list, never a throw', async () => {
     searchNeighborhoods.mockRejectedValue(new Error('db'))
     await expect(searchAreasAction('mid')).resolves.toEqual([])
+  })
+})
+
+// F081 (the PM, 2026-11-25) — a visitor's area "asked as a zip … stored, with an easy opt-out".
+describe('setVisitorZipAction', () => {
+  const metroRow = (slug: string | null) =>
+    from.mockReturnValue({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: slug ? { slug } : null }) }) }) })
+
+  it('a zip in an open market: kept on this device, and Explore reads that market', async () => {
+    getUser.mockResolvedValue({ data: { user: null } })
+    marketForZip.mockResolvedValue({ key: 'sacramento', name: 'Sacramento', open: true, metroId: 'm-sac' })
+    metroRow('sacramento-roseville-ca')
+    loadBrowse.mockResolvedValue({ metro: { id: 'm-sac', slug: 'sacramento-roseville-ca' } })
+    const r = await setVisitorZipAction('95816')
+    expect(r.ok).toBe(true)
+    expect(cookieSet).toHaveBeenCalledWith('su_zip', '95816', expect.objectContaining({ httpOnly: true, path: '/' }))
+    expect(cookieSet).toHaveBeenCalledWith('su_metro', 'sacramento-roseville-ca', expect.objectContaining({ path: '/' }))
+    expect(loadBrowse).toHaveBeenCalledWith('sacramento-roseville-ca', null, expect.anything())
+  })
+
+  it('a waiting market’s zip reads that market too (its waitlist)', async () => {
+    getUser.mockResolvedValue({ data: { user: null } })
+    marketForZip.mockResolvedValue({ key: 'county-06061', name: 'Placer County, CA', open: false, metroId: 'm-w' })
+    metroRow('county-06061')
+    await setVisitorZipAction('96161')
+    expect(loadBrowse).toHaveBeenCalledWith('county-06061', null, expect.anything())
+  })
+
+  it('not five digits, an unknown zip, or a member: refused, and nothing is kept', async () => {
+    getUser.mockResolvedValue({ data: { user: null } })
+    expect(await setVisitorZipAction('958')).toEqual({ ok: false, message: 'A zip is five numbers.' })
+    expect(await setVisitorZipAction('9581a')).toMatchObject({ ok: false })
+    marketForZip.mockResolvedValue(null)
+    expect(await setVisitorZipAction('00000')).toMatchObject({ ok: false, message: expect.stringContaining('recognize') })
+    getUser.mockResolvedValue({ data: { user: { id: 'me' } } })
+    marketForZip.mockResolvedValue({ key: 'sacramento', name: 'Sacramento', open: true, metroId: 'm-sac' })
+    expect(await setVisitorZipAction('95816')).toEqual({ ok: false, message: 'Change your zip on You.' })
+    expect(cookieSet).not.toHaveBeenCalled()
+  })
+})
+
+describe('forgetVisitorZipAction — the opt-out', () => {
+  it('forgets the zip and the market it set, then reads Explore afresh', async () => {
+    await forgetVisitorZipAction()
+    expect(cookieDelete).toHaveBeenCalledWith('su_zip')
+    expect(cookieDelete).toHaveBeenCalledWith('su_metro')
+    expect(loadBrowse).toHaveBeenCalledWith(null, null, expect.anything())
   })
 })

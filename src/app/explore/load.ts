@@ -42,6 +42,7 @@ import { createClient } from '@/lib/supabase-server'
 import { cachedMetros } from '@/lib/feed/metro-catalog'
 import { viewerId } from '@/lib/auth/viewer'
 import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
+import { ZIP_COOKIE, isZip } from '@/lib/browse/visitor-zip'
 import { getBrowseFeed, getHappening, getNearbyFeed } from '@/lib/feed/browse-feed'
 import { REACH_CAP, REACH_TARGET, type Reach } from '@/lib/browse/reach'
 import { happeningWindows } from '@/lib/metro/happening'
@@ -108,6 +109,8 @@ export async function loadBrowse(
   // then this, then the default.
   const member = userId ? await memberMetros(supabase, userId) : null
   const rememberedSlug = userId ? null : await rememberedMetroSlug()
+  // F081 — the zip a visitor gave on this device, shown back to them so they can forget it.
+  const visitorZip = userId ? null : await rememberedZip()
   // #978 — the metros are public and cached; the scope is picked from them, not read again.
   const catalog = await metrosPromise
   const scopeOpts = {
@@ -128,7 +131,7 @@ export async function loadBrowse(
   const metros = withWaitingCounts(catalog, await waitingPromise)
 
   const myInterests = await myInterestsPromise
-  const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'], myInterests }
+  const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'], myInterests, ...(visitorZip ? { visitorZip } : {}) }
   if (!scope) {
     return { ...base, results: [], following: [], metro: null, chosen: false, failed: false, prompt: scopePrompt(admission) }
   }
@@ -446,3 +449,13 @@ async function admissionFor(supabase: Awaited<ReturnType<typeof createClient>>, 
 }
 
 const admittedOf = (scope: { admitted?: true }) => (scope.admitted ? { admitted: true as const } : {})
+
+/** F081 — the zip a visitor gave on this device, or null. */
+async function rememberedZip(): Promise<string | null> {
+  try {
+    const z = (await cookies()).get(ZIP_COOKIE)?.value
+    return isZip(z) ? z : null
+  } catch {
+    return null
+  }
+}
