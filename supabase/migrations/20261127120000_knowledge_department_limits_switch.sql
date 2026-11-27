@@ -19,6 +19,8 @@
 -- workflow), and the settings table is not readable or writable by the
 -- store's login, so no key can flip the switch.
 --
+-- [open-question owner=don raised=2026-11-27] When departments arrive, should each get separate read, write and edit access (today a department's key reads its department's records and writes only its own person's well-worn calls)? The tables, columns and checks stay intact; this switch only decides whether they are enforced.
+--
 -- Switch it back on (departments exist):
 --   select knowledge.set_department_limits(true, 'why');
 -- Tests: supabase/tests/knowledge_department_limits.sql. Every other
