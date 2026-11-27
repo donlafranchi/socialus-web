@@ -7,5 +7,5 @@ runSqlSuite({
   file: 'knowledge_department_limits.sql',
   title: 'knowledge store — department limits switch',
   claim: 'with the department limits off every key acts as the PM; switched on, the old refusals return',
-  atLeast: 4,
+  atLeast: 5,
 })

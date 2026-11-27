@@ -103,6 +103,41 @@ begin
     'off: a key could revoke a key';
 end $$;
 
+-- test: off: the PM's own powers stay with the PM's key (#1535)
+-- [guards F125.7 partial: settling and unsettling stay with the PM's key with the switch off]
+do $$
+declare
+  cid text;
+begin
+  -- settling and unsettling
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.set_settled(%L, true, %L)', current_setting('t.new_rec'), 'x')) ~ 'operator',
+    'off: a building key settled a record';
+  perform pg_temp.act('ops');
+  perform knowledge.set_settled(current_setting('t.new_rec'), true, 'the PM: do not re-raise');
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.set_settled(%L, false, %L)', current_setting('t.new_rec'), 'x')) ~ 'operator',
+    'off: a building key unsettled a record the PM settled';
+  assert (select settled from knowledge.records where id = current_setting('t.new_rec')), 'off: the record is no longer settled';
+
+  -- writing a condition's check: the scheduled job runs that SQL
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"condition","concern":"payments","answer":"x","why":"y","owner":"the PM","audience":"public","checked_by":{"query":"select count(*) from public.members","at_least":1,"line":"members"}}', 't')$q$) ~ 'operator',
+    'off: a building key wrote a condition''s check';
+
+  -- marking a condition by hand
+  perform pg_temp.act('ops');
+  cid := knowledge.record('{"kind":"condition","concern":"payments","answer":"Card payments work","why":"Pre-orders need them.","owner":"the PM","audience":"public"}', 'fixture');
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.set_condition(%L, %L, %L)', cid, 'met', 'x')) ~ 'operator',
+    'off: a building key marked a condition met';
+
+  -- the PM's key still can
+  perform pg_temp.act('ops');
+  assert (knowledge.set_condition(cid, 'met', 'the PM checked'))->>'status' = 'met', 'off: the PM''s key could not mark a condition';
+  assert (knowledge.set_settled(current_setting('t.new_rec'), false, 'the PM reopens it'))->>'settled' = 'false',
+    'off: the PM''s key could not unsettle';
+end $$;
+
 -- test: on: the old refusals return
 -- [guards F125.8 partial: the switch back on]
 reset role;
