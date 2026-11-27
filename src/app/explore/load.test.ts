@@ -534,3 +534,27 @@ describe('F081 — admission by where the visitor is', () => {
     expect(snap.prompt).toEqual({ kind: 'far' })
   })
 })
+
+// F081 — the zip is named only while its own market is the one shown.
+describe('F081 — a visitor\'s zip', () => {
+  it('names the zip while its market is shown', async () => {
+    signedOut()
+    cookieGet.mockImplementation((k: string) => (k === 'su_zip' ? { value: `95816|${METRO.slug}` } : undefined))
+    const snap = await loadBrowse(METRO.slug, null, { withMap: false })
+    expect(snap.visitorZip).toBe('95816')
+  })
+
+  it('a different market shown (an area picked since) never claims the zip', async () => {
+    signedOut()
+    cookieGet.mockImplementation((k: string) => (k === 'su_zip' ? { value: '95816|portland-vancouver-or-wa' } : undefined))
+    const snap = await loadBrowse(METRO.slug, null, { withMap: false })
+    expect(snap.visitorZip).toBeUndefined()
+  })
+
+  it('a member never has one', async () => {
+    signedIn()
+    cookieGet.mockImplementation((k: string) => (k === 'su_zip' ? { value: `95816|${METRO.slug}` } : undefined))
+    const snap = await loadBrowse(METRO.slug, null, { withMap: false })
+    expect(snap.visitorZip).toBeUndefined()
+  })
+})

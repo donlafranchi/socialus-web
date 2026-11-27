@@ -110,3 +110,11 @@ describe('F081 (the PM, 2026-11-25) — someone with no market of their own is a
     expect(await resolveBrowseScope(client(), { catalog, memberMetroId: 'metro-pdx', admission: { kind: 'far' } })).toEqual({ metro: PDX_C, chosen: true })
   })
 })
+
+describe('F081 — a requested market the cached catalog does not hold yet', () => {
+  it('is read directly, not replaced by admission (a waiting county made moments ago)', async () => {
+    const SUTTER = { id: 'metro-sutter', slug: 'county-06101', name: 'Sutter County, CA', is_open: false }
+    const scope = await resolveBrowseScope(client([ROW_SAC, SUTTER]), { catalog: [SAC], requestedSlug: 'county-06101', admission: { kind: 'unknown' } })
+    expect(scope).toEqual({ metro: { id: SUTTER.id, slug: SUTTER.slug, name: SUTTER.name, isOpen: false }, chosen: true })
+  })
+})
