@@ -8,11 +8,7 @@ Where each kind of thing goes (one home each, budgets, generated vs maintained):
 
 ## Always on (every session)
 
-**Talking to Don**
-- Bullets, one line each. Status first, the next ask last. No preamble, recap or narrating.
-- One topic, one answer. Explain only when asked, and then in one sentence.
-- Plain words; ticket numbers only in brackets after.
-- Options as A/B/C with one-line trade-offs and a recommendation. End with the next action.
+**Talking to the PM:** the rule's one home is the store's `practice.talk-to-the-pm`; `get` it before your first reply to the PM or to Dispatch, and follow it in every reply.
 
 **Deciding**
 - Don decides ideas, what is in each version, and words and look-and-feel. You decide the rest, record it and report it.

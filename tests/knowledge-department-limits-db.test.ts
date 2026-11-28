@@ -6,6 +6,6 @@ import { runSqlSuite } from './support/sql-suite'
 runSqlSuite({
   file: 'knowledge_department_limits.sql',
   title: 'knowledge store — department limits switch',
-  claim: 'with the department limits off every key acts as the PM; switched on, the old refusals return',
-  atLeast: 4,
+  claim: 'with the department limits off every key sees and does ordinary work, overrule powers stay with the PM key, checks read only the store; switched on, the old refusals return',
+  atLeast: 14,
 })

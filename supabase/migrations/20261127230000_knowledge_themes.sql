@@ -6,7 +6,9 @@
 --   · A new kind, `theme` (TH-), proposed, live or retired, with the PM's words as its why. It has no parent, place
 --     or steps: the map trigger already refuses those on any kind that is not a map item; the steps live on its
 --     journeys. Audience members, as the maps are: every department reads it, nothing is public.
---   · The PM rules on themes: any key proposes one; only an operator records one live or changes it.
+--   · The PM rules on themes: any key proposes one; only the PM's own key (knowledge._pm_key, #1538) records one live
+--     or changes it, whatever the department switch says. His 2026-11-27 ruling keeps map items going live or changing
+--     with his key, and themes sit above the maps.
 --   · Which journeys sit under which themes: knowledge.theme_journeys, append-only, latest row per pair wins (as
 --     placements do). Not links: a link is never removed, and a journey can leave a theme. Any key attaches or
 --     detaches a journey, with a reason; agents keep it current as ideas arrive.
@@ -20,7 +22,7 @@ insert into knowledge.kinds (slug, statuses, needs_why, id_prefix) values ('them
 create function knowledge._themes_before() returns trigger
 language plpgsql set search_path = '' as $$
 begin
-  if new.kind = 'theme' and not knowledge.is_operator() then
+  if new.kind = 'theme' and not knowledge._pm_key() then
     if tg_op = 'UPDATE' then
       raise exception 'Only an operator changes a theme: the PM rules on themes.' using errcode = 'insufficient_privilege';
     end if;
@@ -38,6 +40,7 @@ create function knowledge.theme(p jsonb, p_reason text, p_evidence jsonb default
 returns text language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._writer();
+  pm boolean := knowledge._pm_key();
 begin
   if exists (select 1 from jsonb_object_keys(p) x where x not in ('id', 'answer', 'why', 'status', 'source')) then
     raise exception 'A theme takes id, answer, why, status and source: its steps live on its journeys.'
@@ -45,7 +48,7 @@ begin
   end if;
   return knowledge.record(
     jsonb_build_object('kind', 'theme', 'audience', 'members', 'departments', '[]'::jsonb,
-                       'status', coalesce(p->>'status', case when w.operator then 'live' else 'proposed' end))
+                       'status', coalesce(p->>'status', case when pm then 'live' else 'proposed' end))
       || jsonb_strip_nulls(jsonb_build_object('id', p->>'id', 'answer', p->>'answer', 'why', p->>'why', 'source', p->>'source')),
     p_reason, p_evidence, p_effective);
 end $$;
@@ -157,7 +160,7 @@ language sql stable set search_path = '' as $$
   select t.id, t.answer, t.status, j.id, j.answer
     from knowledge.current_theme_journeys m
     join knowledge.records t on t.id = m.theme_id and t.status <> 'retired'
-    join knowledge.records j on j.id = m.journey_id
+    join knowledge.records j on j.id = m.journey_id and j.status <> 'retired'
    where m.journey_id = knowledge._journey_of(p_id)
    order by t.id
 $$;
