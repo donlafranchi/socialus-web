@@ -626,6 +626,17 @@ describe('ShopPublicPage — #353 an unclaimed Page', () => {
     expect(screen.queryByTestId('shop-founder')).toBeNull()
   })
 
+  // #1536 (the PM, 2026-11-27: "every venue page, that wording").
+  it('a venue Page says when its shows were last updated, from whose site', () => {
+    renderShop({ shop: { ...UNCLAIMED, displayName: 'Ace of Spades', unclaimed: { ...UNCLAIMED.unclaimed!, showsReadAt: '2026-11-27T14:20:00Z' } } })
+    expect(screen.getByTestId('shows-updated')).toHaveTextContent(/^Shows last updated 27 Nov, from Ace of Spades' own site$/)
+  })
+
+  it('a Page whose shows are not imported says nothing about it', () => {
+    renderShop({ shop: UNCLAIMED })
+    expect(screen.queryByTestId('shows-updated')).toBeNull()
+  })
+
   it('shows none of it on a member-made Page', () => {
     renderShop()
     for (const id of ['unclaimed-label', 'photo-credit', 'description-credit', 'unclaimed-box']) {

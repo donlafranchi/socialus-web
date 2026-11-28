@@ -370,6 +370,12 @@ export function ShopPublicPage({
       {/* Page kinds (dispatch, 2026-10-05): a group leads with its next meetup (Meetup). */}
       {layout.lead === 'join' && <NextUp posts={posts} heading="Next event" limit={1} />}
 
+      {shop.unclaimed?.showsReadAt && (
+        <p data-testid="shows-updated" className="text-caption text-[var(--color-fg-muted)]">
+          {COPY.showsLastUpdated(shop.displayName, new Date(shop.unclaimed.showsReadAt))}
+        </p>
+      )}
+
       <PagePosts
         groupId={shop.groupId}
         posts={posts}
