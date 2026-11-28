@@ -1,6 +1,8 @@
 // F132 (#1256): the lookup tool's verbs for story maps: a journey or any item
 // in its bigger picture, where a new idea would fit, placing a feature or an
 // idea, and proposing a change that is answered with the picture around it.
+// F137 (#1526): themes above the maps: a theme and its journeys, or the themes
+// above a journey, a feature or an idea; story_map and fits name them too.
 //
 // Kept in its own file so the verb list in tools.ts grows by one line. Each
 // verb reads through the store's own functions (map_of, map_place, fit,
@@ -126,12 +128,13 @@ export async function mapText(db: ClientBase, journeyId: string): Promise<string
       (a) => `${a.answer}: ${list(a.tasks.map((t) => `${t.answer} (${builtWords(t.built)}${t.details.length ? `, ${t.details.length} details` : ''})`))}`,
     ),
     m.slices.length ? `Slices: ${m.slices.map((s) => `${q(s.outcome)}, ${s.horizon}, ${s.status}`).join('; ')}` : 'Slices: none drawn yet',
+    await themesLine(db, journeyId),
   ])
 }
 
 export async function itemText(db: ClientBase, id: string): Promise<string | null> {
   const p = await placeView(db, id)
-  return p ? phone(placeLines(p)) : null
+  return p ? phone([...placeLines(p), await themesLine(db, id)]) : null
 }
 
 interface Placement { item_id: string; on_id: string | null; stands_on: string[]; needs_first: string[]; clashes: string[]; basis: string }
@@ -169,6 +172,12 @@ export async function fitText(db: ClientBase, idea: string): Promise<string> {
   )
   let placement: Placement | null = null
   let named = idea
+  // Asked by id, an idea nobody placed is still named and matched by its words.
+  const { rows: byId } = await db.query<{ answer: string }>(
+    `select answer from knowledge.records where id = $1 and kind in ('concept', 'feature')`,
+    [idea.trim()],
+  )
+  if (byId[0]) named = byId[0].answer
   if (known[0]) {
     named = known[0].answer
     const { rows } = await db.query<Placement>('select * from knowledge.current_placements where item_id = $1', [known[0].id])
@@ -176,7 +185,7 @@ export async function fitText(db: ClientBase, idea: string): Promise<string> {
   }
   let on: string | null = placement ? placement.on_id : null
   if (!placement) {
-    const { rows } = await db.query<{ on_id: string }>('select on_id from knowledge.fit($1, 1)', [idea])
+    const { rows } = await db.query<{ on_id: string }>('select on_id from knowledge.fit($1, 1)', [named])
     on = rows[0]?.on_id ?? null
   }
   const { rows: rules } = await db.query<{ answer: string; strength: string }>(
@@ -196,6 +205,7 @@ export async function fitText(db: ClientBase, idea: string): Promise<string> {
       `${q(named)}: no journey yet${placement ? ', as placed by hand' : ': nothing on the maps shares its words'}.`,
       placement && placement.needs_first.length ? `Must be built first: ${list(await wordsOf(db, placement.needs_first))}` : null,
       clashLine(placement ? await wordsOf(db, placement.clashes) : null),
+      'Themes: no theme yet',
       'A new journey would hold it; propose one with propose_map_change or place it with place_on_map.',
     ])
   }
@@ -214,12 +224,106 @@ export async function fitText(db: ClientBase, idea: string): Promise<string> {
     `Stands on: ${list(standsOn, 'nothing built there yet')}`,
     `Must be built first: ${list(needs, notBuilt.length ? `nothing named; not built there yet: ${notBuilt.slice(0, 3).join('; ')}` : 'nothing named')}`,
     clashLine(placement ? await wordsOf(db, placement.clashes) : null),
+    await themesLine(db, on),
     (taskView?.slices ?? []).length ? `Slices across it: ${taskView!.slices.map((s) => q(s.outcome)).join('; ')}` : null,
     placement ? null : 'A guess from its words: place it with place_on_map to keep it.',
   ])
 }
 
+interface ThemeAbove { id: string; answer: string; status: string; journey_id: string; journey: string }
+interface ThemeView {
+  theme: { id: string; answer: string; why: string | null; status: string }
+  journeys: { id: string; answer: string; status: string; built: Built; features: Placed[]; ideas: Placed[]; questions: { id: string; answer: string }[] }[]
+}
+
+async function themesAbove(db: ClientBase, id: string): Promise<ThemeAbove[]> {
+  const { rows } = await db.query<ThemeAbove>('select * from knowledge.themes_for($1)', [id])
+  return rows
+}
+
+/** The themes above an item, on one line. */
+export async function themesLine(db: ClientBase, id: string): Promise<string> {
+  const names = [...new Set((await themesAbove(db, id)).map((t) => q(t.answer)))]
+  return `Themes: ${list(names, 'no theme yet')}`
+}
+
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`
+const themeBuilt = (js: { built: Built }[]): Built =>
+  js.length && js.every((j) => j.built === 'built') ? 'built' : js.some((j) => j.built !== 'not') ? 'partly' : 'not'
+
+export async function themeText(db: ClientBase, id: string): Promise<string | null> {
+  const { rows } = await db.query<{ t: ThemeView | null }>('select knowledge.theme_of($1) as t', [id])
+  const t = rows[0]?.t
+  if (!t) return null
+  return phone([
+    `${q(t.theme.answer)} [${t.theme.id}]: ${plural(t.journeys.length, 'journey')}, ${builtWords(themeBuilt(t.journeys))}` +
+      `${t.theme.status === 'live' ? '' : `, ${t.theme.status}`}.`,
+    t.theme.why ? `Why: ${t.theme.why}` : null,
+    ...t.journeys.flatMap((j) => {
+      const on = [
+        j.features.length ? `Features: ${few([...j.features].sort(byBuilt).map(featureWords), 2).join('; ')}` : null,
+        j.ideas.length ? `Ideas: ${few(j.ideas.map((i) => i.answer), 2).join('; ')}` : null,
+        j.questions.length ? `Open: ${few(j.questions.map((x) => x.answer), 2).join('; ')}` : null,
+      ].filter(Boolean)
+      return [`- ${q(j.answer)} [${j.id}], ${builtWords(j.built)}.`, on.length ? on.join('. ') : null]
+    }),
+    t.journeys.length ? null : 'No journey sits under it yet; add one with theme_journey.',
+  ])
+}
+
+/** A theme, journey, map item, feature or idea, by id or by its words; themes first. */
+async function findForTheme(db: ClientBase, s: string): Promise<{ id: string; kind: string; answer: string } | null> {
+  const { rows } = await db.query<{ id: string; kind: string; answer: string }>(
+    `select id, kind, answer from knowledge.records
+      where kind in ('theme', 'journey', 'activity', 'task', 'detail', 'feature', 'concept') and status <> 'retired'
+        and (id = btrim($1) or lower(answer) = lower(btrim($1))
+             or (length(btrim($1)) >= 4 and lower(answer) like '%' || lower(btrim($1)) || '%'))
+      order by (id = btrim($1)) desc, (lower(answer) = lower(btrim($1))) desc,
+               array_position(array['theme', 'journey', 'feature', 'concept', 'activity', 'task', 'detail'], kind), id
+      limit 1`,
+    [s],
+  )
+  return rows[0] ?? null
+}
+
+async function aboveText(db: ClientBase, it: { id: string; kind: string; answer: string }): Promise<string> {
+  const ts = await themesAbove(db, it.id)
+  if (!ts.length) {
+    const { rows } = await db.query<{ j: string | null }>('select knowledge._journey_of($1) as j', [it.id])
+    return `${q(it.answer)}: no theme yet.${rows[0]?.j ? '' : ' It sits on no journey yet.'}`
+  }
+  return phone([
+    `${q(it.answer)} sits under ${plural(ts.length, 'theme')}:`,
+    ...ts.map((t) => `- ${q(t.answer)} [${t.id}]${t.journey_id === it.id ? '' : `, through ${q(t.journey)}`}${t.status === 'live' ? '' : `, ${t.status}`}`),
+  ])
+}
+
 export const MAP_TOOLS: KnowledgeTool[] = [
+  define({
+    name: 'theme',
+    description:
+      'Themes above the story maps, on one phone screen. With a theme (id or words): its why, its journeys, whether each is built, ' +
+      'the features and ideas placed on each and their open questions. With a journey, a map item, a feature or an idea: every theme ' +
+      'it sits under, and the journey that carries it. With nothing: every theme.',
+    input: { item: z.string().optional().describe('A theme, journey, feature or idea: an id such as TH-0001, JY-LOCAL or F118, or its words.') },
+    run: async (db, { item }): Promise<ToolResult> => {
+      if (!item) {
+        const { rows } = await db.query<{ id: string; answer: string; status: string; n: number }>(
+          `select t.id, t.answer, t.status, (select count(*)::int from knowledge.current_theme_journeys m where m.theme_id = t.id) as n
+             from knowledge.records t where t.kind = 'theme' and t.status <> 'retired' order by t.status <> 'live', t.id`,
+        )
+        if (!rows.length) return { text: 'No theme in the store that this key can read.' }
+        return {
+          text: phone([`Themes (${rows.length}):`, ...rows.map((r) => `${q(r.answer)} [${r.id}], ${plural(r.n, 'journey')}${r.status === 'live' ? '' : `, ${r.status}`}`)]),
+        }
+      }
+      const it = await findForTheme(db, item)
+      if (!it) return { text: `No theme, journey, feature or idea "${item}" that this key can read.`, isError: true }
+      return { text: it.kind === 'theme' ? ((await themeText(db, it.id)) ?? `No theme ${it.id}.`) : await aboveText(db, it) }
+    },
+  }),
+
+
   define({
     name: 'story_map',
     description:

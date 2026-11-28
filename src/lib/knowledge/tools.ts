@@ -324,7 +324,7 @@ export const TOOLS: KnowledgeTool[] = [
   ...PLAN_TOOLS, // F127: plan, plan_changes, roadmap
   ...CAPABILITY_TOOLS, // F129: can_do
   ...ANSWER_TOOLS, // F131: built, where, next
-  ...MAP_TOOLS, // F132: story_map, fits, place_on_map, propose_map_change, decide_map_change
+  ...MAP_TOOLS, // F132: story_map, fits, place_on_map, propose_map_change, decide_map_change; F137: theme
   ...RUN_TOOLS, // F135: runs, drop_idea
 
   define({
