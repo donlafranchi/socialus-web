@@ -6,10 +6,10 @@
 //   1. Marks a condition by hand, when the run was asked to (the PM, from his
 //      phone: Actions → Knowledge conditions → Run workflow).
 //   2. Runs every check: a query (a number crossing a line, or true/false) or
-//      a named test file. A query runs as ONE statement (the extended
-//      protocol refuses a second, so a check cannot `commit;` its way out),
-//      in a read-only transaction with a timeout, on its own connection; only
-//      an operator can have written it (the store refuses anyone else). It
+//      a named test file. A query runs as the knowledge_check role, which
+//      reads only the knowledge schema and cannot change role (#1549), in a
+//      read-only transaction with a timeout, on its own connection, and cannot
+//      `commit;` its way out; only the PM's key can have written it. It
 //      must return one number or true/false. A check that errors changes
 //      nothing, and only its error code reaches the public run summary.
 //   3. Records each change of status through knowledge.set_condition, with
@@ -219,6 +219,9 @@ export function coerceValue(value: unknown): number | boolean | null {
   if (typeof value === 'boolean' || typeof value === 'number') return value
   if (typeof value === 'bigint') return Number(value)
   if (typeof value === 'string' && /^-?\d+(\.\d+)?$/.test(value)) return Number(value)
+  // A check's value arrives as text (knowledge._run_check): a boolean as true/false.
+  if (value === 'true' || value === 't') return true
+  if (value === 'false' || value === 'f') return false
   throw new Error('a check returns one number or true/false')
 }
 
@@ -230,14 +233,20 @@ export function redact(e: unknown): string {
     : 'the check failed to run'
 }
 
-/** Runs one check query on its own connection: one statement, read-only, with a timeout. */
+/**
+ * Runs one check query on its own connection, read-only, with a timeout, as
+ * the knowledge_check role through knowledge._run_check (#1549): it reads the
+ * knowledge schema and nothing else, and cannot change role, so no check can
+ * read member data whoever wrote it. Returns the first value as text.
+ */
 export async function readOnlyQuery(reader: ClientBase, sql: string): Promise<unknown> {
   await reader.query('begin transaction read only')
   try {
     await reader.query(`set local statement_timeout = '20s'`)
-    // The extended protocol takes exactly one statement: `commit; …` is refused.
-    const { rows } = await reader.query({ text: sql, queryMode: 'extended' } as unknown as string)
-    return rows[0] ? Object.values(rows[0])[0] : null
+    // The check travels as a value, never as SQL of this statement; inside,
+    // a transaction command (`commit; …`) is refused.
+    const { rows } = await reader.query<{ value: string | null }>('select knowledge._run_check($1) as value', [sql])
+    return rows[0]?.value ?? null
   } finally {
     await reader.query('rollback')
   }

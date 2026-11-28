@@ -6,6 +6,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import {
+  coerceValue,
   composeIssue,
   enterStore,
   leaveStore,
@@ -291,10 +292,32 @@ describe.skipIf(!RUNNABLE)('F126 — the scheduled check, against the store', ()
     try {
       await expect(
         readOnlyQuery(reader, "commit; select current_setting('transaction_read_only')"),
-      ).rejects.toThrow(/multiple commands/)
+      ).rejects.toThrow(/transaction commands/)
       expect(await readOnlyQuery(reader, "select current_setting('transaction_read_only')")).toBe('on')
       await expect(readOnlyQuery(reader, 'create temp table t_nope (x int)')).rejects.toThrow(/read-only/)
     } finally {
+      reader.release()
+    }
+  })
+
+  // #1549: a check ran as the job's own login and could read any member's data.
+  it('runs a check query as a role that reads the knowledge schema and nothing else', async () => {
+    const reader = await pool.connect()
+    try {
+      // A table outside the store, made by the job's own login: a stand-in for member data.
+      await reader.query('create temp table t_member_data (email text)')
+      await reader.query(`insert into t_member_data values ('someone@example.org')`)
+      await expect(readOnlyQuery(reader, 'select count(*) from pg_temp.t_member_data')).rejects.toThrow(/permission denied/)
+      // Nor can a check step back up to the login it was called from.
+      await expect(
+        readOnlyQuery(reader, "select set_config('role', current_user, true), (select count(*) from pg_temp.t_member_data)"),
+      ).rejects.toThrow(/permission denied|security-definer/)
+      await expect(readOnlyQuery(reader, 'reset role')).rejects.toThrow(/security-definer/)
+      // The store itself still reads: a count, and a true/false.
+      expect(coerceValue(await readOnlyQuery(reader, 'select count(*) from knowledge.records'))).toBeTypeOf('number')
+      expect(coerceValue(await readOnlyQuery(reader, 'select exists (select 1 from knowledge.kinds)'))).toBe(true)
+    } finally {
+      await reader.query('drop table if exists pg_temp.t_member_data').catch(() => {})
       reader.release()
     }
   })
