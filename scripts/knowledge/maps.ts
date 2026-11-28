@@ -27,8 +27,11 @@ export interface SeedActivity { answer: string; tasks: SeedTask[] }
 export interface SeedSlice { id: string; outcome: string; horizon: 'now' | 'next' | 'later'; rank: number; why?: string; takes: string[] }
 export interface SeedJourney { id: string; answer: string; why?: string; activities: SeedActivity[]; slices?: SeedSlice[] }
 export interface SeedIdea { name: string; on: string | null; stands_on?: string[]; needs_first?: string[]; clashes?: string[] }
+/** F137: a theme the PM named, in his words, and the journeys under it. */
+export interface SeedTheme { id: string; answer: string; why: string; journeys: string[] }
 export interface MapSeed {
   journeys: SeedJourney[]
+  themes?: SeedTheme[]
   features: Record<string, string | null>
   ideas: Record<string, SeedIdea>
 }
@@ -139,6 +142,9 @@ export interface MapSummary {
   shipped: number
   placed: number
   noJourneyYet: number
+  /** F137: themes recorded, and journeys put under one, this run. */
+  themes: number
+  themeJourneys: number
   unplaced: string[]
   problems: string[]
 }
@@ -204,13 +210,34 @@ export interface MapSources {
 
 /** As the store's login, holding an operator key: bring the story maps in. */
 export async function loadMaps(db: ClientBase, src: MapSources): Promise<MapSummary> {
-  const sum: MapSummary = { items: 0, slices: 0, features: 0, shipped: 0, placed: 0, noJourneyYet: 0, unplaced: [], problems: [] }
+  const sum: MapSummary = { items: 0, slices: 0, features: 0, shipped: 0, placed: 0, noJourneyYet: 0, themes: 0, themeJourneys: 0, unplaced: [], problems: [] }
   // An empty source is a wrong path, not an empty plan: say so.
   if (!src.walkthroughs.length) sum.problems.push('no walk-throughs found (planning/uat-journeys.json): none became journeys')
   if (!src.rollup.length) sum.problems.push('no built features found (build-log/reports/rollup.json): none were recorded')
 
   for (const j of src.seed.journeys) await loadJourney(db, j, SEED_SOURCE, sum)
   for (const w of src.walkthroughs) await loadJourney(db, walkthroughJourney(w), WALK_SOURCE, sum)
+
+  // F137: the themes the PM named, and the journeys under each. A journey an agent added since stays.
+  for (const t of src.seed.themes ?? []) {
+    if (!(await have(db, t.id))) {
+      await db.query('select knowledge.theme($1::jsonb, $2)', [
+        JSON.stringify({ id: t.id, answer: t.answer, why: t.why, status: 'live', source: SEED_SOURCE }),
+        'Imported: a theme the PM named (F137).',
+      ])
+      sum.themes++
+    }
+    for (const j of t.journeys) {
+      if (!(await have(db, j))) {
+        sum.problems.push(`${t.id}: no journey ${j}; not put under it`)
+        continue
+      }
+      const { rows } = await db.query<{ r: { id?: number } }>('select knowledge.theme_journey($1, $2, true, $3) as r', [
+        t.id, j, 'Imported: the PM named this theme, and this journey is under it.',
+      ])
+      if (rows[0].r.id) sum.themeJourneys++
+    }
+  }
 
   // Built features the store lacks: shipped scenarios leave socialus-plan, so
   // the roll-up is where their state is.
@@ -288,7 +315,7 @@ export async function loadMaps(db: ClientBase, src: MapSources): Promise<MapSumm
 export function mapReport(s: MapSummary): string[] {
   return [
     `Story maps: ${s.items} item(s) and ${s.slices} slice(s) recorded, ${s.features} built feature(s) recorded, ${s.shipped} shipped-state row(s), ` +
-      `${s.placed} placement(s) (${s.noJourneyYet} "no journey yet").`,
+      `${s.placed} placement(s) (${s.noJourneyYet} "no journey yet"), ${s.themes} theme(s) and ${s.themeJourneys} journey(s) under a theme.`,
     ...(s.unplaced.length ? [`Not placed yet (${s.unplaced.length}): ${s.unplaced.join(', ')}`] : []),
     ...s.problems.map((p) => `- ${p}`),
   ]
