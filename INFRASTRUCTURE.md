@@ -772,6 +772,7 @@ deployment view: what belongs in Vercel, and which item put it there.
 | `ANTHROPIC_MODERATION_KEY` | Production, server-only | F100: the AI first-pass read of reported content. Unset means no read is made. Named for its purpose; the GitHub Actions secret `ANTHROPIC_API_KEY` for problem-report triage is separate |
 | `DATABASE_URL` | **Production and Preview** (and local) | Action-layer pool, item 10 — see the note below |
 | `KNOWLEDGE_DB_PASSWORD` | Production, server-only | F125: the knowledge store's own login, for the lookup tool at `/api/knowledge/mcp`; the same value as the GitHub secret of that name (Actions → Knowledge keys). Unset means the tool lets nobody in |
+| `KNOWLEDGE_KEY` | An agent's machine or cloud session, never a repo | The agent's own key for the lookup tool, read by `.mcp.json`. Mac: the `env` block of `~/.claude/settings.json` (a shell profile is not seen by the desktop app). Cloud (web) sessions: a saved network secret for www.socialus.org in the Claude Code cloud environment settings (#1248) |
 | `SIGNUP_BLOCKED_EMAIL_DOMAINS` | Optional | 8 |
 | `SIGNUP_ALLOWED_EMAIL_DOMAINS` | Optional | 8 |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Local only | Playwright evals |
