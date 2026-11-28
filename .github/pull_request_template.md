@@ -8,8 +8,8 @@
 ## Review
 <!-- Only for: Path: new territory · new or changed member-facing copy · a deviation
      from the scenario · a judgement-word criterion. Add the `human-review` label.
-     Written for someone holding a phone who has not read the ticket: no paths,
-     no function names, no ticket numbers. -->
+     Words follow the store's practice.talk-to-the-pm: plain words for someone
+     holding a phone, no paths, function names or ticket numbers. -->
 **Open on socialus.org after merge:** <page> · 1. … 2. … 3. … · **You should see:** …
 
 Path: well-worn | new territory
