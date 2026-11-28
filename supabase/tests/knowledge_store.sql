@@ -620,3 +620,18 @@ begin
   assert pg_temp.refused(format('select knowledge.link(%L, %L, %L)', current_setting('t.d'), c, 'not_a_link_type')) ~ 'link type',
     'an unknown link type was accepted';
 end $$;
+
+-- test: a key is looked up once per query, not once per record it reads
+-- [guards #1553: an agent's theme lookup timed out because every row re-hashed its key]
+do $$
+declare
+  l text;
+  per_row text := '';
+begin
+  perform pg_temp.act('build');
+  for l in execute 'explain (verbose, costs off) select count(*) from knowledge.records' loop
+    if l ~ '^\s*(->\s*)?(Seq Scan|Index Scan|Index Only Scan|Bitmap Heap Scan)' then per_row := ''; end if;
+    if l ~ 'Filter:.*(can_see|_agent)\(' and l !~ '\$\d|InitPlan' then per_row := per_row || l; end if;
+  end loop;
+  assert per_row = '', 'the records rule calls the key lookup on every row: ' || per_row;
+end $$;

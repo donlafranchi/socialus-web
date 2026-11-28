@@ -9,5 +9,5 @@ runSqlSuite({
   title: 'F125 — the knowledge store',
   claim:
     'the knowledge store keeps every version, refuses what its rules refuse, and walls departments off from each other',
-  atLeast: 12,
+  atLeast: 13,
 })
