@@ -14,7 +14,7 @@
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { createClient } from '@supabase/supabase-js'
 import { Client } from 'pg'
-import { HTML_FOLLOW, remindVenueFollowers, parseShows, robotsAllows, syncVenueShows, upcoming, SHOWS_AHEAD_DAYS, type VenueShow } from '../../src/lib/unclaimed/venue-events'
+import { HTML_FOLLOW, readable, remindVenueFollowers, parseShows, robotsAllows, syncVenueShows, upcoming, SHOWS_AHEAD_DAYS, type VenueShow } from '../../src/lib/unclaimed/venue-events'
 import { FetchError, getWithRetries, hostPacer, tallyStrikes } from '../../src/lib/unclaimed/polite-fetch'
 import { eventPhoto } from '../../src/lib/unclaimed/event-photo'
 import { uploadPhotos } from '../../src/lib/unclaimed/upload'
@@ -87,7 +87,7 @@ async function read(p: PlannedPage, now: Date): Promise<VenueShow[]> {
 async function main() {
   const apply = process.argv.includes('--apply')
   const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1]!.toLowerCase() : null
-  const venues = readPlanned().listed.filter((p) => p.events && (!only || p.name.toLowerCase().includes(only)))
+  const venues = readPlanned().listed.filter((p) => readable(p) && (!only || p.name.toLowerCase().includes(only)))
   const now = new Date()
   const db = apply ? new Client({ connectionString: process.env.DATABASE_URL }) : null
   if (db) {

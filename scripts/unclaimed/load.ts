@@ -179,7 +179,8 @@ async function main() {
       if (!r.photo_url) failed.push({ name: r.name, error: 'no cover photo' })
       // #997 — a venue's posts are its real shows, imported daily by events.ts; it has no samples.
       if (venues.has(r.public_info_url as string)) continue
-      if (r.samples < 3 || (r.post_photos as string[]).filter(Boolean).length < 3) failed.push({ name: r.name, error: `only ${r.samples} sample posts with pictures` })
+      // #1480 — one sample a Page (Don, 2026-11-26); was three.
+      if (r.samples < 1 || (r.post_photos as string[]).filter(Boolean).length < 1) failed.push({ name: r.name, error: `${r.samples} sample posts with pictures, 1 wanted` })
     }
     summary(`${rows.length} live Pages checked`)
   } finally {
